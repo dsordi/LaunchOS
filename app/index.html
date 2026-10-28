@@ -212,6 +212,11 @@ function ticketMensalBlend(o){
   const pl=getPlanos(o), tot=pl.reduce((a,p)=>a+(+p.mix||0),0)||1;
   return pl.reduce((a,p)=>a+(+p.ticketMensal||0)*((+p.mix||0)/tot),0);
 }
+// ticket médio simples: soma dos tickets dos formatos ÷ nº de formatos (para exibição na Carteira)
+function ticketMedio(o){
+  const pl=getPlanos(o), n=pl.length||1;
+  return pl.reduce((a,p)=>a+(+p.ticketMensal||0),0)/n;
+}
 
 function computeScenario(o, convMult){
   const conv=(o.convLista/100)*convMult;
@@ -290,14 +295,14 @@ function viewList(){
     return `<tr class="clickable" data-open="${o.id}">
       <td><b>${esc(o.nome)||'<span class=muted>sem nome</span>'}</b><br><span class="muted">${esc(o.nicho)}</span></td>
       <td>${esc(o.produtoNome)||'—'}</td>
-      <td>${brl(o.ticketMensal)}/mês</td>
+      <td>${brl(ticketMedio(o))}/mês</td>
       <td><span class="chip ${cls}">${v}</span></td>
       <td><button class="btn ghost sm" data-del="${o.id}">excluir</button></td></tr>`;}).join('')
     : `<tr><td colspan="5" class="muted" style="padding:22px">Nenhuma oportunidade ainda. Clique em “Nova oportunidade”.</td></tr>`;
   main.innerHTML=`<h1>Oportunidades</h1><p class="sub">De uma frase a um go/no-go defensável. Veredito pelo cenário conservador.</p>
   <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
     <h2 style="margin:0">Carteira</h2><button class="btn" data-view="new">➕ Nova oportunidade</button></div>
-  <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket mensal</th><th>Veredito</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket médio</th><th>Veredito</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 const BIBLIO=[
