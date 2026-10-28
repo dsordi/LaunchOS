@@ -95,6 +95,19 @@
   .statbar .s b{font-family:var(--fhead);display:block;font-size:18px;color:#fff} .statbar .s span{font-size:11px;color:var(--muted)}
   .biblio li{margin-bottom:7px}
   @media(max-width:720px){.app{flex-direction:column}aside{width:auto;height:auto;position:static}main{padding:18px}.scenarios{grid-template-columns:1fr}.rede-row{grid-template-columns:1fr 1fr}}
+  /* GTM Builder */
+  .gtm-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:900px){.gtm-split{grid-template-columns:1fr}}
+  .mkbar{position:relative;height:30px;background:#001326;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:8px 0 4px}
+  .mkbar .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,140,0,.45),rgba(255,140,0,.9));transition:width .25s}
+  .mkbar .fill.over{background:linear-gradient(90deg,rgba(239,68,68,.5),rgba(239,68,68,.95))}
+  .mkbar .lbl{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+  .mkbar .cap{position:absolute;right:0;top:-3px;bottom:-3px;width:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  table.ledger td{vertical-align:top;font-size:12.5px}
+  table.ledger td:first-child{font-weight:600;color:#dbe7f2}
+  table.ledger .src{font-size:11px;color:var(--muted)}
+  .gaps{margin:0;padding-left:2px;list-style:none}
+  .gaps li{margin-bottom:8px;font-size:13px;line-height:1.45}
   /* pitch / relatório (adicionado) */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:1000}
   .modal{background:#fff;color:#0f172a;max-width:800px;width:100%;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -131,12 +144,13 @@
       <div class="sec">Operação</div>
       <a data-view="list" class="active">📋 Oportunidades</a>
       <a data-view="new">➕ Nova oportunidade</a>
+      <a data-view="gtm">🧭 GTM Builder</a>
       <a data-view="gerador">🚀 Estrutura de lançamento</a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio">📚 Princípios da base</a>
     </nav>
     <div class="foot">
-      Modelo: assinatura recorrente · sem reembolso integral.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br><br>v1.1 · 2026-10-28
+      Modelo: assinatura recorrente · sem reembolso integral.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br><br>v1.2 · 2026-10-28
     </div>
   </aside>
   <main id="main"></main>
@@ -156,6 +170,18 @@ const num=(n,d=0)=>isFinite(n)?n.toLocaleString('pt-BR',{maximumFractionDigits:d
 const pct=(n)=>isFinite(n)?(n*100).toLocaleString('pt-BR',{maximumFractionDigits:2})+'%':'—';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=(s)=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- dados de referência (mercado real) ---------------- */
+// Tetos de mercado reais da B3 (2º tri 2026 — SRC-039) para dimensionamento bottom-up
+const NICHOS_B3=[
+  {k:'futuros',label:'Day trade / futuros (BM&F)',teto:235800,fonte:'B3 2T2026 (SRC-039)',nota:'~235,8 mil CPFs negociaram derivativos; Mini Índice ~172,8 mil.'},
+  {k:'acoes',label:'Ações à vista',teto:4300000,fonte:'B3 2T2026 (SRC-039)',nota:'~4,3 mi CPFs; ~1,7 mi ativos/mês.'},
+  {k:'rv_total',label:'Renda variável (total)',teto:5700000,fonte:'B3 2T2026 (SRC-039)',nota:'~5,7 mi CPFs em equities.'},
+  {k:'fii',label:'FIIs',teto:3400000,fonte:'B3 2T2026 (SRC-039)',nota:'~3,4 mi CPFs; PF = 74% do mercado.'},
+  {k:'educacao',label:'Educação financeira (amplo)',teto:null,fonte:'—',nota:'Sem teto de bolsa; o limite é a audiência alcançável do expert.'}
+];
+// Âncoras internas da Nelogica (SRC-035/036)
+const NELOGICA_REF={ticketMin:76,ticketMax:148,fonte:'Nelogica (SRC-036)',dorPrimarias:['Controle emocional / psicológico','Gestão de tempo','Falta de conhecimento','Buscar renda extra']};
 
 function blankOpp(){
   return {
@@ -180,6 +206,9 @@ function blankOpp(){
     partes:[{nome:'Nelogica',pct:100,operador:true}],
     // execução (E6/E7)
     dataCarrinho:'', plano:null,
+    // GTM Builder (diagnóstico / mercado / ângulo)
+    nichoB3:'futuros', canalPrincipal:'youtube', expertConteudo:'misto', expertAutoridade:'media', expertCert:false,
+    dorPrimaria:'Controle emocional / psicológico', angulo:'educacao', adesaoMercado:5,
     status:'rascunho'
   };
 }
@@ -937,14 +966,246 @@ function viewGerador(){
   };
 }
 
+/* ---------------- GTM Builder (intake-alavanca → derivação → ledger de confiança) ---------------- */
+let gtmOpp=null;
+const audienciaEngajada=(o)=>(o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0)*((+r.engaj||0)/100),0);
+function nichoInfo(o){return NICHOS_B3.find(n=>n.k===(o.nichoB3||'futuros'))||NICHOS_B3[0];}
+function mercadoGTM(o){
+  const alc=audienciaAlcancavel(o), ades=(+o.adesaoMercado||0)/100;
+  const clientesPot=alc*ades, teto=nichoInfo(o).teto;
+  const clientesCap= teto!=null?Math.min(clientesPot,teto):clientesPot;
+  const estoura= teto!=null && clientesPot>teto;
+  return {alc,ades:+o.adesaoMercado||0,clientesPot,teto,clientesCap,estoura,recCliente:receitaPorCliente(o),tk:ticketMensalBlend(o),receitaPot:clientesCap*receitaPorCliente(o)};
+}
+function anguloGTM(o){
+  const nk=o.nichoB3||'futuros', complexo=['futuros','acoes','rv_total','fii'].includes(nk), escolhido=o.angulo||'educacao';
+  let alerta=null;
+  if(escolhido==='promessa') alerta='Promessa de ganho é o ângulo de MENOR engajamento nas redes (ação/day trade ficam em último em interação — FInfluence SRC-037) e o de MAIOR risco de compliance (o público confunde aposta×investimento — SRC-038). Recomendo pivotar para educação/disciplina.';
+  else if(escolhido==='hibrido'&&complexo) alerta='Híbrido em nicho de renda variável: qualquer promessa de retorno passa pelo portão jurídico (GAP-003). Mantenha o peso na educação.';
+  return {escolhido,alerta,complexo};
+}
+function ledgerGTM(o){
+  const m=mercadoGTM(o), r=analyze(o), s=r.b, tkOk=(m.tk>=NELOGICA_REF.ticketMin&&m.tk<=NELOGICA_REF.ticketMax);
+  return [
+    {item:'Audiência engajada',val:num(audienciaEngajada(o)),mk:'A',src:'Inputs do expert',tipo:'observado se os números forem reais'},
+    {item:'Audiência alcançável',val:num(m.alc),mk:'D',src:'Taxa de alcance (premissa)',tipo:'estimado'},
+    {item:'Teto de mercado do nicho',val:(m.teto!=null?num(m.teto)+' CPFs':'sem teto de bolsa'),mk:'A',src:nichoInfo(o).fonte,tipo:'observado (dado da bolsa)'},
+    {item:'Clientes potenciais',val:num(m.clientesCap,0),mk:'C',src:'base × adesão, limitado pelo teto',tipo:'derivado de premissas'},
+    {item:'Ticket médio',val:brl(m.tk)+'/mês',mk:'B',src:'Formatos do produto · faixa real Nelogica R$76–148 (SRC-036)',tipo:(tkOk?'dentro da faixa real':'FORA da faixa real da Nelogica')},
+    {item:'Conversão lead→venda',val:pct((o.convLista||0)/100),mk:'D',src:'Premissa — sem benchmark de lançamento',tipo:'estimado · o piloto valida'},
+    {item:'CAC calculado',val:brl(s.cac),mk:'C',src:'(mídia + base Nelogica) ÷ clientes efetivos',tipo:'derivado'},
+    {item:'Ângulo recomendado',val:'Educação/disciplina',mk:'B',src:'FInfluence SRC-037 + dor Nelogica SRC-035/036',tipo:'convergência independente'},
+    {item:'Veredito go/no-go',val:r.verdict,mk:'C',src:'Decisor E5 — cenário conservador',tipo:'derivado das premissas'}
+  ];
+}
+function gapsGTM(o){
+  const g=[], m=mercadoGTM(o);
+  if(!(o.redes||[]).some(r=>+r.seguidores>0)) g.push('Seguidores por rede não informados — a audiência fica zero.');
+  if(!(o.redes||[]).some(r=>+r.engaj>0)) g.push('Engajamento por rede vazio — sem ele a audiência engajada não é medida (vira métrica de vaidade).');
+  if(!m.ades) g.push('Adesão do mercado não definida — o mercado endereçável fica indefinido.');
+  if(!m.tk) g.push('Ticket dos formatos vazio — sem ticket não há receita (edite os formatos no detalhe completo).');
+  g.push('Conversão lead→venda ('+(o.convLista||0)+'%) é premissa [D]: nenhum benchmark de lançamento a sustenta — é o número que o piloto valida.');
+  if(!(+o.qtdLeadsDB)) g.push('Base de leads Nelogica não informada — pode subestimar o topo do funil.');
+  if(o.intencao==='baixa') g.push('Intenção de compra baixa: audiência grande ≠ venda — gere sinal de intenção antes de projetar (GAP-005).');
+  if(m.estoura) g.push('Clientes potenciais estouram o teto real do nicho — a projeção está acima do mercado que existe.');
+  if(o.rendaVariavel||(nichoInfo(o).teto!=null&&['futuros','acoes','rv_total','fii'].includes(o.nichoB3))) g.push('Compliance: nicho de renda variável — promessas passam por portão jurídico antes de ir ao ar (GAP-003).');
+  return g;
+}
+function diagReadoutGTM(o){
+  const seg=seguidoresTotais(o),alc=audienciaAlcancavel(o),eng=audienciaEngajada(o);
+  const engMed= seg>0?(o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0)*(+r.engaj||0),0)/seg:0;
+  let alert='';
+  if(seg>0&&engMed>0&&engMed<2) alert+=`<div class="alertbox">Engajamento ${num(engMed,1)}%: <b>seguidores ≠ influência</b> (Pissarra SRC-034 [A]). Pese a audiência <b>engajada</b>, não o total.</div>`;
+  if(o.intencao==='baixa') alert+=`<div class="alertbox">Intenção baixa: audiência grande não prevê venda (GAP-005).</div>`;
+  return `<div class="statbar">
+    <div class="s"><b>${num(seg)}</b><span>seguidores (bruto)</span></div>
+    <div class="s"><b>${num(alc)}</b><span>alcançável ×${o.alcancePct||0}%</span></div>
+    <div class="s"><b>${num(eng)}</b><span>audiência engajada</span></div>
+    <div class="s"><b>${num(engMed,1)}%</b><span>engaj. ponderado</span></div></div>${alert}`;
+}
+function mercadoReadoutGTM(o){
+  const m=mercadoGTM(o),ni=nichoInfo(o);let bar;
+  if(m.teto!=null){const fp=Math.min(100,m.teto>0?(m.clientesPot/m.teto)*100:0);
+    bar=`<div class="mkbar"><div class="fill ${m.estoura?'over':''}" style="width:${fp.toFixed(1)}%"></div><div class="cap"></div><div class="lbl">${num(m.clientesPot,0)} / ${num(m.teto)} CPFs</div></div><div class="muted" style="font-size:11px">Barra cheia = teto real do nicho (${esc(ni.fonte)}). ${esc(ni.nota)}</div>`;
+  } else bar=`<div class="muted" style="font-size:12px">Nicho sem teto de bolsa: limite = audiência alcançável (${num(m.alc)}). ${esc(ni.nota)}</div>`;
+  const alert=m.estoura?`<div class="alertbox"><b>Estoura o teto de mercado.</b> Clientes potenciais (${num(m.clientesPot,0)}) passam do nicho real (${num(m.teto)} CPFs — ${esc(ni.fonte)}). Reduza adesão/alcance ou amplie o nicho.</div>`:'';
+  return `<div class="casc">
+     <div class="line sub"><span>Audiência alcançável</span><span>${num(m.alc)}</span></div>
+     <div class="line sub"><span>× Adesão do mercado (${m.ades}%) <span class="mark mD">D</span></span><span>${num(m.clientesPot,0)}</span></div>
+     <div class="line"><span>Clientes potenciais (limitado pelo teto)</span><span>${num(m.clientesCap,0)}</span></div>
+     <div class="line sub"><span>× Receita contratada / cliente</span><span>${brl(m.recCliente)}</span></div>
+     <div class="line total"><span>Receita potencial (topo)</span><span>${brl(m.receitaPot)}</span></div></div>
+     ${bar}${alert}
+     <div class="pill-note">Bottom-up (base × adesão × ticket) <b>limitado pelo teto real da B3</b> (SRC-039). Não é TAM; é receita <b>contratada</b> potencial, não caixa nem lucro.</div>`;
+}
+function anguloReadoutGTM(o){
+  const a=anguloGTM(o);
+  const cls=a.escolhido==='promessa'?'bad':(a.escolhido==='educacao'?'good':'warn');
+  const nome=a.escolhido==='educacao'?'Educação / disciplina':(a.escolhido==='hibrido'?'Híbrido':'Promessa de ganho');
+  const head=a.escolhido==='educacao'?'Alinhado ao que o mercado engaja e à dor real do público':(a.escolhido==='hibrido'?'Híbrido — mantenha o peso na educação':'Desalinhado — risco de engajamento e de compliance');
+  return `<div class="verdict ${cls}"><b>Ângulo: ${nome}</b><br>${head}.<br><span style="font-size:12.5px">Recomendado: <b>educação / disciplina / cotidiano</b> — didático engaja +158% e ação/day-trade engaja pouco (FInfluence SRC-037 [A]); casa com a dor do público (SRC-035/036 [B]).</span></div>${a.alerta?`<div class="alertbox">${a.alerta}</div>`:''}`;
+}
+function gonogoReadoutGTM(o){
+  const r=analyze(o),s=r.b, pbWarn=isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12);
+  return `<div class="verdict ${r.vclass}"><b>${r.verdict}</b><br>${r.vmsg}</div>
+   <div class="scenarios">
+     <div class="scen"><h4>Conservador</h4><div class="big" style="color:${r.dC.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dC.operadorNet)}</div><div class="muted">operador</div></div>
+     <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador</div></div>
+     <div class="scen"><h4>Otimista</h4><div class="big" style="color:${r.dO.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dO.operadorNet)}</div><div class="muted">operador</div></div></div>
+   <div class="statbar" style="margin-top:12px">
+     <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado</span></div>
+     <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' m':'—'}</b><span>payback</span></div>
+     <div class="s"><b>${r.be!=null?pct(r.be/100):'—'}</b><span>conv. break-even</span></div>
+     <div class="s"><b>${r.sens?pct(r.sens.margem):'—'}</b><span>folga até o zero</span></div></div>
+   ${pbWarn?`<div class="alertbox">Payback (${num(s.paybackMeses,1)}m) > fidelidade (${o.prazoFidelidade}m): recupera o CAC depois que o cliente já pode sair.</div>`:''}
+   ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão [D] vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}`;
+}
+function ledgerReadoutGTM(o){
+  const rows=ledgerGTM(o).map(x=>`<tr><td>${esc(x.item)}</td><td>${x.val}</td><td><span class="mark m${x.mk}">${x.mk}</span></td><td class="src">${esc(x.src)}<br><i>${esc(x.tipo)}</i></td></tr>`).join('');
+  return `<table class="ledger"><thead><tr><th>O que</th><th>Valor</th><th>Conf.</th><th>Fonte / natureza</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function gapsReadoutGTM(o){
+  const g=gapsGTM(o);
+  return g.length?`<ul class="gaps">${g.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem lacunas críticas abertas</span>`;
+}
+function recomputeGTM(o){
+  const set=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h;};
+  set('gtmDiag',diagReadoutGTM(o));set('gtmMercado',mercadoReadoutGTM(o));set('gtmAngulo',anguloReadoutGTM(o));
+  set('gtmGonogo',gonogoReadoutGTM(o));set('gtmLedger',ledgerReadoutGTM(o));set('gtmGaps',gapsReadoutGTM(o));
+}
+function ensureGTMOpp(){
+  if(!gtmOpp) gtmOpp= current? current : (opps[0]? JSON.parse(JSON.stringify(opps[0])) : blankOpp());
+  const o=gtmOpp;
+  o.nichoB3=o.nichoB3||'futuros';o.canalPrincipal=o.canalPrincipal||'youtube';o.expertConteudo=o.expertConteudo||'misto';
+  o.expertAutoridade=o.expertAutoridade||'media';o.dorPrimaria=o.dorPrimaria||NELOGICA_REF.dorPrimarias[0];o.angulo=o.angulo||'educacao';
+  if(o.adesaoMercado==null)o.adesaoMercado=5; if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
+  return o;
+}
+function viewGTM(){
+  setActive('gtm');
+  const o=ensureGTMOpp();
+  const gf2=(label,key,opts={})=>field(o,label,key,opts).replace('data-k="','data-g2="');
+  const oppOptions=opps.map(x=>`<option value="${x.id}" ${gtmOpp&&gtmOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  const redesHtml=(o.redes||[]).map((r,i)=>`<div class="rede-row">
+     <select data-grk="rede" data-gri="${i}">${['Instagram','YouTube','TikTok','X / Twitter','LinkedIn','Facebook','Kwai','Telegram','Outra'].map(n=>`<option ${r.rede===n?'selected':''}>${n}</option>`).join('')}</select>
+     <input data-grk="handle" data-gri="${i}" value="${esc(r.handle)}" placeholder="@perfil"/>
+     <input data-grk="seguidores" data-gri="${i}" type="number" step="any" value="${esc(r.seguidores)}" placeholder="seguidores"/>
+     <input data-grk="engaj" data-gri="${i}" type="number" step="any" value="${esc(r.engaj)}" placeholder="engaj %"/>
+     <button class="btn danger sm" data-grrm="${i}">×</button></div>`).join('');
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div><h1>GTM Builder</h1><p class="sub">Tudo que você precisa para montar o go-to-market — específico, calculado e honesto. Cada campo é uma <b>alavanca</b>; cada número mostra <b>de onde veio</b> e <b>quão confiável é</b>.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="gtmLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn ghost sm" id="gtmNew">novo</button>
+      <button class="btn sm" id="gtmSave">💾 Salvar</button><span id="gtmSaved" class="muted" style="font-size:12px"></span>
+    </div>
+  </div>
+
+  <div class="card"><h2>Bloco 1 · Diagnóstico do expert &amp; audiência <span class="tag">o que tira do genérico</span></h2>
+    <p class="hint">Audiência não é seguidor: é alcance × engajamento. É o que separa um lançamento específico de um playbook padrão.</p>
+    <div class="gtm-split">
+      <div>
+        <div class="rede-row" style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px"><span>Rede</span><span>Perfil</span><span>Seguidores</span><span>Engaj.%</span><span></span></div>
+        ${redesHtml}
+        <button class="btn ghost sm" id="gtmAddRede">+ rede</button>
+        <div class="grid" style="margin-top:12px">
+          ${gf2('Taxa de alcance','alcancePct',{suffix:'%'})}
+          ${gf2('Canal principal','canalPrincipal',{type:'select',options:[['youtube','YouTube (educação/conversão)'],['instagram','Instagram (engajamento/post)'],['x','X (volume/agilidade)'],['outro','Outro']]})}
+          ${gf2('Tipo de conteúdo do expert','expertConteudo',{type:'select',options:[['educacional','Educacional'],['analise','Análise/gráfico'],['misto','Misto'],['lifestyle','Lifestyle']]})}
+          ${gf2('Autoridade','expertAutoridade',{type:'select',options:[['baixa','Baixa'],['media','Média'],['alta','Alta']]})}
+          ${gf2('Possui certificação (ANBIMA/CFP)?','expertCert',{type:'check'})}
+          ${gf2('Intenção de compra da audiência','intencao',{type:'select',options:[['alta','Alta'],['media','Média'],['baixa','Baixa']]})}
+        </div>
+      </div>
+      <div id="gtmDiag"></div>
+    </div>
+  </div>
+
+  <div class="card"><h2>Bloco 2 · Mercado endereçável <span class="tag">bottom-up, com teto real da B3</span></h2>
+    <p class="hint">O teto vem do dado oficial da bolsa (SRC-039). A projeção não pode passar do mercado que existe.</p>
+    <div class="gtm-split">
+      <div>
+        <div class="grid">
+          ${gf2('Nicho (define o teto)','nichoB3',{type:'select',options:NICHOS_B3.map(n=>[n.k,n.label+(n.teto!=null?' · teto '+num(n.teto):' · sem teto')])})}
+          ${gf2('Adesão do mercado','adesaoMercado',{suffix:'% da base que vira cliente'})}
+        </div>
+        <div class="pill-note">Ticket médio ponderado: <b>${brl(ticketMensalBlend(o))}/mês</b> (dos formatos). Faixa real Nelogica: R$76–148 (SRC-036). Para editar os formatos, abra o detalhe completo.</div>
+      </div>
+      <div id="gtmMercado"></div>
+    </div>
+  </div>
+
+  <div class="card"><h2>Ângulo de campanha <span class="tag">derivado da dor + do que engaja</span></h2>
+    <div class="gtm-split">
+      <div><div class="grid">
+        ${gf2('Dor primária da audiência','dorPrimaria',{type:'select',options:NELOGICA_REF.dorPrimarias.map(d=>[d,d])})}
+        ${gf2('Ângulo escolhido','angulo',{type:'select',options:[['educacao','Educação / disciplina'],['hibrido','Híbrido'],['promessa','Promessa de ganho']]})}
+      </div>
+      <div class="pill-note">A dor vem do dado interno Nelogica (SRC-035/036). O ângulo recomendado vem da convergência com o FInfluence (SRC-037): o que o público engaja ≠ o que mais se promete.</div></div>
+      <div id="gtmAngulo"></div>
+    </div>
+  </div>
+
+  <div class="card"><h2>Bloco 3 · Funil &amp; Go/No-Go <span class="tag">veredito pelo cenário conservador</span></h2>
+    <p class="hint">A conversão é premissa [D] — é exatamente o que um lançamento piloto valida. O veredito respeita o cenário conservador.</p>
+    <div class="gtm-split">
+      <div><div class="grid">
+        ${gf2('Opt-in (audiência→lead)','optinPct',{suffix:'%'})}
+        ${gf2('Investimento em mídia','verbaTrafego',{suffix:'R$'})}
+        ${gf2('CPL (tráfego)','cpl',{suffix:'R$'})}
+        ${gf2('Conversão (lead→venda)','convLista',{suffix:'% [D]'})}
+        ${gf2('Leads base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
+        ${gf2('Custo/lead Nelogica','custoLeadDB',{suffix:'R$'})}
+        ${gf2('Haircut conservador','hairConserv',{suffix:'%'})}
+        ${gf2('Acréscimo otimista','hairOtim',{suffix:'%'})}
+      </div></div>
+      <div id="gtmGonogo"></div>
+    </div>
+  </div>
+
+  <div class="card"><h2>Ledger de confiança <span class="tag">cada número com fonte e marca</span></h2>
+    <p class="hint">A assinatura do LaunchOS: nada é afirmado sem dizer de onde veio e se é observado ou estimado.</p>
+    <div id="gtmLedger"></div>
+    <div class="legend" style="margin-top:10px"><span><span class="mark mA">A</span> fato lido</span><span><span class="mark mB">B</span> convergência independente</span><span><span class="mark mC">C</span> inferência/derivado</span><span><span class="mark mD">D</span> premissa não validada</span></div>
+  </div>
+
+  <div class="card"><h2>O que falta saber <span class="tag">honestidade > completude</span></h2>
+    <p class="hint">A ferramenta sinaliza o que não sabe em vez de preencher com confiança falsa. Cada item [D] é o que seu investimento no piloto valida.</p>
+    <div id="gtmGaps"></div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <button class="btn ghost" id="gtmDetail" style="padding:11px 20px">🧮 Abrir detalhe completo (todos os custos)</button>
+    <button class="btn" id="gtmDossier" style="padding:11px 20px;margin-left:8px">📄 Gerar dossiê GTM imprimível</button>
+  </div>`;
+
+  main.querySelectorAll('[data-g2]').forEach(el=>el.addEventListener('input',()=>{
+    const k=el.dataset.g2;
+    o[k]= el.type==='checkbox'?el.checked:(el.tagName==='SELECT'||el.type==='text'?el.value:parseFloat(el.value||'0'));
+    recomputeGTM(o);
+  }));
+  main.querySelectorAll('[data-grk]').forEach(el=>el.addEventListener('input',()=>{
+    const i=+el.dataset.gri,k=el.dataset.grk; o.redes[i][k]=(k==='rede'||k==='handle')?el.value:parseFloat(el.value||'0'); recomputeGTM(o);
+  }));
+  main.querySelectorAll('[data-grrm]').forEach(el=>el.onclick=()=>{if(o.redes.length<=1)return;o.redes.splice(+el.dataset.grrm,1);viewGTM();});
+  document.getElementById('gtmAddRede').onclick=()=>{o.redes.push({rede:'Outra',handle:'',seguidores:0,engaj:0});viewGTM();};
+  document.getElementById('gtmLoad').addEventListener('change',e=>{const id=e.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){gtmOpp=JSON.parse(JSON.stringify(src));viewGTM();}}});
+  document.getElementById('gtmNew').onclick=()=>{gtmOpp=blankOpp();viewGTM();};
+  document.getElementById('gtmSave').onclick=()=>{if(o.status==='exemplo'||o.status==='rascunho')o.status='salvo';const i=opps.findIndex(x=>x.id===o.id);if(i>=0)opps[i]=o;else opps.push(o);save(opps);const sv=document.getElementById('gtmSaved');if(sv){sv.textContent='salvo ✓';setTimeout(()=>sv.textContent='',2000);}};
+  document.getElementById('gtmDetail').onclick=()=>{current=o;viewDetail(o);};
+  document.getElementById('gtmDossier').onclick=()=>{geradorProduto=oppToProduto(o);const res=gerarEstrutura(geradorProduto);openReport(renderEstruturaInner(res),'Dossiê GTM — '+(o.produtoNome||o.nome||''));};
+  recomputeGTM(o);
+}
+
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
 if(opps.length===0){
@@ -955,6 +1216,7 @@ if(opps.length===0){
   ex.hipotese='Cenário fictício só para mostrar o motor. Todos os números são premissas [D].';
   ex.redes=[{rede:'Instagram',handle:'@exemplo',seguidores:300000,engaj:3},{rede:'YouTube',handle:'@exemplo',seguidores:120000,engaj:4}];
   ex.alcancePct=10; ex.optinPct=5; ex.convLista=2;
+  ex.nichoB3='futuros'; ex.angulo='educacao'; ex.adesaoMercado=3; ex.expertConteudo='misto'; ex.dorPrimaria='Controle emocional / psicológico';
   ex.ticketMensal=300; ex.prazoFidelidade=12; ex.churnMensalPct=5; ex.cancel7Pct=10; ex.multaPct=50;
   ex.planos=[{nome:'Mensal',meses:1,ticketMensal:300,mix:30,churn:0},{nome:'Anual',meses:12,ticketMensal:250,mix:50,churn:25},{nome:'Bianual',meses:24,ticketMensal:220,mix:20,churn:30}];
   ex.qtdLeadsDB=5000; ex.custoLeadDB=1.60; ex.verbaTrafego=20000; ex.cpl=8;
