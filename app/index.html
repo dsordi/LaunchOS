@@ -99,6 +99,7 @@
       <div class="sec">Operação</div>
       <a data-view="list" class="active">📋 Oportunidades</a>
       <a data-view="new">➕ Nova oportunidade</a>
+      <a data-view="gerador">🚀 Estrutura de lançamento</a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio">📚 Princípios da base</a>
     </nav>
@@ -546,7 +547,8 @@ function viewDetail(o){
 
   <div class="card" style="text-align:center">
     <button class="btn" id="pitchBtn" style="padding:12px 24px;font-size:14px">📄 Gerar pitch para o influenciador</button>
-    <div class="muted" style="font-size:12px;margin-top:8px">Relatório compacto da ideia e das premissas, pronto para apresentar (imprimir ou salvar em PDF).</div>
+    <button class="btn ghost" id="estrutBtn" style="padding:12px 24px;font-size:14px;margin-left:8px">🚀 Gerar estrutura de lançamento</button>
+    <div class="muted" style="font-size:12px;margin-top:8px">Pitch: relatório da ideia/premissas. Estrutura: raio-X + tipo + mote + etapas. Ambos imprimíveis.</div>
   </div>`;
 
   main.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{
@@ -569,6 +571,7 @@ function viewDetail(o){
   recompute(o);
   bindPlano(o);
   document.getElementById('pitchBtn').onclick=()=>openPitch(o);
+  document.getElementById('estrutBtn').onclick=()=>{geradorProduto=oppToProduto(o);viewGerador();};
 }
 
 function bindRedes(o){
@@ -647,14 +650,145 @@ function recompute(o){
   </div>`;
 }
 
+/* ---------------- Raio-X / Gerador de estrutura de lançamento ---------------- */
+let geradorProduto=null;
+const blankProduto=()=>({nome:'',oqueeh:'',paraque:'',publico:'',cvp:'novo',validado:'nao',jaVende:'nao',audiencia:'fria',verba:'media',rendaVariavel:false});
+function oppToProduto(o){
+  const seg=seguidoresTotais(o); let aud='nenhuma'; if(seg>0) aud=(o.intencao==='baixa'?'fria':'quente');
+  const v=+o.verbaTrafego||0; const verba=v>50000?'alta':(v>=10000?'media':'baixa');
+  return {nome:o.nome||'',oqueeh:o.produtoNome||'',paraque:o.hipotese||'',publico:o.nicho||'',cvp:'novo',validado:o.produtoPronto==='sim'?'sim':'nao',jaVende:o.intencao==='alta'?'sim':'nao',audiencia:aud,verba,rendaVariavel:!!o.rendaVariavel};
+}
+function gfield(p,label,key,opts={}){
+  const t=opts.type||'text';
+  if(t==='select'){const o=opts.options.map(([v,l])=>`<option value="${v}" ${p[key]==v?'selected':''}>${l}</option>`).join('');return `<div><label>${label} ${opts.q?`<span class=q>${opts.q}</span>`:''}</label><select data-g="${key}">${o}</select></div>`;}
+  if(t==='check')return `<div><label>&nbsp;</label><div class="row-inline"><input type="checkbox" style="width:auto" data-g="${key}" ${p[key]?'checked':''}/> <span>${label}</span></div></div>`;
+  return `<div><label>${label} ${opts.q?`<span class=q>${opts.q}</span>`:''}</label><input type="text" data-g="${key}" value="${esc(p[key])}"/></div>`;
+}
+// regras: do produto → tipo de lançamento (matriz 03 + dependências + HYP-005)
+function gerarEstrutura(p){
+  const raiox=[]; const validado=p.validado==='sim', jaVende=p.jaVende==='sim', aud=p.audiencia;
+  raiox.push(validado?{t:'ok',txt:'Produto validado — pode vender para a base.'}:{t:'alerta',txt:'Produto ainda não validado — risco de vender algo que o mercado não quer. Validar antes de escalar.'});
+  if(aud==='nenhuma') raiox.push({t:'bloqueio',txt:'Sem audiência: é preciso construir ou emprestar lista antes de qualquer carrinho (captação é pré-requisito).'});
+  else if(aud==='fria') raiox.push({t:'alerta',txt:'Audiência fria (seguidores sem intenção): aquecer e gerar sinal de intenção antes de ofertar — audiência ≠ intenção (SRC-017).'});
+  else raiox.push({t:'ok',txt:'Audiência quente: há base relacionada para lançar.'});
+  if(p.rendaVariavel) raiox.push({t:'bloqueio',txt:'Toca renda variável: copy e promessas passam por portão jurídico (compliance) antes de ir ao ar (GAP-003).'});
+  const cvpTxt={novo:'Produto novo (introdução): foco em informar, educar e induzir a 1ª experimentação; quebra de crença forte (Kotler, CVP).',crescimento:'Em crescimento: momento de escalar alcance e defender a posição.',maduro:'Maduro: diferenciar e relançar com ângulo/bônus novo; cuidado com saturação.'};
+  if(cvpTxt[p.cvp]) raiox.push({t:'info',txt:cvpTxt[p.cvp]});
+  let tipo,just,alt=[];
+  if(!validado){tipo='Semente';just='Produto ainda não validado → o semente valida a demanda e financia a 1ª turma com baixo risco (matriz 03; SRC-005).';alt=['Interno (após validar)'];}
+  else if(aud==='nenhuma'){tipo='Captação + Semente';just='Produto pronto, mas sem audiência → construir lista primeiro; um semente pequeno gera os primeiros dados e clientes.';alt=['Interno (após formar base)'];}
+  else if(validado && !jaVende){tipo='Interno';just='Produto validado + base própria → interno é o cavalo de batalha e pré-requisito para externo/perpétuo (SRC-005/008). Expert com autoridade pula o semente (HYP-005).';alt=['Relâmpago (caixa rápido)'];}
+  else {if(p.verba==='alta'||aud==='fria'){tipo='Externo';just='Interno já converte → escalar alcance via afiliados/parceiros (só depois do interno validado — SRC-005/008).';alt=['Perpétuo (previsibilidade)'];}else{tipo='Perpétuo';just='Interno já converte → automatizar o que funciona para previsibilidade/fluxo diário (só após interno de sucesso).';alt=['Externo (escala)'];}}
+  if(aud==='quente' && !/Relâmpago/.test(alt.join())) alt.push('Relâmpago (caixa rápido, sem abusar da frequência)');
+  const publico=p.publico||'[público]', beneficio=p.paraque||'[benefício central]', produto=p.oqueeh||p.nome||'[produto]';
+  const mote={frase:`Como ${publico} pode ${beneficio} — mesmo diante de [o maior obstáculo].`,
+    paragrafo:`${publico} quer ${beneficio}, mas enfrenta [o problema]. ${produto} é o guia: [passo 1] → [passo 2] → [passo 3]. Em vez de [o que se perde ao não agir], você alcança [a transformação].`};
+  const fases=estruturaPorTipo(tipo,p);
+  const portoes=[];
+  if(p.rendaVariavel) portoes.push('Compliance (renda variável): validar promessas com o jurídico antes de liberar copy.');
+  portoes.push('Tracking/medição configurado ANTES de abrir a captação.');
+  portoes.push('Go/no-go financeiro: cenário conservador viável para todas as partes (decidir no Decisor E5).');
+  portoes.push('Fechar o carrinho na data prometida (escassez honesta).');
+  return {tipo,just,alt,raiox,mote,fases,portoes};
+}
+function estruturaPorTipo(tipo,p){
+  const base=[
+    {nome:'Fase 0 · Captação (pré-pré-lançamento)',obj:'Construir/aquecer a lista e sondar a oferta',passos:[
+      {acao:'Definir avatar e a grande promessa (o benefício central)',gatilho:'—',quando:'D-30'},
+      {acao:'"Tiro de aviso": pergunta que abre diálogo e revela objeções',gatilho:'Reciprocidade',quando:'D-28'},
+      {acao:'Isca + página de captura; subir captação ('+(p.audiencia!=='nenhuma'?'tráfego + base própria':'tráfego')+')',gatilho:'—',quando:'D-25'},
+      {acao:'Configurar tracking ANTES de abrir a captação [portão]',gatilho:'—',quando:'D-25'}]},
+    {nome:'Fase 1 · Aquecimento (pré-lançamento — 3 CPLs)',obj:'Entregar valor, ativar gatilhos, preparar a decisão',passos:[
+      {acao:'CPL 1 — quebra de crença (história + promessa)',gatilho:'Autoridade + Expectativa',quando:'D-10'},
+      {acao:'CPL 2 — transformação / prova',gatilho:'Comprovação social + Confiança',quando:'D-7'},
+      {acao:'CPL 3 — ponte para a oferta',gatilho:'Reciprocidade + Comunidade',quando:'D-4'}]},
+    {nome:'Fase 2 · Carrinho (lançamento)',obj:'Abrir a oferta por tempo limitado',passos:[
+      {acao:'Abrir carrinho; oferta = produto + preço + garantia + bônus + razão p/ agir agora',gatilho:'Expectativa + Evento',quando:'D0'},
+      {acao:'Sequência de vendas; a maioria das vendas vem nas últimas 24h',gatilho:'Escassez',quando:'D0–D+4'},
+      {acao:'Fechar o carrinho na data (escassez honesta) [portão]',gatilho:'Escassez',quando:'D+5'}]},
+    {nome:'Fase 3 · Pós-lançamento',obj:'Entregar, reter e aprender',passos:[
+      {acao:'Onboarding; gestão da janela de 7 dias',gatilho:'—',quando:'D+6'},
+      {acao:'Reconciliação previsto × realizado + registrar aprendizados [portão]',gatilho:'—',quando:'D+30'}]}
+  ];
+  if(/Semente/.test(tipo)) base[0].passos.unshift({acao:'Validar demanda com a 1ª turma — vender ANTES de construir',gatilho:'—',quando:'D-30'});
+  if(/Externo/.test(tipo)) base[0].passos.push({acao:'Recrutar e alinhar afiliados/parceiros (só com produto que já converte)',gatilho:'Autoridade',quando:'D-20'});
+  if(/Perpétuo/.test(tipo)) base[3].passos.push({acao:'Automatizar a sequência que funcionou (evergreen por lead)',gatilho:'Expectativa',quando:'D+30'});
+  if(/Relâmpago/.test(tipo)) base[1].passos=[{acao:'Aquecimento curto e intenso para base quente',gatilho:'Escassez + Expectativa',quando:'D-3'}];
+  return base;
+}
+function renderEstruturaInner(res){
+  const ic={ok:'✅',alerta:'⚠️',bloqueio:'⛔',info:'ℹ️'};
+  const raiox=res.raiox.map(r=>`<li>${ic[r.t]||''} ${esc(r.txt)}</li>`).join('');
+  const fases=res.fases.map(f=>`<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px">
+     <b>${esc(f.nome)}</b><div class="muted" style="font-size:12px;margin-bottom:6px">${esc(f.obj)}</div>
+     <table><tr><th>Etapa</th><th style="width:170px">Gatilho mental</th><th style="width:90px">Quando</th></tr>
+     ${f.passos.map(s=>`<tr><td>${esc(s.acao)}</td><td>${esc(s.gatilho)}</td><td>${esc(s.quando)}</td></tr>`).join('')}</table></div>`).join('');
+  const alt=res.alt.length?`<p><b>Alternativas:</b> ${res.alt.map(esc).join(' · ')}</p>`:'';
+  const port=res.portoes.map(x=>`<li>${esc(x)}</li>`).join('');
+  return `<h2>1. Raio-X do produto</h2><ul>${raiox}</ul>
+   <h2>2. Tipo de lançamento recomendado</h2><p style="font-size:16px"><b>${esc(res.tipo)}</b></p><p>${esc(res.just)}</p>${alt}
+   <h2>3. Mote de campanha <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— esqueleto StoryBrand; complete os [colchetes]</span></h2>
+   <p><b>Promessa:</b> ${esc(res.mote.frase)}</p><p>${esc(res.mote.paragrafo)}</p>
+   <h2>4. Estrutura operacional (etapa por etapa)</h2>${fases}
+   <h2>5. Portões</h2><ul>${port}</ul>
+   <div class="disc"><b>Transparência:</b> estrutura <b>sugerida por regras</b> a partir do que você informou, cruzando a base (Walker, StoryBrand, Kotler, matriz de tipos). Os [colchetes] são para você preencher com a realidade. Não é promessa de resultado; a viabilidade financeira é decidida no Decisor (E5).</div>`;
+}
+function renderEstrutura(res){
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Raio-X + Estrutura</h2><button class="btn ghost sm" id="estrutPrint">🖨️ Imprimir / PDF</button></div><div class="pitch" style="padding:0">${renderEstruturaInner(res)}</div></div>`;
+}
+function openReport(inner,title){
+  const old=document.getElementById('reportModal'); if(old)old.remove();
+  const ov=document.createElement('div');ov.className='modal-overlay';ov.id='reportModal';
+  ov.innerHTML=`<div class="modal"><div class="modal-actions"><button class="btn ghost sm" id="rptPrint">🖨️ Imprimir / Salvar PDF</button><button class="btn sm" id="rptClose">fechar</button></div><div class="pitch"><h1>${esc(title)}</h1>${inner}</div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.getElementById('rptClose').onclick=()=>ov.remove();
+  document.getElementById('rptPrint').onclick=()=>window.print();
+}
+function viewGerador(){
+  setActive('gerador');
+  if(!geradorProduto) geradorProduto=blankProduto();
+  const p=geradorProduto;
+  const oppOptions=opps.map(o=>`<option value="${o.id}">${esc(o.nome)||'(sem nome)'}</option>`).join('');
+  main.innerHTML=`<h1>Estrutura de Lançamento</h1><p class="sub">Descreva o produto (do zero ou carregue uma oportunidade) e gere o raio-X + a estrutura operacional etapa por etapa.</p>
+  <div class="card"><h2>Produto <span class="tag">do zero ou do portfólio</span></h2>
+    <div class="grid" style="margin-bottom:12px">
+      <div><label>Carregar de uma oportunidade salva</label><select id="loadOpp"><option value="">— começar do zero —</option>${oppOptions}</select></div>
+    </div>
+    <div class="grid">
+      ${gfield(p,'Nome do produto / ideia','nome')}
+      ${gfield(p,'O que é','oqueeh',{q:'em uma frase'})}
+      ${gfield(p,'Para que serve (benefício central)','paraque',{q:'o cliente compra o quê?'})}
+      ${gfield(p,'Público (quem é o herói)','publico')}
+    </div>
+    <div class="grid" style="margin-top:12px">
+      ${gfield(p,'Momento no ciclo de vida','cvp',{type:'select',options:[['novo','Novo (introdução)'],['crescimento','Em crescimento'],['maduro','Maduro']]})}
+      ${gfield(p,'Produto validado?','validado',{type:'select',options:[['nao','Não'],['sim','Sim']]})}
+      ${gfield(p,'Já vende na base?','jaVende',{type:'select',options:[['nao','Não / pouco'],['sim','Sim, com consistência']]})}
+      ${gfield(p,'Audiência disponível','audiencia',{type:'select',options:[['nenhuma','Nenhuma'],['fria','Fria (seguidores s/ intenção)'],['quente','Quente (base relacionada)']]})}
+      ${gfield(p,'Verba de mídia','verba',{type:'select',options:[['baixa','Baixa'],['media','Média'],['alta','Alta']]})}
+      ${gfield(p,'Toca renda variável?','rendaVariavel',{type:'check'})}
+    </div>
+    <div style="margin-top:14px"><button class="btn" id="genEstrut">🔎 Gerar análise + estrutura</button></div>
+  </div>
+  <div id="estrutOut"></div>`;
+  main.querySelectorAll('[data-g]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.g;p[k]= el.type==='checkbox'?el.checked:el.value;}));
+  document.getElementById('loadOpp').addEventListener('change',e=>{const id=e.target.value;if(id){const o=opps.find(x=>x.id===id);if(o){geradorProduto=oppToProduto(o);viewGerador();}}});
+  document.getElementById('genEstrut').onclick=()=>{
+    const res=gerarEstrutura(p);
+    document.getElementById('estrutOut').innerHTML=renderEstrutura(res);
+    document.getElementById('estrutPrint').onclick=()=>openReport(renderEstruturaInner(res),'Estrutura de Lançamento — '+(p.nome||p.oqueeh||''));
+  };
+}
+
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
 if(opps.length===0){
