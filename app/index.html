@@ -66,7 +66,10 @@
   .chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
   .chip.good{background:var(--good-bg);color:var(--good)} .chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.neutral{background:rgba(255,255,255,.07);color:var(--muted)}
   .mark{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;color:#fff;vertical-align:middle}
-  .mA{background:var(--a)} .mB{background:var(--b)} .mC{background:var(--c)} .mD{background:var(--d)}
+  .mA{background:var(--a)} .mB{background:var(--b)} .mC{background:var(--c)} .mD{background:var(--d)} .mL{background:#6d7f99}
+  .biblio li{margin-bottom:11px;line-height:1.5}
+  .biblio .ins{color:var(--cyan);font-size:12px;margin-top:3px}
+  .biblio h2 .tag{text-transform:none}
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:6px}
   .casc{font-size:13px}
   .casc .line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line)}
@@ -297,19 +300,71 @@ function viewList(){
   <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket mensal</th><th>Veredito</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
+const BIBLIO=[
+ {t:'Método de lançamento',f:'Jeff Walker — Launch (SRC-030) · [A]',it:[
+   {m:'A',c:'As 4 sequências',x:'Pré-pré-lançamento → pré-lançamento (3 CPLs em 5–12 dias) → lançamento ("abertura do carrinho", 24h–7d) → pós-lançamento.',i:'É o esqueleto do Playbook e do Raio-X do app.'},
+   {m:'A',c:'3 CPLs por função',x:'Conteúdo de pré-lançamento: (1) quebra de crença → (2) prova/transformação → (3) ponte para a oferta.',i:'Cada CPL ativa um gatilho mental diferente.'},
+   {m:'A',c:'9 estímulos mentais',x:'Autoridade, reciprocidade, confiança, expectativa, empatia, eventos/rituais, comunidade, escassez, comprovação social — usados em camadas e em sequência.',i:'O Raio-X sugere um gatilho por etapa do lançamento.'},
+   {m:'A',c:'Escassez só funciona se for real',x:'Prazo/preço/vagas têm de mudar de verdade (ex.: o preço sobe depois).',i:'Vira portão: escassez falsa converte uma vez e queima os próximos lançamentos.'},
+   {m:'A',c:'A maioria das vendas vem nas últimas 24h',x:'O fechamento do carrinho concentra as vendas.',i:'Dimensione suporte e comunicação para a reta final.'},
+   {m:'A',c:'O 1º lançamento raramente bate a meta',x:'O próprio Walker/Érico admitem: leva 3–7 lançamentos para o "6 em 7".',i:'Trate a meta do 1º lançamento como teste, não promessa.'},
+   {m:'A',c:'"Marketing da esperança" × evento',x:'Criar e torcer vs. transformar o lançamento num evento planejado (modelo Hollywood/Apple).',i:'Planejar bate esperar — é o espírito do método.'},
+ ]},
+ {t:'Mensagem & copy',f:'Donald Miller — Building a StoryBrand (SRC-031) · [A]',it:[
+   {m:'A',c:'O cliente é o herói; a marca é o guia',x:'Não conte a sua história; entre na história do cliente.',i:'No pitch e nos CPLs, fale da transformação dele, não de você.'},
+   {m:'A',c:'"Se você confunde, você perde"',x:'O cérebro economiza energia; mensagem confusa é ignorada.',i:'Uma promessa clara vence um produto superior mal comunicado.'},
+   {m:'A',c:'BrandScript (SB7)',x:'Herói → problema (externo/interno/filosófico) → guia (empatia + autoridade) → plano → chamada à ação → fracasso evitado → sucesso.',i:'É a estrutura de mensagem gerada no Raio-X.'},
+ ]},
+ {t:'Produto & mercado',f:'Kotler & Keller — Administração de Marketing (SRC-033) · [A]',it:[
+   {m:'A',c:'5 níveis de produto',x:'Benefício central → básico → esperado → ampliado → potencial. "Venda benefícios, não características" (o cliente compra "furos", não a furadeira).',i:'Entender o produto começa pelo benefício central; a diferenciação mora no nível ampliado.'},
+   {m:'A',c:'Ciclo de vida do produto',x:'Introdução → crescimento → maturidade → declínio.',i:'O momento do produto no ciclo muda a estratégia de lançamento.'},
+   {m:'A',c:'Pioneira × imitador',x:'Ser o primeiro ajuda, mas não é regra absoluta — existe a "vantagem do imitador".',i:'Autoridade e marca forte podem vencer mesmo chegando depois.'},
+   {m:'C',c:'Dimensionamento bottom-up',x:'Base real × adesão × ticket — nunca TAM de cima para baixo.',i:'É como o Raio-X calcula o mercado endereçável.'},
+ ]},
+ {t:'Precificação & comportamento',f:'Ramanujam · Kahneman · Ariely · [L]',it:[
+   {m:'L',c:'Good-better-best',x:'Precifique antes de construir; meça willingness-to-pay; ofereça ~3 níveis.',i:'Por isso a tabela de formatos sugere 3, não 7.'},
+   {m:'L',c:'Ancoragem & efeito chamariz',x:'O formato mais caro/longo ancora a percepção dos demais.',i:'Anual/bianual fazem o mensal parecer barato.'},
+   {m:'L',c:'Paradoxo da escolha',x:'Opções demais paralisam a decisão (≤ ~4).',i:'Não poluir a oferta com formatos em excesso.'},
+ ]},
+ {t:'Audiência & influência',f:'Fátima Pissarra (SRC-034) [A] · Byron Sharp [L]',it:[
+   {m:'A',c:'Seguidores ≠ influência real',x:'"Muitos são vistos, mas não ouvidos." Influência rasa não faz comprar.',i:'O decisor pesa intenção/engajamento, não o nº de seguidores.'},
+   {m:'A',c:'Engajamento = ação ATIVA',x:'Curtir, comentar, salvar, compartilhar. Visualização é passiva — não é engajamento.',i:'A aba de redes mede o engajamento ponderado e alerta "influência rasa".'},
+   {m:'A',c:'Proporção de interações > números absolutos',x:'Poucas views com muita interação valem mais que muitas views sem interação.',i:'Taxa de engajamento, não métrica de vaidade.'},
+   {m:'L',c:'Penetração > lealdade (How Brands Grow)',x:'Crescimento vem mais de alcance novo do que de uma base pequena e fiel.',i:'Cuidado em superestimar uma base pequena só porque é leal.'},
+ ]},
+ {t:'Estratégia & tecnologia',f:'Kotler et al. — Marketing 5.0 (SRC-032) · [A]',it:[
+   {m:'A',c:'Tecnologia para a humanidade',x:'Tech que mimetiza o humano ao longo da jornada. 5 componentes: dados e ágil (disciplinas); preditivo, contextual e aumentado (aplicações).',i:'"Decidir com dados" e "preditivo" ecoam a própria tese do decisor.'},
+   {m:'A',c:'Geração Y: experiência > posse',x:'Migração da venda de produto para a venda de assinatura (streaming vs. comprar).',i:'Valida, por fonte independente, o modelo recorrente do negócio.'},
+ ]},
+ {t:'GTM & aquisição',f:'Funil GTM Moderno 2026 (SRC-018) · [A] · contexto B2B',it:[
+   {m:'A',c:'A espinha do funil se repete',x:'Atrair → educar → intenção → converter → reter, vinda de uma escola B2B independente.',i:'Reforça a estrutura genérica do funil (mas é B2B, não lançamento B2C).'},
+   {m:'A',c:'AEO — ser citável por IA',x:'Aparecer em ChatGPT/Perplexity/Gemini; conteúdo aberto (a IA não cita PDF atrás de formulário).',i:'Canal de awareness novo; plausível também para infoproduto (HYP-006, a validar).'},
+   {m:'A',c:'Fidelização & indicação',x:'Transformar cliente no pipeline do próximo ciclo.',i:'Cobre a lacuna de pós-venda do corpus (GAP-009).'},
+ ]},
+ {t:'Persuasão',f:'Cialdini — Influence / Pre-Suasion · [L]',it:[
+   {m:'L',c:'7 princípios',x:'Reciprocidade, compromisso/coerência, prova social, autoridade, afeição, escassez, unidade.',i:'Base dos gatilhos — Walker amplia essa lista para 9 (ver Método).'},
+ ]},
+ {t:'Inegociáveis do projeto',f:'Sobre o corpus de 16 fontes',it:[
+   {m:'A',c:'Origem única',x:'13 das 14 fontes do corpus derivam de Walker → Érico. Convergência entre elas é eco, não validação independente.',i:'Por isso quase tudo é [A da raiz] ou [C], e pouco chega a [B].'},
+   {m:'B',c:'Faturamento ≠ lucro ≠ caixa',x:'"6 em 7" é receita bruta. Do bruto saem taxas, tráfego, impostos, split.',i:'O decisor nunca para no faturamento.'},
+   {m:'A',c:'Não há benchmark público auditável',x:'Faturamento por tipo de lançamento não tem média verificável; números de anúncio são casos de ponta.',i:'Toda conversão é premissa [D], nunca default "esperado".'},
+   {m:'B',c:'5 tipos-núcleo',x:'Semente, interno, externo, perpétuo, relâmpago. O resto é variação/tag.',i:'Base da recomendação de tipo no Raio-X, com as dependências (externo/perpétuo só após interno).'},
+   {m:'A',c:'Compliance de renda variável é bloqueio',x:'Nenhuma fonte cobre regras de promessa publicitária; para o Profit, é portão obrigatório.',i:'O app liga compliance quando o produto toca mercado financeiro.'},
+   {m:'C',c:'Cálculo determinístico; a IA só explica',x:'Nenhum número vem de texto de IA.',i:'Mesma entrada → mesmo resultado, recalculável e defensável.'},
+ ]},
+];
 function viewBiblio(){
   setActive('biblio');
-  main.innerHTML=`<h1>Princípios da base</h1><p class="sub">Regras que o decisor respeita. Fonte e confiança sempre à vista.</p>
-  <div class="card"><h2>Como ler a confiança</h2><div class="legend">
+  const secs=BIBLIO.map(s=>`<div class="card biblio"><h2>${esc(s.t)} <span class="tag">${esc(s.f)}</span></h2><ul>${
+    s.it.map(it=>`<li><span class="mark m${it.m}">${it.m}</span> <b>${esc(it.c)}</b> — ${esc(it.x)}${it.i?`<div class="ins">💡 Insight [C]: ${esc(it.i)}</div>`:''}</li>`).join('')
+  }</ul></div>`).join('');
+  main.innerHTML=`<h1>Princípios da base</h1><p class="sub">O conhecimento dos 6 livros lidos + o corpus, com a fonte e a confiança sempre à vista. Os <span style="color:var(--cyan)">💡 insights</span> são a aplicação prática no LaunchOS (minha inferência, marcada [C]).</p>
+  <div class="card"><h2>Como ler a confiança</h2><div class="legend" style="gap:16px">
      <span><span class="mark mA">A</span> fato de fonte lida</span><span><span class="mark mB">B</span> convergência independente</span>
-     <span><span class="mark mC">C</span> inferência</span><span><span class="mark mD">D</span> hipótese / premissa não validada</span></div></div>
-  <div class="card biblio"><h2>Inegociáveis</h2><ul>
-   <li><span class="mark mB">B</span> <b>Faturamento ≠ lucro ≠ caixa.</b> O resultado é contratado ao longo do tempo; caixa chega aos poucos (GAP-008).</li>
-   <li><span class="mark mA">A</span> <b>Sem benchmark público</b> de conversão/faturamento. Toda premissa é [D], nunca default "esperado".</li>
-   <li><span class="mark mC">C</span> <b>Cálculo determinístico; a IA só explica.</b> Nenhum número vem de texto de IA.</li>
-   <li><span class="mark mA">A</span> <b>Seguidores ≠ audiência ≠ intenção.</b> Por isso há taxa de alcance e opt-in entre seguidores e leads.</li>
-   <li><span class="mark mD">D</span> <b>Regras financeiras ambíguas são escolha sua</b> (base do split, do imposto). O app não assume em silêncio.</li>
-  </ul><div class="pill-note">Documentos completos em <b>/home/user/biblioteca</b> (00–11). O leitor completo entra na versão com banco de dados.</div></div>`;
+     <span><span class="mark mC">C</span> inferência</span><span><span class="mark mD">D</span> hipótese não validada</span>
+     <span><span class="mark mL">L</span> literatura (memória do modelo; vira A com o texto)</span></div></div>
+  ${secs}
+  <div class="card"><div class="pill-note">Fontes completas (fichas, catálogo, decisões) em <b>biblioteca/</b> no repositório. Livros lidos de primeira mão: Walker, StoryBrand, Marketing 5.0, Kotler & Keller, Pissarra — ver SRC-030 a SRC-034.</div></div>`;
 }
 
 function field(o,label,key,opts={}){
