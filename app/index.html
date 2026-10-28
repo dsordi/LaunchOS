@@ -133,6 +133,7 @@ function blankOpp(){
     // produto (SEMPRE assinatura) + política de cancelamento
     produtoNome:'', rendaVariavel:false,
     ticketMensal:300, prazoFidelidade:12, churnMensalPct:5, cancel7Pct:10, multaPct:50,
+    planos:null,  // formatos de comercialização [{nome,meses,ticketMensal,mix}]
     // aquisição / leads
     optinPct:5, verbaTrafego:20000, cpl:8, qtdLeadsDB:0, custoLeadDB:1.60, convLista:2,
     // modelo
@@ -154,21 +155,31 @@ function blankOpp(){
 const seguidoresTotais=(o)=>(o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0),0);
 const audienciaAlcancavel=(o)=>seguidoresTotais(o)*((o.alcancePct||0)/100);
 
-// receita esperada por cliente que passou da janela de 7 dias,
-// ao longo do contrato, incluindo multa de X% sobre o restante quando cancela antes do fim.
-function receitaPorCliente(o){
-  const t=+o.ticketMensal||0, N=Math.max(1,Math.round(+o.prazoFidelidade||12));
+// formatos de comercialização do produto (1 produto, vários planos)
+function getPlanos(o){
+  if(o.planos && o.planos.length) return o.planos;
+  return [{nome:'Plano único', meses:(+o.prazoFidelidade||12), ticketMensal:(+o.ticketMensal||0), mix:100}];
+}
+// receita por cliente de UM formato, ao longo do seu prazo, com multa sobre o restante em cancelamentos pós-janela
+function recPlano(o,p){
+  const t=+p.ticketMensal||0, N=Math.max(1,Math.round(+p.meses||12));
   const c=(+o.churnMensalPct||0)/100, m=(+o.multaPct||0)/100;
   let alive=1, rev=0;
   for(let month=1;month<=N;month++){
-    rev += alive*t;                         // quem está ativo paga o mês
-    if(month<N){
-      const ch=alive*c;                     // cancela ao fim do mês (pós-janela)
-      rev += ch*m*t*(N-month);              // multa sobre meses restantes
-      alive -= ch;
-    }
+    rev += alive*t;
+    if(month<N){ const ch=alive*c; rev += ch*m*t*(N-month); alive -= ch; }
   }
-  return rev; // por cliente efetivo (que passou dos 7 dias)
+  return rev;
+}
+// receita esperada por cliente efetivo = média ponderada dos formatos pelo mix
+function receitaPorCliente(o){
+  const pl=getPlanos(o), tot=pl.reduce((a,p)=>a+(+p.mix||0),0)||1;
+  return pl.reduce((a,p)=>a+recPlano(o,p)*((+p.mix||0)/tot),0);
+}
+// ticket mensal médio ponderado (para payback/CAC)
+function ticketMensalBlend(o){
+  const pl=getPlanos(o), tot=pl.reduce((a,p)=>a+(+p.mix||0),0)||1;
+  return pl.reduce((a,p)=>a+(+p.ticketMensal||0)*((+p.mix||0)/tot),0);
 }
 
 function computeScenario(o, convMult){
@@ -194,7 +205,7 @@ function computeScenario(o, convMult){
   const custoAquisicao = (+o.verbaTrafego||0) + leadsDBCost;     // mídia + base de leads
   const cac = efetivos>0 ? custoAquisicao/efetivos : 0;
   const taxRev = o.impostoBase==='faturamento' ? ((o.impostoPct||0)/100) : 0;
-  const netMensal = (+o.ticketMensal||0)*(1-((o.taxaPlataformaPct||0)/100)-taxRev); // margem mensal por cliente
+  const netMensal = ticketMensalBlend(o)*(1-((o.taxaPlataformaPct||0)/100)-taxRev); // margem mensal por cliente (ponderada entre formatos)
   const paybackMeses = netMensal>0 ? cac/netMensal : Infinity;
   const ltvCac = cac>0 ? recPorCliente/cac : Infinity;
   return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,ltvCac};
@@ -379,7 +390,7 @@ function renderPitchHTML(o){
    <h2>Premissas da proposta</h2>
    <table>
      <tr><td>Audiência alcançável</td><td>${num(audienciaAlcancavel(o))} pessoas (${o.alcancePct}% dos seguidores)</td></tr>
-     <tr><td>Produto / ticket</td><td>${brl(o.ticketMensal)}/mês · fidelidade ${o.prazoFidelidade} meses</td></tr>
+     <tr><td>Formatos do produto</td><td>${getPlanos(o).map(p=>esc(p.nome)+' — '+num(p.meses)+'m · '+brl(p.ticketMensal)+'/mês · '+num(p.mix)+'%').join('<br>')}</td></tr>
      <tr><td>Retenção</td><td>churn ${o.churnMensalPct}%/mês · ${o.cancel7Pct}% cancelam em 7 dias · multa ${o.multaPct}%</td></tr>
      <tr><td>Conversão premissada</td><td>${o.convLista}% (lead → venda)</td></tr>
      <tr><td>Divisão de receita</td><td>${o.partes.map(p=>esc(p.nome)+' '+p.pct+'%').join(' · ')} — sobre ${o.splitBase}</td></tr>
@@ -412,6 +423,7 @@ function openPitch(o){
 
 function viewDetail(o){
   if(!o.plano) o.plano=defaultPlano();
+  if(!o.planos) o.planos=getPlanos(o).map(p=>({...p}));
   setActive('');
   const redesHtml=(o.redes||[]).map((r,i)=>`<div class="rede-row">
      <select data-rk="rede" data-ri="${i}">${['Instagram','YouTube','TikTok','X / Twitter','LinkedIn','Facebook','Kwai','Telegram','Outra'].map(n=>`<option ${r.rede===n?'selected':''}>${n}</option>`).join('')}</select>
@@ -419,6 +431,12 @@ function viewDetail(o){
      <input data-rk="seguidores" data-ri="${i}" type="number" step="any" value="${esc(r.seguidores)}" placeholder="seguidores"/>
      <input data-rk="engaj" data-ri="${i}" type="number" step="any" value="${esc(r.engaj)}" placeholder="engaj %"/>
      <button class="btn danger sm" data-rrm="${i}">×</button></div>`).join('');
+  const planosHtml=(o.planos||[]).map((p,i)=>`<div style="display:grid;grid-template-columns:1fr 90px 120px 80px auto;gap:8px;align-items:center;margin-bottom:6px">
+     <input data-plk="nome" data-pli="${i}" value="${esc(p.nome)}" placeholder="ex.: Anual"/>
+     <input data-plk="meses" data-pli="${i}" type="number" step="any" value="${esc(p.meses)}"/>
+     <input data-plk="ticketMensal" data-pli="${i}" type="number" step="any" value="${esc(p.ticketMensal)}"/>
+     <input data-plk="mix" data-pli="${i}" type="number" step="any" value="${esc(p.mix)}"/>
+     <button class="btn danger sm" data-plrm="${i}">×</button></div>`).join('');
   const partesHtml=o.partes.map((p,i)=>`<div class="party-row">
      <input data-pk="nome" data-pi="${i}" value="${esc(p.nome)}" placeholder="nome da parte"/>
      <input data-pk="pct" data-pi="${i}" type="number" step="any" value="${esc(p.pct)}"/>
@@ -455,10 +473,13 @@ function viewDetail(o){
     <h3 class="grp">1. Produto (ecossistema Nelogica) — assinatura</h3>
     <div class="grid">
       ${field(o,'Produto a vender','produtoNome',{type:'text',q:'linha/produto Nelogica'})}
-      ${field(o,'Ticket mensal','ticketMensal',{suffix:'R$/mês'})}
-      ${field(o,'Prazo de fidelidade','prazoFidelidade',{suffix:'meses'})}
       ${field(o,'Churn mensal','churnMensalPct',{suffix:'% cancelam/mês'})}
     </div>
+    <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Formatos de comercialização <span class="muted" style="font-weight:400">— 1 produto, vários planos (ex.: mensal, semestral, anual, bianual)</span></h4>
+    <div style="display:grid;grid-template-columns:1fr 90px 120px 80px auto;gap:8px;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px"><span>Formato</span><span>Meses</span><span>R$/mês</span><span>Mix %</span><span></span></div>
+    ${planosHtml}
+    <button class="btn ghost sm" id="addPlano">+ adicionar formato</button>
+    <div id="planosNote" class="pill-note"></div>
     <h3 class="grp">2. Política de cancelamento <span class="muted" style="font-weight:400;font-size:11px">(sem reembolso integral)</span></h3>
     <div class="grid">
       ${field(o,'Cancelam em 7 dias','cancel7Pct',{suffix:'% (saem sem custo)'})}
@@ -534,6 +555,9 @@ function viewDetail(o){
     recompute(o);
   }));
   bindRedes(o); bindParties(o);
+  main.querySelectorAll('[data-plk]').forEach(el=>el.addEventListener('input',()=>{const i=+el.dataset.pli,k=el.dataset.plk;o.planos[i][k]= k==='nome'?el.value:parseFloat(el.value||'0');recompute(o);}));
+  main.querySelectorAll('[data-plrm]').forEach(el=>el.onclick=()=>{if(o.planos.length<=1)return;o.planos.splice(+el.dataset.plrm,1);viewDetail(o);});
+  document.getElementById('addPlano').onclick=()=>{o.planos.push({nome:'Novo formato',meses:12,ticketMensal:0,mix:0});viewDetail(o);};
   document.getElementById('addRede').onclick=()=>{o.redes.push({rede:'Outra',handle:'',seguidores:0,engaj:0});viewDetail(o);};
   document.getElementById('fetchRede').onclick=()=>{
     const fn=document.getElementById('fetchNote');
@@ -571,8 +595,11 @@ function recompute(o){
   const ca=document.getElementById('compAlert');
   if(ca) ca.innerHTML=o.rendaVariavel?`<div class="alertbox"><b>Bloqueio condicional de compliance.</b> Toca renda variável: a copy não é liberada sem parecer jurídico (GAP-003). O cálculo segue; a execução trava nesse ponto.</div>`:'';
   const rn=document.getElementById('recNote');
-  if(rn){const rc=receitaPorCliente(o);const vida=o.churnMensalPct>0?Math.min(1/(o.churnMensalPct/100),o.prazoFidelidade):o.prazoFidelidade;
-    rn.innerHTML=`Receita esperada por cliente efetivo: <b>${brl(rc)}</b> ao longo de até ${o.prazoFidelidade} meses (vida média ≈ ${num(vida,1)} m; inclui multa de ${o.multaPct}% sobre o restante em cancelamentos pós-7 dias). ⚠️ Caixa chega ao longo do tempo (GAP-008) — isto é receita contratada [D], não caixa imediato.`;}
+  if(rn){const rc=receitaPorCliente(o);
+    rn.innerHTML=`Receita esperada por cliente efetivo (<b>média ponderada dos formatos</b>): <b>${brl(rc)}</b> — inclui multa de ${o.multaPct}% sobre o restante em cancelamentos pós-7 dias. ⚠️ Caixa chega ao longo do tempo (GAP-008) — receita contratada [D], não caixa imediato.`;}
+  const pn=document.getElementById('planosNote');
+  if(pn){const pl=getPlanos(o);const tot=pl.reduce((a,p)=>a+(+p.mix||0),0);const tb=ticketMensalBlend(o);
+    pn.innerHTML=`${pl.length} formato(s) · mix soma <b>${num(tot)}%</b>${Math.abs(tot-100)>0.5?' — normalizado para 100% no cálculo':''} · ticket médio ponderado <b>${brl(tb)}/mês</b>. ⚠️ Planos longos (anual/bianual) antecipam caixa e mudam o risco — o fluxo de caixa no tempo ainda não é modelado (GAP-011).`;}
   const mh=document.getElementById('modeloHint');
   if(mh){const h={semente:'Porta de entrada: valida sem produto pronto. Não tratar como definitivo.',interno:'Cavalo de batalha na própria base. Pré-requisito do externo e do perpétuo.',externo:'Só depois de um interno validado.',perpetuo:'Só depois de um interno de sucesso. Exige tráfego constante.',relampago:'Caixa rápido em base quente. Frequência alta ensina a base a esperar.'};mh.textContent=h[o.modelo]||'';}
 
@@ -639,6 +666,7 @@ if(opps.length===0){
   ex.redes=[{rede:'Instagram',handle:'@exemplo',seguidores:300000,engaj:3},{rede:'YouTube',handle:'@exemplo',seguidores:120000,engaj:4}];
   ex.alcancePct=10; ex.optinPct=5; ex.convLista=2;
   ex.ticketMensal=300; ex.prazoFidelidade=12; ex.churnMensalPct=5; ex.cancel7Pct=10; ex.multaPct=50;
+  ex.planos=[{nome:'Mensal',meses:1,ticketMensal:300,mix:30},{nome:'Anual',meses:12,ticketMensal:250,mix:50},{nome:'Bianual',meses:24,ticketMensal:220,mix:20}];
   ex.qtdLeadsDB=5000; ex.custoLeadDB=1.60; ex.verbaTrafego=20000; ex.cpl=8;
   ex.partes=[{nome:'Expert',pct:40,operador:false},{nome:'Nelogica',pct:60,operador:true}];
   ex.status='exemplo';
