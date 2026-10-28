@@ -241,6 +241,20 @@
 
 ---
 
+## SRC-033 — Kotler & Keller, *Administração de Marketing* (14ª ed., 2012) · tratado · `[A]` seletivo
+
+**Acesso:** EPUB (~600 mil palavras / ~800 páginas). **Honestidade de cobertura (importante):** um tratado desse tamanho **NÃO foi lido verbatim na totalidade** — seria ~1 milhão de tokens e boa parte é tangencial a lançamentos (força de vendas, canais, varejo). **Lidos de fato `[A]`:** cap. 12 — os **5 níveis de produto** (hierarquia de valor) + classificação; cap. 11 — **ciclo de vida do produto** (introdução/crescimento/maturidade) e a **vantagem da pioneira**. **Localizados mas NÃO lidos integralmente:** segmentação/alvo (cap. 8), posicionamento PODs/POPs (cap. 10), comunicação integrada (17–19), preço (14), desenvolvimento de novos produtos/comercialização (20). Não marco `[A]` nesses.
+
+**Conceitos `[A]` que fundamentam a feature "entender o produto → estrutura de lançamento":**
+- **5 níveis de produto (hierarquia de valor):** benefício central → produto básico → esperado → ampliado → potencial. "O marketing deve se ver como fornecedor de benefícios" (o cliente compra "furos", não a furadeira). A diferenciação/competição mora no nível **ampliado**. → **Entender o produto começa aqui.**
+- **Ciclo de vida do produto (CVP):** introdução (vendas lentas, lucro baixo/negativo; tarefa = informar + induzir experimentação + garantir distribuição) → crescimento → maturidade (3 fases) → declínio. → **O momento do produto no CVP muda a estratégia de lançamento.**
+- **Momento de entrada / vantagem da pioneira:** ser pioneiro ajuda (lembrança de marca, define atributos da categoria), mas **não é regra absoluta** — existe a "vantagem do imitador". 5 pilares de liderança duradoura: visão de mercado de massa, persistência, inovação incansável, responsabilidade financeira, alavancagem de ativos. Lançar **no prazo** importa (estudo citado: atraso de 6 meses ≈ −33% de lucro em 5 anos — **dado do autor, não benchmark nosso**).
+- **Expansão sequenciada (produto × mercado):** a pioneira decide qual segmento/produto atacar primeiro e **sequencia** a expansão. → lógica de "qual lançamento primeiro" na futura visão de portfólio (GAP-013).
+
+**Aplicação ao LaunchOS:** base conceitual da feature pedida pelo Davi — um **Gerador de estrutura de lançamento** que parte do **entendimento do produto** (5 níveis + momento no CVP) e cruza com os **5 tipos-núcleo** (`03`), as **4 sequências de Walker** (SRC-030), a **mensagem herói/guia do StoryBrand** (SRC-031) e a **arquitetura de preços** (`12`) para propor uma estrutura fundamentada e rastreável. Ver DEC-019.
+
+---
+
 ## Fontes não extraídas
 
 - **SRC-006 (v4company):** bloqueio de bot em 2 tentativas. Esperava-se postura crítica (agência de performance tende a criticar a FL). **Lacuna:** falta a perspectiva crítica de uma agência de performance. Se o Davi quiser, pode colar o texto ou enviar o PDF.
