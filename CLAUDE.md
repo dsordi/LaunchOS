@@ -44,6 +44,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   11_METODO_OPERACIONAL.md    ← os 9 estágios com portões (K)
   12_LITERATURA_MARKETING.md  ← princípios de livros de marketing (marca [L], não auditado) (L)
   13_PERFIL_CLIENTE_NELOGICA.md ← perfil do cliente/ICP com dado primário interno Nelogica ([A] interno, datado) (M)
+  14_MERCADO_EXTERNO_B3_ANBIMA.md ← mercado/investidor/influência financeira: B3 e ANBIMA ([A] independente, 2025–26) (N)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)
@@ -75,4 +76,4 @@ As três originais foram respondidas em 2026-10-28 (ver DEC-010/011/012 em `bibl
 
 ## Ao atualizar a base
 
-Edite o arquivo certo (fato de fonte → 01/02; comparação → 03; indicador → 06; termo → 07; lacuna/hipótese → 09; decisão de método → 10; perfil de cliente/ICP Nelogica → 13). Registre toda decisão de consolidação em `10` com data e motivo. Não duplique conteúdo entre arquivos; use referências cruzadas por ID.
+Edite o arquivo certo (fato de fonte → 01/02; comparação → 03; indicador → 06; termo → 07; lacuna/hipótese → 09; decisão de método → 10; perfil de cliente/ICP Nelogica → 13; mercado/investidor/influência externa → 14). Registre toda decisão de consolidação em `10` com data e motivo. Não duplique conteúdo entre arquivos; use referências cruzadas por ID.
