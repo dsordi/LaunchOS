@@ -655,11 +655,11 @@ function recompute(o){
 
 /* ---------------- Raio-X / Gerador de estrutura de lançamento ---------------- */
 let geradorProduto=null;
-const blankProduto=()=>({nome:'',oqueeh:'',paraque:'',publico:'',cvp:'novo',validado:'nao',jaVende:'nao',audiencia:'fria',verba:'media',rendaVariavel:false});
+const blankProduto=()=>({nome:'',oqueeh:'',paraque:'',publico:'',categoria:'profit_addon',cvp:'novo',validado:'nao',jaVende:'nao',audiencia:'fria',verba:'media',rendaVariavel:true,baseAlvo:0,adesaoPct:5,ticketRef:0});
 function oppToProduto(o){
   const seg=seguidoresTotais(o); let aud='nenhuma'; if(seg>0) aud=(o.intencao==='baixa'?'fria':'quente');
   const v=+o.verbaTrafego||0; const verba=v>50000?'alta':(v>=10000?'media':'baixa');
-  return {nome:o.nome||'',oqueeh:o.produtoNome||'',paraque:o.hipotese||'',publico:o.nicho||'',cvp:'novo',validado:o.produtoPronto==='sim'?'sim':'nao',jaVende:o.intencao==='alta'?'sim':'nao',audiencia:aud,verba,rendaVariavel:!!o.rendaVariavel};
+  return {nome:o.nome||'',oqueeh:o.produtoNome||'',paraque:o.hipotese||'',publico:o.nicho||'',categoria:'outro',cvp:'novo',validado:o.produtoPronto==='sim'?'sim':'nao',jaVende:o.intencao==='alta'?'sim':'nao',audiencia:aud,verba,rendaVariavel:!!o.rendaVariavel,baseAlvo:Math.round(audienciaAlcancavel(o)),adesaoPct:+o.convLista||5,ticketRef:Math.round(ticketMensalBlend(o))};
 }
 function gfield(p,label,key,opts={}){
   const t=opts.type||'text';
@@ -668,31 +668,54 @@ function gfield(p,label,key,opts={}){
   return `<div><label>${label} ${opts.q?`<span class=q>${opts.q}</span>`:''}</label><input type="text" data-g="${key}" value="${esc(p[key])}"/></div>`;
 }
 // regras: do produto → tipo de lançamento (matriz 03 + dependências + HYP-005)
+const CATINFO={
+  profit_addon:{label:'Opcional / ferramenta dentro do Profit',mercado:'base de usuários do Profit (dado interno da Nelogica)',compliance:true,publico:'investidores que já operam no Profit'},
+  educacional:{label:'Educacional (InvestAcademy)',mercado:'audiência do expert + traders iniciantes alcançáveis',compliance:false,publico:'quem quer aprender a investir/operar'},
+  outro:{label:'Outro infoproduto',mercado:'audiência alcançável do expert (bottom-up)',compliance:false,publico:'o público do expert'}
+};
 function gerarEstrutura(p){
-  const raiox=[]; const validado=p.validado==='sim', jaVende=p.jaVende==='sim', aud=p.audiencia;
-  raiox.push(validado?{t:'ok',txt:'Produto validado — pode vender para a base.'}:{t:'alerta',txt:'Produto ainda não validado — risco de vender algo que o mercado não quer. Validar antes de escalar.'});
-  if(aud==='nenhuma') raiox.push({t:'bloqueio',txt:'Sem audiência: é preciso construir ou emprestar lista antes de qualquer carrinho (captação é pré-requisito).'});
-  else if(aud==='fria') raiox.push({t:'alerta',txt:'Audiência fria (seguidores sem intenção): aquecer e gerar sinal de intenção antes de ofertar — audiência ≠ intenção (SRC-017).'});
-  else raiox.push({t:'ok',txt:'Audiência quente: há base relacionada para lançar.'});
-  if(p.rendaVariavel) raiox.push({t:'bloqueio',txt:'Toca renda variável: copy e promessas passam por portão jurídico (compliance) antes de ir ao ar (GAP-003).'});
-  const cvpTxt={novo:'Produto novo (introdução): foco em informar, educar e induzir a 1ª experimentação; quebra de crença forte (Kotler, CVP).',crescimento:'Em crescimento: momento de escalar alcance e defender a posição.',maduro:'Maduro: diferenciar e relançar com ângulo/bônus novo; cuidado com saturação.'};
+  const validado=p.validado==='sim', jaVende=p.jaVende==='sim', aud=p.audiencia;
+  const cat=CATINFO[p.categoria]||CATINFO.outro;
+  const publico=esc(p.publico||cat.publico), beneficio=esc(p.paraque||'[benefício central]'), produto=esc(p.oqueeh||p.nome||'[produto]');
+  // 1. RAIO-X
+  const raiox=[];
+  raiox.push({t:'info',txt:`Categoria: <b>${cat.label}</b>. Mercado endereçável = <b>${cat.mercado}</b> — dimensionado de baixo para cima, nunca TAM de cima (regra do projeto; GAP-002).`});
+  raiox.push(validado?{t:'ok',txt:'Produto validado — pode vender para a base.'}:{t:'alerta',txt:'Produto não validado — risco de vender algo que o mercado não quer. Validar antes de escalar.'});
+  if(aud==='nenhuma') raiox.push({t:'bloqueio',txt:'Sem audiência própria: construir ou emprestar lista antes de qualquer carrinho (captação é pré-requisito).'});
+  else if(aud==='fria') raiox.push({t:'alerta',txt:'Audiência fria: aquecer e gerar sinal de intenção antes de ofertar — seguidores ≠ influência (Pissarra, SRC-034).'});
+  else raiox.push({t:'ok',txt:'Audiência quente: base relacionada pronta para lançar.'});
+  if(cat.compliance||p.rendaVariavel) raiox.push({t:'bloqueio',txt:'Ligado a mercado financeiro (Profit/renda variável): copy e promessas passam por portão jurídico/compliance antes de ir ao ar (GAP-003). <b>Proibido prometer retorno.</b>'});
+  const cvpTxt={novo:'Produto novo (introdução, Kotler): foco em informar + induzir a 1ª experimentação; quebra de crença forte.',crescimento:'Em crescimento: escalar alcance e defender posição.',maduro:'Maduro: diferenciar e relançar com ângulo/bônus novo; cuidado com saturação.'};
   if(cvpTxt[p.cvp]) raiox.push({t:'info',txt:cvpTxt[p.cvp]});
+  // 2. MERCADO ENDEREÇÁVEL (bottom-up)
+  const base=+p.baseAlvo||0, ades=(+p.adesaoPct||0)/100, tk=+p.ticketRef||0, recBase=base*ades*tk;
+  const mercado={base,adesPct:+p.adesaoPct||0,tk,ok:base>0&&tk>0,faixa:[recBase*0.6,recBase,recBase*1.6],label:cat.mercado};
+  // 3. KOTLER — 5 níveis
+  const kotler={niveis:[`<b>Benefício central:</b> ${beneficio} <span class="muted">(o que o cliente realmente compra)</span>`,`<b>Produto básico:</b> ${produto}`,'<b>Produto esperado:</b> [o mínimo que a categoria exige]','<b>Produto ampliado:</b> [o que excede a expectativa — <u>onde você diferencia e surpreende</u>]','<b>Produto potencial:</b> [evolução/roadmap futuro]']};
+  // 4. POSICIONAMENTO (Ries&Trout / Dunford)
+  const posicionamento={categoriaRef:'[categoria de referência — com o que o cliente compara]',alternativas:'[o que ele usaria se não comprasse]',pod:'[ponto de diferença — o que só você entrega]',pop:'[pontos de paridade — o mínimo que a categoria exige]'};
+  // 5. STORYBRAND — BrandScript
+  const sb={heroi:publico,desejo:beneficio,probExterno:'[o problema prático que ele enfrenta]',probInterno:'[como isso o faz se sentir]',probFilosofico:'[por que é injusto ele continuar assim]',guia:produto+' — empatia (entendemos sua dor) + autoridade ([prova/credencial])',plano:['[passo 1]','[passo 2]','[passo 3]'],cta:'[ação: assine / entre agora]',fracasso:'[o que ele perde se não agir]',sucesso:'[a transformação que ele alcança]'};
+  const mote={frase:`Como ${publico} pode ${beneficio} — mesmo diante de [o maior obstáculo].`};
+  // 6. TIPO
   let tipo,just,alt=[];
-  if(!validado){tipo='Semente';just='Produto ainda não validado → o semente valida a demanda e financia a 1ª turma com baixo risco (matriz 03; SRC-005).';alt=['Interno (após validar)'];}
-  else if(aud==='nenhuma'){tipo='Captação + Semente';just='Produto pronto, mas sem audiência → construir lista primeiro; um semente pequeno gera os primeiros dados e clientes.';alt=['Interno (após formar base)'];}
-  else if(validado && !jaVende){tipo='Interno';just='Produto validado + base própria → interno é o cavalo de batalha e pré-requisito para externo/perpétuo (SRC-005/008). Expert com autoridade pula o semente (HYP-005).';alt=['Relâmpago (caixa rápido)'];}
-  else {if(p.verba==='alta'||aud==='fria'){tipo='Externo';just='Interno já converte → escalar alcance via afiliados/parceiros (só depois do interno validado — SRC-005/008).';alt=['Perpétuo (previsibilidade)'];}else{tipo='Perpétuo';just='Interno já converte → automatizar o que funciona para previsibilidade/fluxo diário (só após interno de sucesso).';alt=['Externo (escala)'];}}
+  if(!validado){tipo='Semente';just='Produto não validado → o semente valida demanda e financia a 1ª turma (matriz 03; SRC-005).';alt=['Interno (após validar)'];}
+  else if(aud==='nenhuma'){tipo='Captação + Semente';just='Produto pronto, sem audiência → construir lista primeiro; semente pequeno gera os 1ºs dados.';alt=['Interno (após formar base)'];}
+  else if(validado && !jaVende){tipo='Interno';just='Validado + base própria → interno é o cavalo de batalha e pré-requisito de externo/perpétuo (SRC-005/008). Expert com autoridade pula o semente (HYP-005).';alt=['Relâmpago (caixa rápido)'];}
+  else {if(p.verba==='alta'||aud==='fria'){tipo='Externo';just='Interno já converte → escalar via afiliados/parceiros (só após interno validado — SRC-005/008).';alt=['Perpétuo (previsibilidade)'];}else{tipo='Perpétuo';just='Interno já converte → automatizar para previsibilidade (só após interno de sucesso).';alt=['Externo (escala)'];}}
+  if(p.categoria==='profit_addon'&&validado&&aud!=='nenhuma'&&tipo==='Interno') just+=' Para um opcional do Profit, a própria base de usuários do Profit é o "interno" ideal — audiência quente e qualificada.';
   if(aud==='quente' && !/Relâmpago/.test(alt.join())) alt.push('Relâmpago (caixa rápido, sem abusar da frequência)');
-  const publico=p.publico||'[público]', beneficio=p.paraque||'[benefício central]', produto=p.oqueeh||p.nome||'[produto]';
-  const mote={frase:`Como ${publico} pode ${beneficio} — mesmo diante de [o maior obstáculo].`,
-    paragrafo:`${publico} quer ${beneficio}, mas enfrenta [o problema]. ${produto} é o guia: [passo 1] → [passo 2] → [passo 3]. Em vez de [o que se perde ao não agir], você alcança [a transformação].`};
+  // 7. PREÇO
+  const preco={rec:'Ofereça ~3 formatos (good-better-best); o mais longo/caro (anual/bianual) ancora os demais; evite passar de ~4 opções (paradoxo da escolha).',fonte:'Monetizing Innovation · Kahneman/Ariely [L]'};
+  // 8. FASES + PORTÕES
   const fases=estruturaPorTipo(tipo,p);
   const portoes=[];
-  if(p.rendaVariavel) portoes.push('Compliance (renda variável): validar promessas com o jurídico antes de liberar copy.');
+  if(cat.compliance||p.rendaVariavel) portoes.push('Compliance (Profit/renda variável): validar promessas com o jurídico antes de liberar copy.');
   portoes.push('Tracking/medição configurado ANTES de abrir a captação.');
-  portoes.push('Go/no-go financeiro: cenário conservador viável para todas as partes (decidir no Decisor E5).');
-  portoes.push('Fechar o carrinho na data prometida (escassez honesta).');
-  return {tipo,just,alt,raiox,mote,fases,portoes};
+  portoes.push('Go/no-go financeiro: cenário conservador viável para todas as partes (Decisor E5).');
+  portoes.push('Fechar o carrinho na data (escassez honesta).');
+  const fontes=['Tipo &amp; sequência: matriz 03 + Jeff Walker (SRC-030) [A]','Mensagem (BrandScript): StoryBrand — Donald Miller (SRC-031) [A]','Produto (5 níveis) &amp; ciclo de vida: Kotler &amp; Keller (SRC-033) [A]','Precificação: Monetizing Innovation / Kahneman-Ariely (biblioteca/12) [L]','Audiência/engajamento: Pissarra (SRC-034) [A]','Dimensionamento bottom-up: regra do projeto (CLAUDE.md) + GAP-002'];
+  return {cat,raiox,mercado,kotler,posicionamento,sb,mote,tipo,just,alt,preco,fases,portoes,fontes};
 }
 function estruturaPorTipo(tipo,p){
   const base=[
@@ -721,20 +744,54 @@ function estruturaPorTipo(tipo,p){
 }
 function renderEstruturaInner(res){
   const ic={ok:'✅',alerta:'⚠️',bloqueio:'⛔',info:'ℹ️'};
-  const raiox=res.raiox.map(r=>`<li>${ic[r.t]||''} ${esc(r.txt)}</li>`).join('');
+  const raiox=res.raiox.filter(r=>r.txt).map(r=>`<li>${ic[r.t]||''} ${r.txt}</li>`).join('');
+  const m=res.mercado;
+  const mercadoHtml = m.ok
+    ? `<table>
+        <tr><td>Base-alvo</td><td>${num(m.base)}</td></tr>
+        <tr><td>Adesão/conversão premissada</td><td>${num(m.adesPct)}% <span class="muted">[D]</span></td></tr>
+        <tr><td>Ticket de referência</td><td>${brl(m.tk)}</td></tr>
+        <tr><td><b>Receita potencial (faixa)</b></td><td><b>${brl(m.faixa[0])} — ${brl(m.faixa[2])}</b></td></tr>
+      </table><div class="muted" style="font-size:11px;margin-top:4px">Bottom-up: base × adesão × ticket. Faixa = conservador/otimista sobre a adesão. <b>Não é TAM</b>; precisa da base real (ex.: nº de usuários do Profit) — GAP-002.</div>`
+    : `<div class="alertbox">Para dimensionar o mercado endereçável, informe a <b>base-alvo</b> (ex.: nº de usuários do Profit) e o <b>ticket de referência</b>. Sem o número real, só há estrutura — não invento mercado (GAP-002).</div>`;
+  const niveis=res.kotler.niveis.map(n=>`<li>${n}</li>`).join('');
+  const sb=res.sb, plano=sb.plano.map(esc).join(' → ');
   const fases=res.fases.map(f=>`<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px">
      <b>${esc(f.nome)}</b><div class="muted" style="font-size:12px;margin-bottom:6px">${esc(f.obj)}</div>
      <table><tr><th>Etapa</th><th style="width:170px">Gatilho mental</th><th style="width:90px">Quando</th></tr>
      ${f.passos.map(s=>`<tr><td>${esc(s.acao)}</td><td>${esc(s.gatilho)}</td><td>${esc(s.quando)}</td></tr>`).join('')}</table></div>`).join('');
   const alt=res.alt.length?`<p><b>Alternativas:</b> ${res.alt.map(esc).join(' · ')}</p>`:'';
   const port=res.portoes.map(x=>`<li>${esc(x)}</li>`).join('');
-  return `<h2>1. Raio-X do produto</h2><ul>${raiox}</ul>
-   <h2>2. Tipo de lançamento recomendado</h2><p style="font-size:16px"><b>${esc(res.tipo)}</b></p><p>${esc(res.just)}</p>${alt}
-   <h2>3. Mote de campanha <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— esqueleto StoryBrand; complete os [colchetes]</span></h2>
-   <p><b>Promessa:</b> ${esc(res.mote.frase)}</p><p>${esc(res.mote.paragrafo)}</p>
-   <h2>4. Estrutura operacional (etapa por etapa)</h2>${fases}
-   <h2>5. Portões</h2><ul>${port}</ul>
-   <div class="disc"><b>Transparência:</b> estrutura <b>sugerida por regras</b> a partir do que você informou, cruzando a base (Walker, StoryBrand, Kotler, matriz de tipos). Os [colchetes] são para você preencher com a realidade. Não é promessa de resultado; a viabilidade financeira é decidida no Decisor (E5).</div>`;
+  const fontes=res.fontes.map(x=>`<li>${x}</li>`).join('');
+  return `
+   <h2>1. Raio-X do produto</h2><ul>${raiox}</ul>
+   <h2>2. Mercado endereçável <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— bottom-up, não TAM</span></h2>${mercadoHtml}
+   <h2>3. Entendimento do produto — 5 níveis (Kotler)</h2><ul>${niveis}</ul>
+   <h2>4. Posicionamento <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— Ries&amp;Trout / Dunford</span></h2>
+   <table><tr><td>Categoria de referência</td><td>${esc(res.posicionamento.categoriaRef)}</td></tr>
+     <tr><td>Alternativas do cliente</td><td>${esc(res.posicionamento.alternativas)}</td></tr>
+     <tr><td>Ponto de diferença (só você)</td><td>${esc(res.posicionamento.pod)}</td></tr>
+     <tr><td>Pontos de paridade (mínimo)</td><td>${esc(res.posicionamento.pop)}</td></tr></table>
+   <h2>5. Mensagem — BrandScript (StoryBrand)</h2>
+   <table>
+     <tr><td>Herói (cliente)</td><td>${esc(sb.heroi)}</td></tr>
+     <tr><td>Quer</td><td>${esc(sb.desejo)}</td></tr>
+     <tr><td>Problema externo</td><td>${esc(sb.probExterno)}</td></tr>
+     <tr><td>Problema interno</td><td>${esc(sb.probInterno)}</td></tr>
+     <tr><td>Problema filosófico</td><td>${esc(sb.probFilosofico)}</td></tr>
+     <tr><td>Guia (você)</td><td>${esc(sb.guia)}</td></tr>
+     <tr><td>Plano</td><td>${plano}</td></tr>
+     <tr><td>Chamada à ação</td><td>${esc(sb.cta)}</td></tr>
+     <tr><td>Fracasso evitado</td><td>${esc(sb.fracasso)}</td></tr>
+     <tr><td>Sucesso</td><td>${esc(sb.sucesso)}</td></tr>
+   </table>
+   <p style="margin-top:8px"><b>Mote:</b> ${esc(res.mote.frase)}</p>
+   <h2>6. Tipo de lançamento recomendado</h2><p style="font-size:16px"><b>${esc(res.tipo)}</b></p><p>${esc(res.just)}</p>${alt}
+   <h2>7. Arquitetura de preços</h2><p>${esc(res.preco.rec)}</p><p class="muted" style="font-size:11px">Fonte: ${esc(res.preco.fonte)}</p>
+   <h2>8. Estrutura operacional (etapa por etapa)</h2>${fases}
+   <h2>9. Portões</h2><ul>${port}</ul>
+   <h2>10. Fontes aplicadas (rastreabilidade)</h2><ul style="font-size:12px">${fontes}</ul>
+   <div class="disc"><b>Transparência:</b> análise <b>sugerida por regras</b>, cruzando a base (Walker, StoryBrand, Kotler, Pissarra, matriz de tipos, arquitetura de preços). Os [colchetes] são para você completar com a realidade. <b>Nenhum número de mercado foi inventado</b> — dimensionamento bottom-up, depende da base real (GAP-002). Não é promessa de resultado; viabilidade financeira no Decisor (E5).</div>`;
 }
 function renderEstrutura(res){
   return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Raio-X + Estrutura</h2><button class="btn ghost sm" id="estrutPrint">🖨️ Imprimir / PDF</button></div><div class="pitch" style="padding:0">${renderEstruturaInner(res)}</div></div>`;
@@ -759,6 +816,7 @@ function viewGerador(){
       <div><label>Carregar de uma oportunidade salva</label><select id="loadOpp"><option value="">— começar do zero —</option>${oppOptions}</select></div>
     </div>
     <div class="grid">
+      ${gfield(p,'Categoria do produto','categoria',{type:'select',options:[['profit_addon','Opcional/ferramenta no Profit'],['educacional','Educacional (InvestAcademy)'],['outro','Outro infoproduto']]})}
       ${gfield(p,'Nome do produto / ideia','nome')}
       ${gfield(p,'O que é','oqueeh',{q:'em uma frase'})}
       ${gfield(p,'Para que serve (benefício central)','paraque',{q:'o cliente compra o quê?'})}
@@ -771,6 +829,12 @@ function viewGerador(){
       ${gfield(p,'Audiência disponível','audiencia',{type:'select',options:[['nenhuma','Nenhuma'],['fria','Fria (seguidores s/ intenção)'],['quente','Quente (base relacionada)']]})}
       ${gfield(p,'Verba de mídia','verba',{type:'select',options:[['baixa','Baixa'],['media','Média'],['alta','Alta']]})}
       ${gfield(p,'Toca renda variável?','rendaVariavel',{type:'check'})}
+    </div>
+    <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Mercado endereçável <span class="muted" style="font-weight:400">— bottom-up (base real × adesão × ticket)</span></h4>
+    <div class="grid">
+      ${gfield(p,'Base-alvo','baseAlvo',{q:'ex.: nº de usuários do Profit'})}
+      ${gfield(p,'Adesão/conversão esperada','adesaoPct',{q:'% [D]'})}
+      ${gfield(p,'Ticket de referência','ticketRef',{q:'R$'})}
     </div>
     <div style="margin-top:14px"><button class="btn" id="genEstrut">🔎 Gerar análise + estrutura</button></div>
   </div>
