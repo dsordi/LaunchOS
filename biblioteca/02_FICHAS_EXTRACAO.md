@@ -181,6 +181,35 @@
 
 ---
 
+## SRC-030 — Jeff Walker, *Launch* / *A Fórmula do Lançamento* (livro, EUA 2014 / BR 2019) · a FONTE-RAIZ, agora lida de primeira mão
+
+**Acesso:** EPUB enviado pelo Davi (2026-10-28). **Lidos integralmente nesta sessão:** Nota ao leitor; **cap. 2** (a PLF explicada); **cap. 5** (os estímulos mentais). **Ainda NÃO lidos integralmente:** caps. 1, 3 (a lista), 4 (Sideways Sales Letter), 6–8 (as sequências em detalhe), 9 (Seed Launch), 10 (lançamento conjunto/JV), 11–14. → Marco `[A]` apenas o que li; o resto segue pendente.
+
+**Por que isto é grande:** até agora o corpus só tinha Walker **por eco** (SRC-003/004/017…, `[A-raiz ecoada]`). Agora a raiz é **fonte primária `[A]`**. Onde o livro confirma o eco, a afirmação sobe de "eco" para **fato da fonte original**.
+
+**Estrutura central `[A]` (cap. 2):**
+- A PLF = **sequências + histórias + estímulos mentais**.
+- **4 sequências:** (1) **pré-pré-lançamento** — o "tiro de aviso": uma pergunta que abre diálogo, sonda a oferta e as objeções, e pode **ajustar a oferta final**; (2) **pré-lançamento** — o cerne: **Conteúdo de Pré-Lançamento em 3 partes**, tipicamente ao longo de **5 a 12 dias**; (3) **lançamento** — a **"Abertura do Carrinho"**, de **24h a 7 dias**; (4) **pós-lançamento** — acompanha compradores e não-compradores e já prepara o próximo.
+- Anti-padrão nomeado: **"Marketing da Esperança"** (criar e torcer) × transformar o marketing em **evento** (modelo Hollywood/Apple).
+- Os 3 CPLs espelham a **estrutura narrativa em 3 atos**.
+
+**Os 9 estímulos mentais `[A]` (cap. 5)** — "cerca de metade dos que uso":
+1. Autoridade · 2. Reciprocidade · 3. Confiança · 4. Expectativa · 5. Empatia (afeição) · 6. Eventos e rituais · 7. Comunidade · 8. Escassez · 9. Comprovação social.
+- **Correção vs. o corpus:** SRC-017 dizia "6 gatilhos de Cialdini". A lista do **próprio Walker é diferente e mais ampla** (expectativa, eventos/rituais, comunidade, confiança não são de Cialdini). Isto vira `[A]` e corrige o glossário.
+- Usados **em camadas e em sequência**, com sinergia (autoridade+confiança; escassez↔comprovação social).
+
+**Confirmações `[A]` pela raiz (antes só via eco):**
+- **"A maior parte das vendas acontece nas últimas 24 horas do lançamento."** — dito por Walker literalmente. (Era `[A]` da HeroSpark; agora também da raiz → tende a `[B]`.)
+- **Escassez só funciona se for real:** "deverá existir alguma consequência negativa se não agir" (ex.: o preço sobe). Converge com SRC-001.
+- **O primeiro lançamento não faz milhão:** Walker — "realizar logo de saída um lançamento de US$1 milhão… não acontecerá no seu primeiro empreendimento." → **confirma HYP-003 pela fonte-raiz** (antes vinha via Hotmart/Érico).
+- **Método > verba:** caso John Gallagher — 12 → **670 vendas** (~US$20 mil) **sem gasto em mídia**. Valores **autodeclarados do autor** sobre aluno → tratar como caso, não benchmark (coerente com GAP-002/DEC-009).
+
+**Ainda não lido (honestidade):** a mecânica detalhada das sequências (6–8), a lista/aquecimento (3), a Sideways Sales Letter (4), o Seed Launch (9) e o JV (10) — justamente os que mais aprofundariam o playbook. Proponho ler em seguida.
+
+**Aplicação ao LaunchOS:** o playbook (E6/E7) já reflete as 4 fases e os 3 CPLs; esta leitura permite **mapear um estímulo mental por etapa** com base no autor (não em eco) e **corrigir o glossário** (gatilhos = lista própria de Walker, não "6 de Cialdini").
+
+---
+
 ## Fontes não extraídas
 
 - **SRC-006 (v4company):** bloqueio de bot em 2 tentativas. Esperava-se postura crítica (agência de performance tende a criticar a FL). **Lacuna:** falta a perspectiva crítica de uma agência de performance. Se o Davi quiser, pode colar o texto ou enviar o PDF.

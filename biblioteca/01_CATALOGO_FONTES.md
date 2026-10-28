@@ -36,6 +36,7 @@
 | SRC-016 | lume.ufrgs.br/handle/10183/256904 | UFRGS (TCC Administração, 2022) | Infoproduto: venda de conhecimento no Brasil | **Acadêmico** | **Parcial** (só resumo/abstract) | **Baixo** — mais confiável; texto completo não acessado |
 | SRC-017 | pantheon.ufrj.br/.../content (Montalvo, 2021) | UFRJ (TCC Administração, 2021) | Lançamento de infoprodutos: empreendedorismo digital | **Acadêmico** | **Integral** (PDF) | **Baixo** — estudo empírico; a fonte mais valiosa do lote |
 | SRC-018 | Infográfico "O Funil de GTM Moderno 2026" (imagem) | Matheus Mafessoli (NeuroSales AI) | Funil de GTM B2B em 5 etapas (awareness→fidelização); AEO e sinais de intenção | Infográfico de marca pessoal (LinkedIn) | Integral (via imagem enviada pelo Davi) | **Alto** — marca pessoal/promocional; vende NeuroSales AI; números autodeclarados. **Porém origem independente do eixo Walker/Érico e contexto B2B (não-infoproduto)** |
+| SRC-030 | *Launch* / *A Fórmula do Lançamento* — Jeff Walker (livro, 2014/BR 2019) | Jeff Walker | A **fonte-raiz da PLF**, de primeira mão | **Livro (EPUB)** | **Parcial** — lidos integralmente Nota ao leitor + cap. 2 + cap. 5; demais pendentes | Autor vende o treinamento PLF; mas é o **texto original, não eco**. A fonte mais importante do corpus (ver DEC-017) |
 
 > IDs 006, 010, 011 preservam a numeração dos links brutos; SRC-011 original era a tag page (renomeada SRC-010 aqui). A numeração é convenção, não hierarquia.
 > SRC-018 foi adicionada em 2026-10-28, **fora da auditoria original** (que cobriu as 21 URLs). Veio como imagem, não URL. Ver DEC-013 e ficha em 02.
@@ -79,3 +80,5 @@ As **únicas** quebras parciais desse monopólio:
 - **SRC-013 (Alex Vargas)** — escola distinta (Fórmula Negócio Online, mundo afiliados), mas converge na mesma lógica de funil. Convergência de uma escola rival **conta** como sinal de [B] para a mecânica básica do funil (captura → nutrição → oferta), ainda que datada (2016).
 
 Ver `03_MATRIZ_METODOLOGIAS.md` para onde a divergência real aparece (taxonomia dos tipos) e `09_LACUNAS_HIPOTESES.md` GAP-001.
+
+> **Atualização 2026-10-28 — a raiz deixou de ser só eco:** o livro do Walker (**SRC-030**) foi recebido e **parcialmente lido de primeira mão**. Afirmações cobertas pelos capítulos lidos (estrutura das 4 sequências, 3 CPLs, 9 estímulos mentais, "vendas nas últimas 24h", escassez real, "o 1º lançamento não faz milhão") passam de `[A-raiz ecoada]` para **`[A]` da fonte original**. Isso **não** dissolve o problema de origem única do restante do corpus — continua sendo majoritariamente derivação de Walker/Érico —, mas ancora a raiz em texto primário. Ver ficha SRC-030 em `02`.

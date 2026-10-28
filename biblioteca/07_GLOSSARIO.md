@@ -44,7 +44,7 @@
 - **Isca digital / Lead magnet** — material gratuito que atrai o cadastro.
 - **Página de captura** — coleta o e-mail. **Página de vendas** — apresenta a oferta. **VSL** — vídeo de vendas.
 - **Order bump / Upsell / Downsell / Cross-sell** — ofertas adicionais (no checkout / após compra / alternativa mais barata / complementar).
-- **Gatilhos mentais** — escassez, urgência, prova social, autoridade, reciprocidade (base: Cialdini). ⚠️ Linha tênue com manipulação quando a escassez é falsa.
+- **Gatilhos mentais** — escassez, urgência, prova social, autoridade, reciprocidade (base: Cialdini). ⚠️ Linha tênue com manipulação quando a escassez é falsa. **Correção `[A]` (SRC-030, Walker, lido de primeira mão):** Walker usa **9 gatilhos próprios** — autoridade, reciprocidade, confiança, expectativa, empatia, eventos/rituais, comunidade, escassez, comprovação social —, **não** apenas os "6 de Cialdini" que o corpus repetia.
 - **Escassez honesta** — prazo/vagas/bônus reais. Oposto da escassez falsa (timer que "zera" e nada muda). Princípio de sustentabilidade (SRC-001).
 
 ## Financeiro (ver 06 para fórmulas)
