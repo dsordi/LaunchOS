@@ -45,6 +45,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   12_LITERATURA_MARKETING.md  ← princípios de livros de marketing (marca [L], não auditado) (L)
   13_PERFIL_CLIENTE_NELOGICA.md ← perfil do cliente/ICP com dado primário interno Nelogica ([A] interno, datado) (M)
   14_MERCADO_EXTERNO_B3_ANBIMA.md ← mercado/investidor/influência financeira: B3 e ANBIMA ([A] independente, 2025–26) (N)
+  15_CERTIFICACAO_MOTOR_FINANCEIRO.md ← auditoria/fórmulas/premissas do motor financeiro do app (board-grade) (O)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)

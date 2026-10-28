@@ -272,25 +272,30 @@ function computeScenario(o, convMult){
   const taxRev = o.impostoBase==='faturamento' ? ((o.impostoPct||0)/100) : 0;
   const netMensal = ticketMensalBlend(o)*(1-((o.taxaPlataformaPct||0)/100)-taxRev); // margem mensal por cliente (ponderada entre formatos)
   const paybackMeses = netMensal>0 ? cac/netMensal : Infinity;
-  const ltvCac = cac>0 ? recPorCliente/cac : Infinity;
-  return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,ltvCac};
+  const margemRate = 1-((o.taxaPlataformaPct||0)/100)-taxRev;          // margem de contribuição (s/ taxa + imposto s/ receita)
+  const ltvMargem = recPorCliente*margemRate;                          // LTV = contribuição por cliente ao longo do termo
+  const ltvCac = cac>0 ? recPorCliente/cac : Infinity;                 // receita bruta ÷ CAC (referência, superestima)
+  const ltvMargemCac = cac>0 ? ltvMargem/cac : Infinity;               // LTV de MARGEM ÷ CAC (métrica correta p/ board)
+  return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,margemRate,ltvMargem,ltvCac,ltvMargemCac};
 }
 
 function distribute(o,s){
   const partes=o.partes; const opIdx=Math.max(0,partes.findIndex(p=>p.operador));
+  // normaliza os % pela soma real: garante conservação (Σ repasses == valor a distribuir) mesmo se não somarem 100
+  const pctSum=partes.reduce((a,p)=>a+(+p.pct||0),0); const totPct=pctSum||100;
   const base = o.splitBase==='receita'? s.receita : s.lucro;
   let recovered=0;
   if(o.recuperaInvest) recovered=Math.min(+o.investRecuperar||0, Math.max(0,base));
   const distributable = base - recovered;
   const nets=partes.map((p,i)=>{
-    let v=distributable*((+p.pct||0)/100);
+    let v=distributable*((+p.pct||0)/totPct);
     if(i===opIdx){ v+=recovered; if(o.splitBase==='receita') v-=s.custosTotais; }
     return v;
   });
   const operadorNet=nets[opIdx]||0;
-  const repasseParceiros=partes.reduce((a,p,i)=> i===opIdx?a:a+distributable*((+p.pct||0)/100),0);
+  const repasseParceiros=partes.reduce((a,p,i)=> i===opIdx?a:a+distributable*((+p.pct||0)/totPct),0);
   const estouro=(o.splitBase==='receita' && operadorNet<0 && s.lucro>=0);
-  return {nets,operadorNet,opIdx,recovered,repasseParceiros,estouro};
+  return {nets,operadorNet,opIdx,recovered,repasseParceiros,estouro,pctSum};
 }
 
 function breakEvenConv(o){
@@ -300,11 +305,23 @@ function breakEvenConv(o){
   const slope=(at1-at0)/base; if(slope===0) return null;
   return -at0/slope;
 }
+// break-even da conversão para o OPERADOR ficar no zero (o que o veredito usa) — não do lucro total.
+// Bisseção numérica: o lucro do operador é monotônico na conversão mas tem "joelho" quando há
+// recuperação de investimento, então a interpolação linear erra; a bisseção é exata.
+function breakEvenOperador(o){
+  if((o.convLista||0)<=0) return null;
+  const net=(mult)=>distribute(o,computeScenario(o,mult)).operadorNet;
+  if(net(0)>=0) return 0;                         // já positivo sem conversão
+  let hi=1, tries=0; while(net(hi)<0 && hi<1e6 && tries++<60) hi*=2;
+  if(net(hi)<0) return null;                      // nunca fica positivo
+  let lo=0; for(let i=0;i<60;i++){const mid=(lo+hi)/2; if(net(mid)<0) lo=mid; else hi=mid;}
+  return ((lo+hi)/2)*o.convLista;                 // em pontos percentuais de conversão
+}
 
 function analyze(o){
   const b=computeScenario(o,1), cons=computeScenario(o,1-(o.hairConserv/100)), otim=computeScenario(o,1+(o.hairOtim/100));
   const dB=distribute(o,b), dC=distribute(o,cons), dO=distribute(o,otim);
-  const be=breakEvenConv(o);
+  const be=breakEvenOperador(o);
   let verdict,vclass,vmsg;
   if(dC.operadorNet>=0){verdict='VIÁVEL (condicional)';vclass='good';vmsg='O operador fica positivo mesmo no cenário conservador. Mas os números são premissas [D] — confirme conversão, churn e alcance antes de comprometer a verba.';}
   else if(dO.operadorNet<0){verdict='NO-GO';vclass='bad';vmsg='O operador fica negativo até no cenário otimista. Redesenhar oferta/modelo/split ou interromper.';}
@@ -720,7 +737,7 @@ function recompute(o){
   if(ca) ca.innerHTML=o.rendaVariavel?`<div class="alertbox"><b>Bloqueio condicional de compliance.</b> Toca renda variável: a copy não é liberada sem parecer jurídico (GAP-003). O cálculo segue; a execução trava nesse ponto.</div>`:'';
   const rn=document.getElementById('recNote');
   if(rn){const rc=receitaPorCliente(o);
-    rn.innerHTML=`Receita esperada por cliente (<b>média ponderada dos formatos</b>): <b>${brl(rc)}</b>. Por formato: <b>valor do período × (1 − churn×(1−multa))</b> — quem completa paga 100%; quem churna paga a multa de ${o.multaPct}%. ⚠️ Receita contratada [D]; o caixa entra ao longo do período (GAP-008).`;}
+    rn.innerHTML=`Receita esperada por cliente (<b>média ponderada dos formatos</b>): <b>${brl(rc)}</b>. Por formato: <b>valor do período × (1 − churn×(1−multa))</b> — quem completa paga 100% do período; quem churna contribui com a multa de ${o.multaPct}% <b>sobre o valor total do período</b> (simplificação do modelo: não sobre o saldo restante e sem supor quando cancela — DEC-021). ⚠️ Receita <b>contratada</b> ao longo do termo [D]; o caixa entra mês a mês (GAP-008).`;}
   const pn=document.getElementById('planosNote');
   if(pn){const pl=getPlanos(o);const tot=pl.reduce((a,p)=>a+(+p.mix||0),0);const tb=ticketMensalBlend(o);
     pn.innerHTML=`${pl.length} formato(s) · mix soma <b>${num(tot)}%</b>${Math.abs(tot-100)>0.5?' — normalizado para 100% no cálculo':''} · ticket médio ponderado <b>${brl(tb)}/mês</b>. ⚠️ Planos longos (anual/bianual) antecipam caixa e mudam o risco — o fluxo de caixa no tempo ainda não é modelado (GAP-011).<br>💡 <b>[L]</b> Arquitetura de preços (Monetizing Innovation · Kahneman/Ariely): ofereça ~3 níveis (good-better-best); o formato mais longo/caro <b>ancora</b> os demais; evite passar de ~4 opções (paradoxo da escolha).`;}
@@ -733,6 +750,7 @@ function recompute(o){
   el.innerHTML=`<h2>Resultado <span class="tag">cenário-base · receita contratada</span></h2>
   <div class="verdict ${r.vclass}"><b>${r.verdict}</b><br>${r.vmsg}</div>
   ${d.estouro?`<div class="alertbox"><b>Guard-rail do split:</b> com split sobre a <b>receita</b>, os repasses às outras partes (${brl(d.repasseParceiros)}) deixam o operador <b>negativo</b> embora haja lucro (${brl(s.lucro)}). Risco nº1 da auditoria — reveja a base do split.</div>`:''}
+  ${Math.abs((d.pctSum||100)-100)>0.5?`<div class="alertbox"><b>Atenção ao split:</b> os percentuais das partes somam <b>${num(d.pctSum)}%</b> (≠ 100%). Os repasses foram <b>normalizados</b> para conservar o total (nada vaza), mas corrija os % para refletir o acordo real.</div>`:''}
   <div class="scenarios" style="margin:14px 0 4px">
     <div class="scen"><h4>Conservador (−${o.hairConserv}%)</h4><div class="big" style="color:${r.dC.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dC.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.cons.lucro)}</div></div>
     <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.b.lucro)}</div></div>
@@ -741,7 +759,7 @@ function recompute(o){
   <div class="statbar" style="margin-top:14px">
     <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado (mídia+base ÷ clientes)</span></div>
     <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—'}</b><span>payback do CAC</span></div>
-    <div class="s"><b>${isFinite(s.ltvCac)?num(s.ltvCac,1)+'x':'—'}</b><span>receita/cliente ÷ CAC</span></div>
+    <div class="s"><b>${isFinite(s.ltvMargemCac)?num(s.ltvMargemCac,1)+'x':'—'}</b><span>LTV:CAC (margem de contrib.)</span></div>
     <div class="s"><b>${brl(s.netMensal)}</b><span>margem mensal / cliente</span></div>
   </div>
   ${isFinite(s.paybackMeses)&&s.paybackMeses>o.prazoFidelidade?`<div class="alertbox">⚠️ Payback (${num(s.paybackMeses,1)} meses) maior que a fidelidade (${o.prazoFidelidade} meses): você recupera o CAC <b>depois</b> que o cliente já pode sair. Risco alto de caixa.</div>`:''}
@@ -1034,7 +1052,7 @@ function mercadoReadoutGTM(o){
      <div class="line sub"><span>× Adesão do mercado (${m.ades}%) <span class="mark mD">D</span></span><span>${num(m.clientesPot,0)}</span></div>
      <div class="line"><span>Clientes potenciais (limitado pelo teto)</span><span>${num(m.clientesCap,0)}</span></div>
      <div class="line sub"><span>× Receita contratada / cliente</span><span>${brl(m.recCliente)}</span></div>
-     <div class="line total"><span>Receita potencial (topo)</span><span>${brl(m.receitaPot)}</span></div></div>
+     <div class="line total"><span>Valor de contrato potencial (topo)</span><span>${brl(m.receitaPot)}</span></div></div>
      ${bar}${alert}
      <div class="pill-note">Bottom-up (base × adesão × ticket) <b>limitado pelo teto real da B3</b> (SRC-039). Não é TAM; é receita <b>contratada</b> potencial, não caixa nem lucro.</div>`;
 }
