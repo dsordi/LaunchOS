@@ -588,13 +588,18 @@ function bindParties(o){
 }
 
 function recompute(o){
+  const seg=seguidoresTotais(o),aud=audienciaAlcancavel(o),leadsAud=aud*((o.optinPct||0)/100);
+  const engMed= seg>0 ? (o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0)*(+r.engaj||0),0)/seg : 0;
   const ss=document.getElementById('socialStats');
-  if(ss){const seg=seguidoresTotais(o),aud=audienciaAlcancavel(o),leadsAud=aud*((o.optinPct||0)/100);
-    ss.innerHTML=`<div class="s"><b>${num(seg)}</b><span>seguidores (todas as redes)</span></div>
+  if(ss){ ss.innerHTML=`<div class="s"><b>${num(seg)}</b><span>seguidores (todas as redes)</span></div>
       <div class="s"><b>${num(aud)}</b><span>audiência alcançável (×${o.alcancePct}%)</span></div>
-      <div class="s"><b>${num(leadsAud)}</b><span>leads estimados (×${o.optinPct}% opt-in)</span></div>`;}
+      <div class="s"><b>${num(leadsAud)}</b><span>leads estimados (×${o.optinPct}% opt-in)</span></div>
+      <div class="s"><b>${num(engMed,1)}%</b><span>engajamento médio (ponderado)</span></div>`;}
   const pa=document.getElementById('prontAlert');
-  if(pa) pa.innerHTML=(o.intencao==='baixa')?`<div class="alertbox">Intenção de compra baixa: audiência grande não prevê venda. Gere sinal de intenção (lista de espera, enquete) antes de projetar.</div>`:'';
+  if(pa){ let h='';
+    if(o.intencao==='baixa') h+=`<div class="alertbox">Intenção de compra baixa: audiência grande não prevê venda. Gere sinal de intenção (lista de espera, enquete) antes de projetar.</div>`;
+    if(seg>0 && engMed>0 && engMed<2) h+=`<div class="alertbox">Engajamento médio baixo (${num(engMed,1)}%): <b>seguidores ≠ influência</b>. "Muitos são vistos, mas não ouvidos" — influência rasa não converte (Pissarra, SRC-034 [A]). Pese a interação ativa, não o nº de seguidores.</div>`;
+    pa.innerHTML=h; }
   const ca=document.getElementById('compAlert');
   if(ca) ca.innerHTML=o.rendaVariavel?`<div class="alertbox"><b>Bloqueio condicional de compliance.</b> Toca renda variável: a copy não é liberada sem parecer jurídico (GAP-003). O cálculo segue; a execução trava nesse ponto.</div>`:'';
   const rn=document.getElementById('recNote');

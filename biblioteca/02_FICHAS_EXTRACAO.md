@@ -255,6 +255,20 @@
 
 ---
 
+## SRC-034 — Fátima Pissarra, *Profissão Influencer* (livro) · o lado do influenciador · `[A]` parcial
+
+**Acesso:** EPUB (Davi, 2026-10-28). **Lido integralmente:** caps. de engajamento (27–28), "dome seu ego"/CTA (29), início de "engajamento por rede" (30). Autora = fundadora da **Mynd** (agência de influência). **Origem independente** do eixo de método de lançamento → onde converge, tende a `[B]`.
+
+**Achados `[A]` que alimentam o E1 (diagnóstico do influenciador):**
+- **Engajamento = ação ATIVA** (curtir/comentar/salvar/compartilhar). **Visualização é passiva — não é engajamento.** O algoritmo valoriza a interação ativa.
+- **Seguidores ≠ influência real.** "Muitos são vistos, mas não ouvidos." Influenciador com milhões de seguidores e influência rasa "serve de entretenimento; a opinião dele não importa na hora de comprar." → **confirma, por fonte do próprio setor, o GAP-005 e o diagnóstico em 3 eixos (alcance ≠ engajamento ≠ intenção).**
+- **Proporção de interações > números absolutos:** taxa de engajamento (interações ÷ alcance), não seguidores brutos. "Um vídeo com poucas views e quase a mesma qtd de curtidas vale mais que um com muitas views e poucas curtidas."
+- **Marca pessoal, autenticidade, storytelling e CTA** como base da influência (storytelling converge com Walker/StoryBrand).
+
+**Aplicação ao LaunchOS (feita):** valida e aprofunda o E1. A seção de redes passa a **calcular o engajamento médio ponderado** (por seguidores) e a **alertar sobre "influência rasa"** quando baixo. Reforça que o decisor pese **intenção/engajamento ativo**, não seguidores.
+
+---
+
 ## Fontes não extraídas
 
 - **SRC-006 (v4company):** bloqueio de bot em 2 tentativas. Esperava-se postura crítica (agência de performance tende a criticar a FL). **Lacuna:** falta a perspectiva crítica de uma agência de performance. Se o Davi quiser, pode colar o texto ou enviar o PDF.
