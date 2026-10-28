@@ -78,6 +78,17 @@
   .statbar .s b{display:block;font-size:18px;color:#fff} .statbar .s span{font-size:11px;color:#94a3b8}
   .biblio li{margin-bottom:7px}
   @media(max-width:720px){.app{flex-direction:column}aside{width:auto;height:auto;position:static}main{padding:18px}.scenarios{grid-template-columns:1fr}.rede-row{grid-template-columns:1fr 1fr}}
+  /* pitch / relatório (adicionado) */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:1000}
+  .modal{background:#fff;max-width:800px;width:100%;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal .modal-actions{position:sticky;top:0;background:#fff;display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-bottom:1px solid var(--line);border-radius:14px 14px 0 0}
+  .pitch{padding:22px 34px 38px}
+  .pitch h1{font-size:23px;margin:0 0 3px} .pitch .lead{color:var(--muted);margin:0 0 6px}
+  .pitch h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);border-bottom:2px solid var(--accent-soft);padding-bottom:4px;margin:22px 0 10px}
+  .pitch ul{margin:0;padding-left:18px} .pitch li{margin-bottom:5px}
+  .pitch table{width:100%;border-collapse:collapse;font-size:13px} .pitch td,.pitch th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left} .pitch th{font-size:11px;text-transform:uppercase;color:var(--muted)}
+  .pitch .disc{font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;margin-top:20px;padding:12px 14px}
+  @media print{ body>.app{display:none!important} .modal-overlay{position:static;background:none;padding:0;display:block;overflow:visible} .modal{box-shadow:none;max-width:none} .modal .modal-actions{display:none!important} }
 </style>
 </head>
 <body>
@@ -349,6 +360,56 @@ function bindPlano(o){
   const dc=document.getElementById('dataCarrinhoInput'); if(dc)dc.addEventListener('change',()=>{o.dataCarrinho=dc.value;refresh();});
 }
 
+/* ---------------- pitch / relatório de apresentação (adicionado) ---------------- */
+function renderPitchHTML(o){
+  const a=analyze(o);
+  const seg=seguidoresTotais(o);
+  const redesList=(o.redes||[]).filter(r=>+r.seguidores>0).map(r=>`${r.rede} ${num(r.seguidores)}`).join(' · ')||'—';
+  const partesRows=o.partes.map((p,i)=>`<tr><td>${esc(p.nome)} (${p.pct}%)</td><td>${brl(a.dC.nets[i])}</td><td>${brl(a.dB.nets[i])}</td><td>${brl(a.dO.nets[i])}</td></tr>`).join('');
+  return `<div class="pitch">
+   <h1>Proposta de parceria${o.produtoNome?' — '+esc(o.produtoNome):''}</h1>
+   <p class="lead">${esc(o.nome)||'Expert'}${o.nicho?' · '+esc(o.nicho):''} &nbsp;×&nbsp; Nelogica</p>
+   <h2>A oportunidade</h2>
+   <p>${esc(o.hipotese)||'Unir a audiência e a autoridade do expert à infraestrutura, à base de leads e ao método de lançamento da Nelogica, num modelo de parceria por divisão de receita — cada lado entra com o que tem de mais forte.'}</p>
+   <h2>O que cada lado traz</h2>
+   <ul>
+     <li><b>Você (expert):</b> audiência e autoridade — ${num(seg)} seguidores (${redesList}).</li>
+     <li><b>Nelogica:</b> o produto (${esc(o.produtoNome)||'assinatura'}), a infraestrutura, a base de leads${o.qtdLeadsDB>0?` (${num(o.qtdLeadsDB)} leads)`:''}, o método de lançamento e a operação ponta a ponta.</li>
+   </ul>
+   <h2>Premissas da proposta</h2>
+   <table>
+     <tr><td>Audiência alcançável</td><td>${num(audienciaAlcancavel(o))} pessoas (${o.alcancePct}% dos seguidores)</td></tr>
+     <tr><td>Produto / ticket</td><td>${brl(o.ticketMensal)}/mês · fidelidade ${o.prazoFidelidade} meses</td></tr>
+     <tr><td>Retenção</td><td>churn ${o.churnMensalPct}%/mês · ${o.cancel7Pct}% cancelam em 7 dias · multa ${o.multaPct}%</td></tr>
+     <tr><td>Conversão premissada</td><td>${o.convLista}% (lead → venda)</td></tr>
+     <tr><td>Divisão de receita</td><td>${o.partes.map(p=>esc(p.nome)+' '+p.pct+'%').join(' · ')} — sobre ${o.splitBase}</td></tr>
+   </table>
+   <h2>Potencial por cenário <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— projeção baseada nas premissas, não garantia</span></h2>
+   <table>
+     <tr><th>Quem recebe</th><th>Conservador</th><th>Base</th><th>Otimista</th></tr>
+     ${partesRows}
+     <tr style="color:#64748b"><td>Lucro operacional total</td><td>${brl(a.cons.lucro)}</td><td>${brl(a.b.lucro)}</td><td>${brl(a.otim.lucro)}</td></tr>
+   </table>
+   <h2>Como vamos executar</h2>
+   <p>Lançamento em 4 fases: <b>Captação</b> (construir a lista) → <b>Aquecimento</b> (3 aulas de conteúdo) → <b>Carrinho</b> (oferta por tempo limitado) → <b>Pós</b> (entrega e retenção). Tráfego e operação pela Nelogica; você entra com conteúdo e autoridade.</p>
+   <h2>Próximo passo</h2>
+   <p>Alinhar estas premissas com os seus números reais, validar a oferta e marcar a data do lançamento.</p>
+   <div class="disc"><b>Transparência:</b> os valores acima são <b>projeções calculadas a partir das premissas listadas</b>, recalculáveis — <b>não são promessa de resultado</b>. Faturamento não é lucro; o resultado real depende da execução, da conversão e do churn efetivos. Um primeiro lançamento raramente atinge o cenário otimista.</div>
+  </div>`;
+}
+function openPitch(o){
+  const old=document.getElementById('pitchModal'); if(old)old.remove();
+  const ov=document.createElement('div'); ov.className='modal-overlay'; ov.id='pitchModal';
+  ov.innerHTML=`<div class="modal"><div class="modal-actions">
+     <button class="btn ghost sm" id="pitchPrint">🖨️ Imprimir / Salvar PDF</button>
+     <button class="btn sm" id="pitchClose">fechar</button>
+   </div>${renderPitchHTML(o)}</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.getElementById('pitchClose').onclick=()=>ov.remove();
+  document.getElementById('pitchPrint').onclick=()=>window.print();
+}
+
 function viewDetail(o){
   if(!o.plano) o.plano=defaultPlano();
   setActive('');
@@ -460,6 +521,11 @@ function viewDetail(o){
   <div class="card"><h2>E6/E7 · Playbook e plano de execução <span class="tag">método [A-raiz] · editável</span></h2>
     <p class="hint">O lançamento em 4 fases: tarefas, responsáveis, prazos relativos ao carrinho (D0) e portões. Marque o que concluir; informe a data do carrinho para virar prazos em datas reais.</p>
     <div id="planoBody">${renderPlanoBody(o)}</div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <button class="btn" id="pitchBtn" style="padding:12px 24px;font-size:14px">📄 Gerar pitch para o influenciador</button>
+    <div class="muted" style="font-size:12px;margin-top:8px">Relatório compacto da ideia e das premissas, pronto para apresentar (imprimir ou salvar em PDF).</div>
   </div>`;
 
   main.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{
@@ -478,6 +544,7 @@ function viewDetail(o){
   document.getElementById('saveBtn').onclick=()=>{o.status='salvo';const i=opps.findIndex(x=>x.id===o.id);if(i>=0)opps[i]=o;else opps.push(o);save(opps);viewList();};
   recompute(o);
   bindPlano(o);
+  document.getElementById('pitchBtn').onclick=()=>openPitch(o);
 }
 
 function bindRedes(o){
