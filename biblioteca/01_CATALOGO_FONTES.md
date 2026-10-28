@@ -56,6 +56,7 @@
 - **Transcrição de vídeo (1):** SRC-013 (datado, 2016).
 - **Inacessível/não-fonte (2):** SRC-006, SRC-010.
 - **Infográfico de marca pessoal / GTM B2B (1):** SRC-018 — origem independente do eixo Walker/Érico; contexto B2B; autodeclarado.
+- **Literatura de marketing (SRC-019 a SRC-029):** camada adicionada em 2026-10-28 (Cialdini, Schwartz, Hopkins, Ogilvy, Halbert/Sugarman, Ries&Trout, Dunford, Ramanujam, Kahneman/Ariely, Byron Sharp, Berger). Acesso = **"conhecimento geral do modelo, não auditado" → marca `[L]`**, não `[A]`. Catálogo e aplicação em `biblioteca/12`; ver DEC-016.
 
 ## Nota crítica de origem única (o achado mais importante da auditoria)
 

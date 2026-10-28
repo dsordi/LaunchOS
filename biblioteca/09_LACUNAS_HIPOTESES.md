@@ -17,7 +17,7 @@
 
 | ID | Lacuna | Por que importa | Fonte adequada para fechar | Impede funcionalidade? |
 |----|--------|-----------------|-----------------------------|------------------------|
-| GAP-006 | Copywriting com profundidade (fórmulas, estrutura de VSL/carta, sequência de e-mail) | É metade da conversão; o corpus só dá estrutura rasa (SRC-012) ou genérica | Fontes especializadas em copy (Gugelmin, Schwartz, Hopkins); material do próprio mercado | Reduz precisão de um módulo de geração de copy |
+| GAP-006 | Copywriting com profundidade (fórmulas, estrutura de VSL/carta, sequência de e-mail) | É metade da conversão; o corpus só dá estrutura rasa (SRC-012) ou genérica | Fontes especializadas em copy (Gugelmin, Schwartz, Hopkins); material do próprio mercado | **Parcialmente coberto por `[L]`** em `biblioteca/12` (Schwartz, Hopkins, Ogilvy, Halbert/Sugarman) — mas é conhecimento do modelo, **não leitura auditada**. Fecha de verdade só com os textos (upgrade para `[A]`) |
 | GAP-007 | Perspectiva crítica de agência de performance | V4 (SRC-006) bloqueou; falta o contraponto de quem critica a FL por fora do ecossistema de infoproduto | Reenvio da V4; outras agências de performance | Não impede; empobrece o equilíbrio crítico |
 | GAP-008 | Descasamento temporal faturamento × caixa | Nenhuma fonte trata de parcelamento, prazo de repasse, chargeback | Dados de plataforma (Hotmart/Kiwify) e financeiro interno | Impede projeção de fluxo de caixa (distinta de faturamento) |
 | GAP-009 | Capacidade de entrega e suporte pós-venda | Fontes focam em vender, quase nada em entregar/reter; reembolso mal tratado | Dados de retenção/reembolso reais; literatura de customer success | Afeta módulo de sustentabilidade pós-lançamento |

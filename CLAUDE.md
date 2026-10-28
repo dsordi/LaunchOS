@@ -12,7 +12,7 @@ Sistema de inteligência estratégica e operacional para conduzir lançamentos d
 
 - **Direto, crítico, sem bajulação.** O Davi pediu feedback sem suavização. Questione premissas, aponte risco, diga quando algo não se sustenta. Português do Brasil, saída pronta para uso.
 - **Toda afirmação carrega origem + grau de confiança.** Quatro marcas:
-  - `[A]` fato explícito de uma fonte lida · `[B]` convergência de 2+ fontes **independentes** · `[C]` inferência minha · `[D]` hipótese não validada.
+  - `[A]` fato explícito de uma fonte lida · `[B]` convergência de 2+ fontes **independentes** · `[C]` inferência minha · `[D]` hipótese não validada · `[L]` princípio da literatura de marketing pela **memória do modelo** (não auditado; vira `[A]` só com o texto — ver `biblioteca/12`, DEC-016).
   - **Regra dura:** uma `[D]` nunca vira regra sem antes virar `[A]`/`[B]`. Popularidade não é prova.
 - **Separe dado observado de estimativa.** Nunca invente número, benchmark, estatística ou citação. Projeção sempre lista premissas e é recalculável.
 - **Faturamento ≠ caixa ≠ lucro ≠ margem.** Nunca trate venda realizada como resultado financeiro.
@@ -42,6 +42,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   09_LACUNAS_HIPOTESES.md     ← GAP e HYP (I) — registro vivo
   10_HISTORICO_DECISOES.md    ← DEC (decisões de método) — registro vivo
   11_METODO_OPERACIONAL.md    ← os 9 estágios com portões (K)
+  12_LITERATURA_MARKETING.md  ← princípios de livros de marketing (marca [L], não auditado) (L)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)
