@@ -1,0 +1,27 @@
+# Histórico de Decisões de Consolidação
+
+> Registro de escolhas de método que afetam a base. Cada decisão tem data e motivo, para não ser desfeita por engano depois.
+
+| ID | Data | Decisão | Motivo | Quem decide |
+|----|------|---------|--------|-------------|
+| DEC-001 | 2026-10-28 | Entrega da base como arquivos `.md` para download, não como docs no projeto | Escolha do Davi; dá controle de versão a ele | Davi |
+| DEC-002 | 2026-10-28 | Fontes entram por URL colada; Claude busca e registra nível de acesso real | Escolha do Davi | Davi |
+| DEC-003 | 2026-10-28 | Ordem de construção ancorada em evidência: auditoria → fichas → consolidação → árvores/SaaS. Glossário e árvores NÃO são feitos antes das fontes | Árvore de decisão sem dado é opinião formatada; evita a "biblioteca de resumos" que a diretriz do projeto proíbe | Claude (recomendado), aceito implicitamente |
+| DEC-004 | 2026-10-28 | Viés comercial da literatura tratado como lacuna desde o início (GAP-001) | Natureza do mercado brasileiro de lançamentos | Claude |
+| DEC-005 | 2026-10-28 | Regulação de renda variável marcada como bloqueio crítico (GAP-003), por causa do papel do Davi na Nelogica | Lançamentos que tocam mercado financeiro têm restrição de publicidade que fonte genérica de infoproduto ignora | Claude |
+| DEC-006 | 2026-10-28 | Tratar a convergência do corpus como derivação de fonte única (Walker/Érico), não como validação independente | 13 das 14 fontes descendem da mesma raiz; repetir a mesma origem não é confirmar (regra 3 do projeto) | Claude |
+| DEC-007 | 2026-10-28 | Taxonomia de tipos: adotar 5 tipos-núcleo (semente, interno, externo, perpétuo, relâmpago) como estáveis; demais como variações/tags | Fontes divergem no número (5 a 8) e nas definições; só 5 convergem | Claude |
+| DEC-008 | 2026-10-28 | "6 em 7" e todo faturamento de lançamento tratados como receita bruta, nunca como lucro ou resultado típico | Convergência [B] explícita (systeme, Hotmart, Neil Patel) + exigência da seção 6 do projeto | Claude |
+| DEC-009 | 2026-10-28 | Números do mercado classificados em fórmula / exemplo / benchmark / alegação; só benchmarks externos (Mailchimp, ON24, Baymard) aceitos com ressalva de contexto | Evita tratar premissa de exemplo ou alegação autodeclarada como dado | Claude |
+| DEC-010 | 2026-10-28 | Compliance de renda variável modelado como **flag por oportunidade** (bloqueio condicional em E3/E7), não como regra global | Davi confirmou que alguns lançamentos tocam mercado financeiro e outros não; o bloqueio liga/desliga caso a caso (resolve pendência humana 1) | Davi |
+| DEC-011 | 2026-10-28 | Projeção financeira (E5) opera no MVP apenas com **premissas editáveis [D]**; a estrutura fica pronta para plugar dados internos reais da Nelogica quando disponíveis | Davi terá acesso a dados internos só parcialmente/depois; sem número real a projeção é estrutura reproduzível, não veredito calibrado (resolve pendência humana 2; GAP-002 segue aberta) | Davi |
+| DEC-012 | 2026-10-28 | Split de revenue share modelado como **configurável de 1 a N partes**; caso piloto não fixado | Davi ainda não definiu o piloto nem a estrutura de partes; design configurável evita travar a decisão (resolve pendência humana 3 por ora; GAP-004 segue aberta) | Davi |
+| DEC-013 | 2026-10-28 | Absorver **SRC-018** (funil GTM B2B de Matheus Mafessoli) como fonte de **origem independente e contexto B2B**, não como verdade de lançamento B2C: reforça só a espinha genérica do funil [B], e abre HYP-006 (AEO) e GAP-010 (transferência B2B→B2C) | Pedido do Davi ("absorva esse GTM"); a regra do projeto exige origem+confiança e distinguir origem independente de eco; impedir que material B2B promocional vire regra de infoproduto | Davi/Claude |
+| DEC-014 | 2026-10-28 | No MVP: **modelo é assinatura recorrente** (sem pagamento único), **sem comissão de afiliado**, **sem reembolso integral** (7 dias + multa de 50%); **base de leads Nelogica a R$1,60/lead** entra como custo e contribuição; **CAC é calculado** (não estimado pelo Davi) e exibido com payback | Regras reais do negócio do Davi (respostas de 2026-10-28). CAC calculado porque o Davi declarou não ter como estimá-lo | Davi |
+| DEC-015 | 2026-10-28 | Priorizar o **Playbook/Plano de execução (E6/E7)** como próxima camada construída, por ser a maior dor declarada do Davi; template fundamentado em MET-001 (4 fases, 3 CPLs, escassez honesta, portões) | O Davi apontou execução como "onde mais preciso de foco". Camadas 2 (CPL por fonte), 3 (portfólio) e 4 (ciclo de vida) ficam na fila (GAP-011/012/013) | Davi/Claude |
+
+## Pendências de validação humana
+
+- **RESOLVIDAS em 2026-10-28** as três pendências originais (renda variável, dados internos, piloto) — ver DEC-010/011/012. As respostas foram "condicional", "parcial/depois" e "indefinido": nenhuma fecha a lacuna correspondente, apenas define como o sistema a trata.
+- **Pendência nova e crítica — definir um caso piloto real comprometido.** Sem ele, o Decisor pode ser construído mas **não validado** (regra do método: "método sem caso real preenchido é decoração"). É o insumo humano de maior valor agora.
+- **Liberar dados internos da Nelogica** (conversão, reembolso, CAC, split reais) assim que possível: é o que converte a projeção de estrutura [D] para veredito com benchmark [A] (GAP-002).

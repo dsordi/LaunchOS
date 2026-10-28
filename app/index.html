@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LaunchOS — Decisor de Viabilidade</title>
+<style>
+  :root{
+    --bg:#f1f5f9; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --nav:#0f172a; --nav-ink:#cbd5e1; --nav-active:#1e293b;
+    --accent:#2563eb; --accent-soft:#dbeafe;
+    --good:#15803d; --good-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7; --bad:#b91c1c; --bad-bg:#fee2e2;
+    --a:#1d4ed8; --b:#047857; --c:#7c3aed; --d:#9a3412;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  .app{display:flex;min-height:100vh}
+  aside{width:230px;background:var(--nav);color:var(--nav-ink);padding:20px 14px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:auto}
+  aside .brand{display:flex;align-items:center;gap:9px;color:#fff;font-weight:700;font-size:17px;padding:4px 8px 16px}
+  aside .brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#2563eb,#0ea5e9);display:inline-block}
+  aside .brand small{display:block;font-weight:400;font-size:11px;color:#64748b;margin-top:2px}
+  nav a{display:block;padding:9px 11px;border-radius:8px;color:var(--nav-ink);text-decoration:none;font-size:13px;margin-bottom:2px;cursor:pointer}
+  nav a:hover{background:var(--nav-active);color:#fff}
+  nav a.active{background:var(--accent);color:#fff}
+  nav .sec{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#475569;padding:14px 11px 5px}
+  aside .foot{font-size:10.5px;color:#475569;padding:16px 10px 0;border-top:1px solid #1e293b;margin-top:16px}
+  main{flex:1;padding:26px 30px;max-width:1100px}
+  h1{font-size:21px;margin:0 0 3px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 3px}
+  .card h2 .tag{font-size:10px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--line);padding:1px 6px;border-radius:20px;margin-left:7px;vertical-align:middle}
+  .card .hint{color:var(--muted);font-size:12px;margin:0 0 14px}
+  h3.grp{font-size:13px;margin:16px 0 6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  label{display:block;font-size:12px;font-weight:600;margin:0 0 4px;color:#334155}
+  label .q{font-weight:400;color:var(--muted)}
+  input,select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .row-inline{display:flex;gap:8px;align-items:center}
+  button{font-family:inherit;font-size:13px;font-weight:600;border:0;border-radius:8px;padding:9px 15px;cursor:pointer}
+  .btn{background:var(--accent);color:#fff}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .btn.danger{background:#fff;color:var(--bad);border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover td{background:#f8fafc}
+  .chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+  .chip.good{background:var(--good-bg);color:var(--good)} .chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.neutral{background:var(--bg);color:var(--muted)}
+  .mark{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;color:#fff;vertical-align:middle}
+  .mA{background:var(--a)} .mB{background:var(--b)} .mC{background:var(--c)} .mD{background:var(--d)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .casc{font-size:13px}
+  .casc .line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .casc .line.sub{color:var(--muted);font-size:12px}
+  .casc .line.total{font-weight:700;border-bottom:2px solid var(--ink);border-top:1px solid var(--ink)}
+  .casc .line .neg{color:var(--bad)}
+  .scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}
+  .scen{border:1px solid var(--line);border-radius:10px;padding:12px}
+  .scen h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .scen .big{font-size:20px;font-weight:700}
+  .verdict{padding:14px 16px;border-radius:10px;font-size:14px;margin-bottom:14px;border:1px solid}
+  .verdict.good{background:var(--good-bg);border-color:#86efac;color:#14532d}
+  .verdict.warn{background:var(--warn-bg);border-color:#fcd34d;color:#713f12}
+  .verdict.bad{background:var(--bad-bg);border-color:#fca5a5;color:#7f1d1d}
+  .verdict b{font-size:15px}
+  .alertbox{background:var(--warn-bg);border:1px solid #fcd34d;color:#713f12;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-top:8px}
+  .party-row{display:grid;grid-template-columns:1fr 90px auto auto;gap:8px;align-items:center;margin-bottom:7px}
+  .rede-row{display:grid;grid-template-columns:140px 1fr 130px 110px auto;gap:8px;align-items:center;margin-bottom:7px}
+  .muted{color:var(--muted)}
+  .pill-note{font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:10px}
+  .statbar{display:flex;gap:18px;flex-wrap:wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px 16px;margin:10px 0}
+  .statbar .s b{display:block;font-size:18px;color:#fff} .statbar .s span{font-size:11px;color:#94a3b8}
+  .biblio li{margin-bottom:7px}
+  @media(max-width:720px){.app{flex-direction:column}aside{width:auto;height:auto;position:static}main{padding:18px}.scenarios{grid-template-columns:1fr}.rede-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="dot"></span><div>LaunchOS<small>Decisor de Viabilidade</small></div></div>
+    <nav id="nav">
+      <div class="sec">Operação</div>
+      <a data-view="list" class="active">📋 Oportunidades</a>
+      <a data-view="new">➕ Nova oportunidade</a>
+      <div class="sec">Conhecimento</div>
+      <a data-view="biblio">📚 Princípios da base</a>
+    </nav>
+    <div class="foot">
+      Modelo: assinatura recorrente · sem reembolso integral.<br>Todo número é premissa <b style="color:#9a3412">[D]</b>, não previsão.<br><br>v0.2 · 2026-10-28
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script>
+/* ---------------- storage ---------------- */
+const KEY='launchos_opps_v2';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}};
+const save=(a)=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
+let opps=load();
+let current=null;
+
+/* ---------------- helpers ---------------- */
+const brl=(n)=>isFinite(n)?n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—';
+const num=(n,d=0)=>isFinite(n)?n.toLocaleString('pt-BR',{maximumFractionDigits:d}):'—';
+const pct=(n)=>isFinite(n)?(n*100).toLocaleString('pt-BR',{maximumFractionDigits:2})+'%':'—';
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=(s)=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function blankOpp(){
+  return {
+    id:uid(), nome:'', nicho:'', hipotese:'',
+    // influenciador / redes sociais
+    redes:[{rede:'Instagram',handle:'',seguidores:0,engaj:0}],
+    alcancePct:10, intencao:'baixa',
+    // produto (SEMPRE assinatura) + política de cancelamento
+    produtoNome:'', rendaVariavel:false,
+    ticketMensal:300, prazoFidelidade:12, churnMensalPct:5, cancel7Pct:10, multaPct:50,
+    // aquisição / leads
+    optinPct:5, verbaTrafego:20000, cpl:8, qtdLeadsDB:0, custoLeadDB:1.60, convLista:2,
+    // modelo
+    modelo:'interno',
+    // custos / regras
+    taxaPlataformaPct:10, producao:5000, ferramentas:1000, outrosFixos:0,
+    impostoPct:10, impostoBase:'faturamento',
+    hairConserv:30, hairOtim:20,
+    // revenue share
+    splitBase:'lucro', recuperaInvest:false, investRecuperar:0, parceirosNote:'',
+    partes:[{nome:'Nelogica',pct:100,operador:true}],
+    // execução (E6/E7)
+    dataCarrinho:'', plano:null,
+    status:'rascunho'
+  };
+}
+
+/* ---------------- motor financeiro (determinístico) ---------------- */
+const seguidoresTotais=(o)=>(o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0),0);
+const audienciaAlcancavel=(o)=>seguidoresTotais(o)*((o.alcancePct||0)/100);
+
+// receita esperada por cliente que passou da janela de 7 dias,
+// ao longo do contrato, incluindo multa de X% sobre o restante quando cancela antes do fim.
+function receitaPorCliente(o){
+  const t=+o.ticketMensal||0, N=Math.max(1,Math.round(+o.prazoFidelidade||12));
+  const c=(+o.churnMensalPct||0)/100, m=(+o.multaPct||0)/100;
+  let alive=1, rev=0;
+  for(let month=1;month<=N;month++){
+    rev += alive*t;                         // quem está ativo paga o mês
+    if(month<N){
+      const ch=alive*c;                     // cancela ao fim do mês (pós-janela)
+      rev += ch*m*t*(N-month);              // multa sobre meses restantes
+      alive -= ch;
+    }
+  }
+  return rev; // por cliente efetivo (que passou dos 7 dias)
+}
+
+function computeScenario(o, convMult){
+  const conv=(o.convLista/100)*convMult;
+  const leadsAud = audienciaAlcancavel(o)*((o.optinPct||0)/100);
+  const leadsPagos = o.cpl>0 ? o.verbaTrafego/o.cpl : 0;
+  const leadsDB = +o.qtdLeadsDB||0;
+  const leads = leadsAud+leadsPagos+leadsDB;
+  const vendas = leads*conv;
+  const efetivos = vendas*(1-(o.cancel7Pct||0)/100);       // passaram dos 7 dias
+  const recPorCliente = receitaPorCliente(o);
+  const bruto = efetivos*recPorCliente;                    // receita contratada esperada (ao longo do termo)
+  const receita = bruto;                                   // sem reembolso integral: receita = contratada
+  const taxaPlat = receita*((o.taxaPlataformaPct||0)/100);
+  const leadsDBCost = leadsDB*(+o.custoLeadDB||0);         // contribuição Nelogica (base de leads)
+  const fixos = (+o.verbaTrafego||0)+(+o.producao||0)+(+o.ferramentas||0)+(+o.outrosFixos||0);
+  const antesImp = receita - taxaPlat - fixos - leadsDBCost;
+  const baseImp = o.impostoBase==='faturamento'?receita:Math.max(0,antesImp);
+  const imposto = baseImp*((o.impostoPct||0)/100);
+  const lucro = antesImp - imposto;
+  const custosTotais = taxaPlat+fixos+leadsDBCost+imposto;
+  // unit economics (assinatura) — CAC é CALCULADO (o usuário não estima)
+  const custoAquisicao = (+o.verbaTrafego||0) + leadsDBCost;     // mídia + base de leads
+  const cac = efetivos>0 ? custoAquisicao/efetivos : 0;
+  const taxRev = o.impostoBase==='faturamento' ? ((o.impostoPct||0)/100) : 0;
+  const netMensal = (+o.ticketMensal||0)*(1-((o.taxaPlataformaPct||0)/100)-taxRev); // margem mensal por cliente
+  const paybackMeses = netMensal>0 ? cac/netMensal : Infinity;
+  const ltvCac = cac>0 ? recPorCliente/cac : Infinity;
+  return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,ltvCac};
+}
+
+function distribute(o,s){
+  const partes=o.partes; const opIdx=Math.max(0,partes.findIndex(p=>p.operador));
+  const base = o.splitBase==='receita'? s.receita : s.lucro;
+  let recovered=0;
+  if(o.recuperaInvest) recovered=Math.min(+o.investRecuperar||0, Math.max(0,base));
+  const distributable = base - recovered;
+  const nets=partes.map((p,i)=>{
+    let v=distributable*((+p.pct||0)/100);
+    if(i===opIdx){ v+=recovered; if(o.splitBase==='receita') v-=s.custosTotais; }
+    return v;
+  });
+  const operadorNet=nets[opIdx]||0;
+  const repasseParceiros=partes.reduce((a,p,i)=> i===opIdx?a:a+distributable*((+p.pct||0)/100),0);
+  const estouro=(o.splitBase==='receita' && operadorNet<0 && s.lucro>=0);
+  return {nets,operadorNet,opIdx,recovered,repasseParceiros,estouro};
+}
+
+function breakEvenConv(o){
+  const base=o.convLista; if(base<=0) return null;
+  const at0=computeScenario(o,0).lucro;
+  const at1=computeScenario(o,1).lucro;
+  const slope=(at1-at0)/base; if(slope===0) return null;
+  return -at0/slope;
+}
+
+function analyze(o){
+  const b=computeScenario(o,1), cons=computeScenario(o,1-(o.hairConserv/100)), otim=computeScenario(o,1+(o.hairOtim/100));
+  const dB=distribute(o,b), dC=distribute(o,cons), dO=distribute(o,otim);
+  const be=breakEvenConv(o);
+  let verdict,vclass,vmsg;
+  if(dC.operadorNet>=0){verdict='VIÁVEL (condicional)';vclass='good';vmsg='O operador fica positivo mesmo no cenário conservador. Mas os números são premissas [D] — confirme conversão, churn e alcance antes de comprometer a verba.';}
+  else if(dO.operadorNet<0){verdict='NO-GO';vclass='bad';vmsg='O operador fica negativo até no cenário otimista. Redesenhar oferta/modelo/split ou interromper.';}
+  else{verdict='NÃO DECIDÍVEL — TESTAR';vclass='warn';vmsg='O resultado troca de sinal entre conservador e otimista. Depende de uma premissa que você ainda não tem. Rode um teste pequeno antes de decidir.';}
+  let sens=null; if(be!=null){sens={be,margem:(o.convLista-be)/o.convLista};}
+  return {b,cons,otim,dB,dC,dO,be,sens,verdict,vclass,vmsg};
+}
+
+/* ---------------- views ---------------- */
+const main=document.getElementById('main');
+const setActive=(v)=>document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+
+function viewList(){
+  setActive('list');
+  const rows = opps.length? opps.map(o=>{
+    let v='—',cls='neutral'; if(o.nome||o.ticketMensal){const a=analyze(o);v=a.verdict;cls=a.vclass;}
+    return `<tr class="clickable" data-open="${o.id}">
+      <td><b>${esc(o.nome)||'<span class=muted>sem nome</span>'}</b><br><span class="muted">${esc(o.nicho)}</span></td>
+      <td>${esc(o.produtoNome)||'—'}</td>
+      <td>${brl(o.ticketMensal)}/mês</td>
+      <td><span class="chip ${cls}">${v}</span></td>
+      <td><button class="btn ghost sm" data-del="${o.id}">excluir</button></td></tr>`;}).join('')
+    : `<tr><td colspan="5" class="muted" style="padding:22px">Nenhuma oportunidade ainda. Clique em “Nova oportunidade”.</td></tr>`;
+  main.innerHTML=`<h1>Oportunidades</h1><p class="sub">De uma frase a um go/no-go defensável. Veredito pelo cenário conservador.</p>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <h2 style="margin:0">Carteira</h2><button class="btn" data-view="new">➕ Nova oportunidade</button></div>
+  <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket mensal</th><th>Veredito</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function viewBiblio(){
+  setActive('biblio');
+  main.innerHTML=`<h1>Princípios da base</h1><p class="sub">Regras que o decisor respeita. Fonte e confiança sempre à vista.</p>
+  <div class="card"><h2>Como ler a confiança</h2><div class="legend">
+     <span><span class="mark mA">A</span> fato de fonte lida</span><span><span class="mark mB">B</span> convergência independente</span>
+     <span><span class="mark mC">C</span> inferência</span><span><span class="mark mD">D</span> hipótese / premissa não validada</span></div></div>
+  <div class="card biblio"><h2>Inegociáveis</h2><ul>
+   <li><span class="mark mB">B</span> <b>Faturamento ≠ lucro ≠ caixa.</b> O resultado é contratado ao longo do tempo; caixa chega aos poucos (GAP-008).</li>
+   <li><span class="mark mA">A</span> <b>Sem benchmark público</b> de conversão/faturamento. Toda premissa é [D], nunca default "esperado".</li>
+   <li><span class="mark mC">C</span> <b>Cálculo determinístico; a IA só explica.</b> Nenhum número vem de texto de IA.</li>
+   <li><span class="mark mA">A</span> <b>Seguidores ≠ audiência ≠ intenção.</b> Por isso há taxa de alcance e opt-in entre seguidores e leads.</li>
+   <li><span class="mark mD">D</span> <b>Regras financeiras ambíguas são escolha sua</b> (base do split, do imposto). O app não assume em silêncio.</li>
+  </ul><div class="pill-note">Documentos completos em <b>/home/user/biblioteca</b> (00–11). O leitor completo entra na versão com banco de dados.</div></div>`;
+}
+
+function field(o,label,key,opts={}){
+  const t=opts.type||'number';
+  if(t==='select'){const options=opts.options.map(([v,l])=>`<option value="${v}" ${o[key]==v?'selected':''}>${l}</option>`).join('');
+    return `<div><label>${label} ${opts.q?`<span class=q>${opts.q}</span>`:''}</label><select data-k="${key}">${options}</select></div>`;}
+  if(t==='check') return `<div><label>&nbsp;</label><div class="row-inline"><input type="checkbox" style="width:auto" data-k="${key}" ${o[key]?'checked':''}/> <span>${label}</span></div></div>`;
+  const suf=opts.suffix?`<span class="muted" style="font-size:11px"> ${opts.suffix}</span>`:'';
+  return `<div><label>${label}${suf} ${opts.q?`<span class=q>${opts.q}</span>`:''}</label><input type="${t}" data-k="${key}" value="${esc(o[key])}" ${t==='text'?'':'step=any'}/></div>`;
+}
+
+/* ---------------- playbook / plano de execução (E6/E7) ---------------- */
+const FASES=[
+  {nome:'Fase 0 · Captação',obj:'Construir e aquecer a lista (pré-pré-lançamento).'},
+  {nome:'Fase 1 · Aquecimento (CPLs)',obj:'Entregar valor, ativar gatilhos e preparar a decisão.'},
+  {nome:'Fase 2 · Carrinho',obj:'Abrir a oferta por tempo limitado (escassez honesta).'},
+  {nome:'Fase 3 · Pós-lançamento',obj:'Entregar, reter, reconciliar previsto × realizado e aprender.'}
+];
+// template fundamentado na base [A-raiz: Walker/Érico] — MET-001, 3 CPLs por função, escassez honesta, E8
+function defaultPlano(){
+  return [
+    {fase:0,desc:'Definir avatar/persona e a grande promessa',resp:'Expert',dia:-30,portao:false},
+    {fase:0,desc:'Configurar tracking/medição ANTES de abrir captação',resp:'Lançador',dia:-30,portao:true},
+    {fase:0,desc:'Criar isca (lead magnet) + página de captura',resp:'Lançador',dia:-28,portao:false},
+    {fase:0,desc:'Subir campanhas de captação (tráfego + base Nelogica)',resp:'Tráfego',dia:-25,portao:false},
+    {fase:1,desc:'CPL 1 — quebra de crença',resp:'Expert',dia:-10,portao:false},
+    {fase:1,desc:'(Se renda variável) validar promessas com o jurídico',resp:'Jurídico',dia:-9,portao:true},
+    {fase:1,desc:'CPL 2 — transformação / prova',resp:'Expert',dia:-7,portao:false},
+    {fase:1,desc:'CPL 3 — ponte para a oferta',resp:'Expert',dia:-4,portao:false},
+    {fase:2,desc:'Abrir carrinho na data prometida',resp:'Lançador',dia:0,portao:false},
+    {fase:2,desc:'Sequência de vendas (e-mail/WhatsApp)',resp:'Lançador',dia:0,portao:false},
+    {fase:2,desc:'Virada final — a maioria das vendas vem nas últimas 24h',resp:'Lançador',dia:4,portao:false},
+    {fase:2,desc:'Fechar carrinho na data (não estender — escassez verdadeira)',resp:'Lançador',dia:5,portao:true},
+    {fase:3,desc:'Onboarding e entrega aos clientes',resp:'CS',dia:6,portao:false},
+    {fase:3,desc:'Gestão da janela de 7 dias (cancelamento)',resp:'CS',dia:7,portao:false},
+    {fase:3,desc:'Reconciliação previsto × realizado + registrar aprendizados (E8)',resp:'Lançador',dia:30,portao:true},
+    {fase:3,desc:'Transição para perpétuo / próximo lançamento',resp:'Expert',dia:30,portao:false}
+  ].map(t=>({...t,feito:false}));
+}
+const addDays=(dateStr,d)=>{if(!dateStr)return'';const dt=new Date(dateStr+'T00:00:00');if(isNaN(dt))return'';dt.setDate(dt.getDate()+d);return dt.toLocaleDateString('pt-BR');};
+const planoStats=(o)=>{const t=o.plano||[];const done=t.filter(x=>x.feito).length;return{done,total:t.length,pct:t.length?done/t.length:0};};
+
+function renderPlanoBody(o){
+  const s=analyze(o).b;
+  const metas=[`alvo ≈ ${num(s.leads)} leads`,'alvo: presença/abertura altas (termômetro)',`alvo ≈ ${num(s.efetivos,0)} clientes efetivos`,'alvo: cancelamento ≤ premissa; aprendizados registrados'];
+  const st=planoStats(o);
+  // portão de compliance pendente?
+  const compPend = o.rendaVariavel && (o.plano||[]).some(t=>t.portao && /jurídico/i.test(t.desc) && !t.feito);
+  let html=`<div class="grid" style="margin-bottom:10px">
+     <div><label>Data de abertura do carrinho (D0)</label><input type="date" id="dataCarrinhoInput" value="${esc(o.dataCarrinho)}"/></div>
+     <div><label>Progresso geral</label><div style="padding-top:7px"><b>${st.done}/${st.total}</b> tarefas · ${pct(st.pct)}</div></div>
+     <div><label>&nbsp;</label><button class="btn ghost sm" id="genPlano">↻ gerar / resetar plano padrão</button></div>
+   </div>`;
+  if(compPend) html+=`<div class="alertbox" style="margin-bottom:10px"><b>Portão de compliance aberto:</b> renda variável + validação jurídica não concluída → a copy não pode ser liberada.</div>`;
+  [0,1,2,3].forEach(f=>{
+    const tasks=(o.plano||[]).map((t,idx)=>({t,idx})).filter(x=>x.t.fase===f);
+    const done=tasks.filter(x=>x.t.feito).length;
+    html+=`<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${FASES[f].nome}</b><span class="muted" style="font-size:12px">${done}/${tasks.length} · ${metas[f]}</span></div>
+      <div class="muted" style="font-size:12px;margin-bottom:8px">${FASES[f].obj}</div>`;
+    tasks.forEach(({t,idx})=>{
+      const quando = o.dataCarrinho? ('📅 '+addDays(o.dataCarrinho,t.dia)) : ('dia '+(t.dia>=0?'D+'+t.dia:'D'+t.dia));
+      html+=`<div style="display:grid;grid-template-columns:auto 1fr 120px 64px auto;gap:8px;align-items:center;margin-bottom:5px">
+        <input type="checkbox" style="width:auto" data-tk="feito" data-ti="${idx}" ${t.feito?'checked':''}/>
+        <input data-tk="desc" data-ti="${idx}" value="${esc(t.desc)}" style="${t.feito?'text-decoration:line-through;color:#94a3b8':''}"/>
+        <input data-tk="resp" data-ti="${idx}" value="${esc(t.resp)}" placeholder="responsável"/>
+        <input data-tk="dia" data-ti="${idx}" type="number" value="${t.dia}" title="dia relativo ao carrinho (D0)"/>
+        <span style="white-space:nowrap">${t.portao?'<span class="chip warn">portão</span> ':''}<button class="btn danger sm" data-trm="${idx}">×</button></span>
+        <div style="grid-column:2/6;font-size:11px;color:var(--muted);margin-top:-3px">${quando}</div>
+      </div>`;
+    });
+    html+=`<button class="btn ghost sm" data-addtask="${f}">+ tarefa</button></div>`;
+  });
+  return html;
+}
+function bindPlano(o){
+  const body=document.getElementById('planoBody'); if(!body)return;
+  const refresh=()=>{document.getElementById('planoBody').innerHTML=renderPlanoBody(o);bindPlano(o);};
+  body.querySelectorAll('input[data-tk]').forEach(el=>{
+    const i=+el.dataset.ti,k=el.dataset.tk;
+    if(k==='feito'){el.addEventListener('change',()=>{o.plano[i].feito=el.checked;refresh();});}
+    else{el.addEventListener('input',()=>{o.plano[i][k]= k==='dia'?parseFloat(el.value||'0'):el.value;}); if(k==='dia')el.addEventListener('change',refresh);}
+  });
+  body.querySelectorAll('[data-trm]').forEach(el=>el.onclick=()=>{o.plano.splice(+el.dataset.trm,1);refresh();});
+  body.querySelectorAll('[data-addtask]').forEach(el=>el.onclick=()=>{o.plano.push({fase:+el.dataset.addtask,desc:'Nova tarefa',resp:'',dia:0,portao:false,feito:false});refresh();});
+  const g=document.getElementById('genPlano'); if(g)g.onclick=()=>{o.plano=defaultPlano();refresh();};
+  const dc=document.getElementById('dataCarrinhoInput'); if(dc)dc.addEventListener('change',()=>{o.dataCarrinho=dc.value;refresh();});
+}
+
+function viewDetail(o){
+  if(!o.plano) o.plano=defaultPlano();
+  setActive('');
+  const redesHtml=(o.redes||[]).map((r,i)=>`<div class="rede-row">
+     <select data-rk="rede" data-ri="${i}">${['Instagram','YouTube','TikTok','X / Twitter','LinkedIn','Facebook','Kwai','Telegram','Outra'].map(n=>`<option ${r.rede===n?'selected':''}>${n}</option>`).join('')}</select>
+     <input data-rk="handle" data-ri="${i}" value="${esc(r.handle)}" placeholder="@perfil"/>
+     <input data-rk="seguidores" data-ri="${i}" type="number" step="any" value="${esc(r.seguidores)}" placeholder="seguidores"/>
+     <input data-rk="engaj" data-ri="${i}" type="number" step="any" value="${esc(r.engaj)}" placeholder="engaj %"/>
+     <button class="btn danger sm" data-rrm="${i}">×</button></div>`).join('');
+  const partesHtml=o.partes.map((p,i)=>`<div class="party-row">
+     <input data-pk="nome" data-pi="${i}" value="${esc(p.nome)}" placeholder="nome da parte"/>
+     <input data-pk="pct" data-pi="${i}" type="number" step="any" value="${esc(p.pct)}"/>
+     <label style="margin:0;font-weight:400"><input type="radio" name="operador" style="width:auto" data-pop="${i}" ${p.operador?'checked':''}/> arca c/ custos</label>
+     <button class="btn danger sm" data-prm="${i}">×</button></div>`).join('');
+
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+    <div><h1>${esc(o.nome)||'Nova oportunidade'}</h1><p class="sub">Preencha só o que move o resultado. O painel recalcula sozinho.</p></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" data-view="list">← voltar</button><button class="btn" id="saveBtn">💾 Salvar</button></div>
+  </div>
+
+  <div class="card"><h2>E0 · Oportunidade</h2><p class="hint">Identificação + hipótese comercial em uma frase.</p>
+    <div class="grid">${field(o,'Nome / expert','nome',{type:'text'})}${field(o,'Nicho','nicho',{type:'text'})}</div>
+    <div style="margin-top:12px">${field(o,'Hipótese comercial (uma frase)','hipotese',{type:'text'})}</div>
+  </div>
+
+  <div class="card"><h2>Influenciador / Expert — redes sociais <span class="tag">audiência do lado do expert</span></h2>
+    <p class="hint">Uma linha por rede. Os seguidores somam a audiência bruta. <b>Seguidores não são audiência alcançável</b> — aplicamos uma taxa de alcance.</p>
+    <div class="rede-row" style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px"><span>Rede</span><span>Perfil</span><span>Seguidores</span><span>Engaj. %</span><span></span></div>
+    ${redesHtml}
+    <button class="btn ghost sm" id="addRede">+ adicionar rede</button>
+    <button class="btn ghost sm" id="fetchRede" style="margin-left:6px">🔍 Buscar dados públicos</button>
+    <div class="grid" style="margin-top:12px">
+      ${field(o,'Taxa de alcance','alcancePct',{suffix:'% dos seguidores'})}
+      ${field(o,'Intenção de compra','intencao',{type:'select',options:[['alta','Alta'],['media','Média'],['baixa','Baixa']],q:'já compram?'})}
+    </div>
+    <div class="statbar" id="socialStats"></div>
+    <div id="prontAlert"></div>
+    <div id="fetchNote"></div>
+  </div>
+
+  <div class="card"><h2>Premissas da projeção <span class="tag">[D] · assinatura recorrente</span></h2>
+    <h3 class="grp">1. Produto (ecossistema Nelogica) — assinatura</h3>
+    <div class="grid">
+      ${field(o,'Produto a vender','produtoNome',{type:'text',q:'linha/produto Nelogica'})}
+      ${field(o,'Ticket mensal','ticketMensal',{suffix:'R$/mês'})}
+      ${field(o,'Prazo de fidelidade','prazoFidelidade',{suffix:'meses'})}
+      ${field(o,'Churn mensal','churnMensalPct',{suffix:'% cancelam/mês'})}
+    </div>
+    <h3 class="grp">2. Política de cancelamento <span class="muted" style="font-weight:400;font-size:11px">(sem reembolso integral)</span></h3>
+    <div class="grid">
+      ${field(o,'Cancelam em 7 dias','cancel7Pct',{suffix:'% (saem sem custo)'})}
+      ${field(o,'Multa pós-7 dias','multaPct',{suffix:'% do valor restante'})}
+      ${field(o,'Toca renda variável?','rendaVariavel',{type:'check'})}
+    </div>
+    <div id="recNote" class="pill-note"></div>
+    <div id="compAlert"></div>
+
+    <h3 class="grp">3. Aquisição e leads</h3>
+    <div class="grid">
+      ${field(o,'Taxa de opt-in (audiência→lead)','optinPct',{suffix:'%'})}
+      ${field(o,'Investimento em mídia','verbaTrafego',{suffix:'R$'})}
+      ${field(o,'CPL (tráfego pago)','cpl',{suffix:'R$'})}
+      ${field(o,'Conversão (lead→venda)','convLista',{suffix:'%'})}
+    </div>
+    <div class="grid" style="margin-top:12px">
+      ${field(o,'Leads da base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
+      ${field(o,'Custo por lead (base Nelogica)','custoLeadDB',{suffix:'R$/lead'})}
+    </div>
+    <div class="pill-note">A <b>base de leads Nelogica</b> entra como custo (qtd × R$/lead) <b>e</b> como contribuição da Nelogica — você pode marcá-la como investimento a recuperar no split (bloco 4).</div>
+
+    <h3 class="grp">4. Revenue share e parceiros <span class="muted" style="font-weight:400;font-size:11px">(1 a N partes)</span></h3>
+    <div class="grid" style="margin-bottom:10px">
+      ${field(o,'Base do split','splitBase',{type:'select',options:[['lucro','Sobre o lucro'],['receita','Sobre a receita']]})}
+      ${field(o,'Recuperar investimento antes do split?','recuperaInvest',{type:'check'})}
+      ${field(o,'Valor a recuperar','investRecuperar',{suffix:'R$'})}
+    </div>
+    ${partesHtml}
+    <button class="btn ghost sm" id="addParte">+ adicionar parte</button>
+    <button class="btn ghost sm" id="setRecLeads" style="margin-left:6px">usar custo da base Nelogica como valor a recuperar</button>
+    <div style="margin-top:12px">${field(o,'Parceiros envolvidos (notas)','parceirosNote',{type:'text',q:'quem faz o quê, acordos'})}</div>
+    <div id="splitAlert"></div>
+  </div>
+
+  <div class="card"><h2>E4 · Modelo de lançamento</h2>
+    <div class="grid">${field(o,'Tipo','modelo',{type:'select',options:[['semente','Semente'],['interno','Interno'],['externo','Externo'],['perpetuo','Perpétuo'],['relampago','Relâmpago']]})}</div>
+    <div id="modeloHint" class="pill-note"></div>
+  </div>
+
+  <div class="card"><h2>E5 · Custos, taxas e regras <span class="tag">[D] · recalculável</span></h2>
+    <div class="grid">
+      ${field(o,'Taxa de plataforma/processamento','taxaPlataformaPct',{suffix:'% s/ receita'})}
+      ${field(o,'Produção/entrega','producao',{suffix:'R$'})}
+      ${field(o,'Ferramentas','ferramentas',{suffix:'R$'})}
+      ${field(o,'Outros custos fixos','outrosFixos',{suffix:'R$'})}
+      ${field(o,'Imposto','impostoPct',{suffix:'%'})}
+      ${field(o,'Base do imposto','impostoBase',{type:'select',options:[['faturamento','Sobre faturamento'],['lucro','Sobre o lucro']]})}
+    </div>
+    <div class="pill-note">⚠️ Alíquota de imposto é hipótese sua — defina com contador. Não há comissão de afiliado neste modelo.</div>
+    <h3 class="grp">Cenários</h3>
+    <div class="grid">
+      ${field(o,'Haircut conservador','hairConserv',{suffix:'% abaixo da conversão'})}
+      ${field(o,'Acréscimo otimista','hairOtim',{suffix:'% acima da conversão'})}
+    </div>
+  </div>
+
+  <div class="card" id="results"></div>
+
+  <div class="card"><h2>E6/E7 · Playbook e plano de execução <span class="tag">método [A-raiz] · editável</span></h2>
+    <p class="hint">O lançamento em 4 fases: tarefas, responsáveis, prazos relativos ao carrinho (D0) e portões. Marque o que concluir; informe a data do carrinho para virar prazos em datas reais.</p>
+    <div id="planoBody">${renderPlanoBody(o)}</div>
+  </div>`;
+
+  main.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{
+    const k=el.dataset.k;
+    o[k]= el.type==='checkbox'?el.checked : (el.tagName==='SELECT'||el.type==='text'?el.value:parseFloat(el.value||'0'));
+    recompute(o);
+  }));
+  bindRedes(o); bindParties(o);
+  document.getElementById('addRede').onclick=()=>{o.redes.push({rede:'Outra',handle:'',seguidores:0,engaj:0});viewDetail(o);};
+  document.getElementById('fetchRede').onclick=()=>{
+    const fn=document.getElementById('fetchNote');
+    fn.innerHTML=`<div class="alertbox"><b>Busca automática indisponível neste ambiente.</b> Esta sessão não tem acesso à internet, e coletar seguidores de todas as redes exige APIs específicas (muitas pagas) — scraping viola os termos das plataformas. Por ora, informe os seguidores manualmente. Quando houver acesso + fontes de dados, ligo o enriquecimento automático aqui (Instagram, YouTube, TikTok, etc.).</div>`;
+  };
+  document.getElementById('addParte').onclick=()=>{o.partes.push({nome:'Nova parte',pct:0,operador:false});viewDetail(o);};
+  document.getElementById('setRecLeads').onclick=()=>{o.recuperaInvest=true;o.investRecuperar=(+o.qtdLeadsDB||0)*(+o.custoLeadDB||0);viewDetail(o);};
+  document.getElementById('saveBtn').onclick=()=>{o.status='salvo';const i=opps.findIndex(x=>x.id===o.id);if(i>=0)opps[i]=o;else opps.push(o);save(opps);viewList();};
+  recompute(o);
+  bindPlano(o);
+}
+
+function bindRedes(o){
+  main.querySelectorAll('[data-rk]').forEach(el=>el.addEventListener('input',()=>{
+    const i=+el.dataset.ri,k=el.dataset.rk;o.redes[i][k]= (k==='rede'||k==='handle')?el.value:parseFloat(el.value||'0');
+    recompute(o);
+  }));
+  main.querySelectorAll('[data-rrm]').forEach(el=>el.onclick=()=>{const i=+el.dataset.rrm;if(o.redes.length<=1)return;o.redes.splice(i,1);viewDetail(o);});
+}
+function bindParties(o){
+  main.querySelectorAll('[data-pk]').forEach(el=>el.addEventListener('input',()=>{const i=+el.dataset.pi,k=el.dataset.pk;o.partes[i][k]=k==='pct'?parseFloat(el.value||'0'):el.value;recompute(o);}));
+  main.querySelectorAll('[data-pop]').forEach(el=>el.addEventListener('change',()=>{const i=+el.dataset.pop;o.partes.forEach((p,j)=>p.operador=(j===i));recompute(o);}));
+  main.querySelectorAll('[data-prm]').forEach(el=>el.onclick=()=>{const i=+el.dataset.prm;if(o.partes.length<=1)return;const wasOp=o.partes[i].operador;o.partes.splice(i,1);if(wasOp)o.partes[0].operador=true;viewDetail(o);});
+}
+
+function recompute(o){
+  const ss=document.getElementById('socialStats');
+  if(ss){const seg=seguidoresTotais(o),aud=audienciaAlcancavel(o),leadsAud=aud*((o.optinPct||0)/100);
+    ss.innerHTML=`<div class="s"><b>${num(seg)}</b><span>seguidores (todas as redes)</span></div>
+      <div class="s"><b>${num(aud)}</b><span>audiência alcançável (×${o.alcancePct}%)</span></div>
+      <div class="s"><b>${num(leadsAud)}</b><span>leads estimados (×${o.optinPct}% opt-in)</span></div>`;}
+  const pa=document.getElementById('prontAlert');
+  if(pa) pa.innerHTML=(o.intencao==='baixa')?`<div class="alertbox">Intenção de compra baixa: audiência grande não prevê venda. Gere sinal de intenção (lista de espera, enquete) antes de projetar.</div>`:'';
+  const ca=document.getElementById('compAlert');
+  if(ca) ca.innerHTML=o.rendaVariavel?`<div class="alertbox"><b>Bloqueio condicional de compliance.</b> Toca renda variável: a copy não é liberada sem parecer jurídico (GAP-003). O cálculo segue; a execução trava nesse ponto.</div>`:'';
+  const rn=document.getElementById('recNote');
+  if(rn){const rc=receitaPorCliente(o);const vida=o.churnMensalPct>0?Math.min(1/(o.churnMensalPct/100),o.prazoFidelidade):o.prazoFidelidade;
+    rn.innerHTML=`Receita esperada por cliente efetivo: <b>${brl(rc)}</b> ao longo de até ${o.prazoFidelidade} meses (vida média ≈ ${num(vida,1)} m; inclui multa de ${o.multaPct}% sobre o restante em cancelamentos pós-7 dias). ⚠️ Caixa chega ao longo do tempo (GAP-008) — isto é receita contratada [D], não caixa imediato.`;}
+  const mh=document.getElementById('modeloHint');
+  if(mh){const h={semente:'Porta de entrada: valida sem produto pronto. Não tratar como definitivo.',interno:'Cavalo de batalha na própria base. Pré-requisito do externo e do perpétuo.',externo:'Só depois de um interno validado.',perpetuo:'Só depois de um interno de sucesso. Exige tráfego constante.',relampago:'Caixa rápido em base quente. Frequência alta ensina a base a esperar.'};mh.textContent=h[o.modelo]||'';}
+
+  const r=analyze(o), s=r.b, d=r.dB, el=document.getElementById('results'); if(!el)return;
+  const line=(l,v,neg=false)=>`<div class="line"><span>${l}</span><span class="${neg?'neg':''}">${neg&&v>0?'− ':''}${brl(v)}</span></div>`;
+  const partesOut=o.partes.map((p,i)=>`<div class="line"><span>${esc(p.nome)}${i===d.opIdx?' <span class="muted">(operador)</span>':''} · ${p.pct}%</span><span class="${r.dC.nets[i]<0?'neg':''}">${brl(d.nets[i])}</span></div>`).join('');
+  el.innerHTML=`<h2>Resultado <span class="tag">cenário-base · receita contratada</span></h2>
+  <div class="verdict ${r.vclass}"><b>${r.verdict}</b><br>${r.vmsg}</div>
+  ${d.estouro?`<div class="alertbox"><b>Guard-rail do split:</b> com split sobre a <b>receita</b>, os repasses às outras partes (${brl(d.repasseParceiros)}) deixam o operador <b>negativo</b> embora haja lucro (${brl(s.lucro)}). Risco nº1 da auditoria — reveja a base do split.</div>`:''}
+  <div class="scenarios" style="margin:14px 0 4px">
+    <div class="scen"><h4>Conservador (−${o.hairConserv}%)</h4><div class="big" style="color:${r.dC.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dC.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.cons.lucro)}</div></div>
+    <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.b.lucro)}</div></div>
+    <div class="scen"><h4>Otimista (+${o.hairOtim}%)</h4><div class="big" style="color:${r.dO.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dO.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.otim.lucro)}</div></div>
+  </div>
+  <div class="statbar" style="margin-top:14px">
+    <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado (mídia+base ÷ clientes)</span></div>
+    <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—'}</b><span>payback do CAC</span></div>
+    <div class="s"><b>${isFinite(s.ltvCac)?num(s.ltvCac,1)+'x':'—'}</b><span>receita/cliente ÷ CAC</span></div>
+    <div class="s"><b>${brl(s.netMensal)}</b><span>margem mensal / cliente</span></div>
+  </div>
+  ${isFinite(s.paybackMeses)&&s.paybackMeses>o.prazoFidelidade?`<div class="alertbox">⚠️ Payback (${num(s.paybackMeses,1)} meses) maior que a fidelidade (${o.prazoFidelidade} meses): você recupera o CAC <b>depois</b> que o cliente já pode sair. Risco alto de caixa.</div>`:''}
+  <div class="pill-note">CAC é <b>calculado</b> (você não precisa estimar): investimento em mídia + custo da base de leads, dividido pelos clientes efetivos. Payback = CAC ÷ margem mensal por cliente. [D] — depende das premissas acima.</div>
+  <div class="grid" style="margin-top:14px;align-items:start">
+    <div><h3 class="grp" style="margin-top:0">Cascata (cenário-base)</h3><div class="casc">
+      <div class="line sub"><span>Leads: aud ${num(s.leadsAud)} + mídia ${num(s.leadsPagos)} + base Nelogica ${num(s.leadsDB)}</span><span>${num(s.leads)}</span></div>
+      <div class="line sub"><span>Vendas (leads × ${o.convLista}%)</span><span>${num(s.vendas,1)}</span></div>
+      <div class="line sub"><span>− Cancelam em 7 dias (${o.cancel7Pct}%)</span><span>${num(s.vendas-s.efetivos,1)}</span></div>
+      <div class="line"><span>Clientes efetivos × receita/cliente (${brl(s.recPorCliente)})</span><span>${brl(s.bruto)}</span></div>
+      ${line('Taxa plataforma',s.taxaPlat,true)}
+      ${s.leadsDBCost>0?line('Custo base de leads Nelogica',s.leadsDBCost,true):''}
+      ${line('Custos fixos (mídia+prod+ferr+outros)',s.fixos,true)}
+      ${line('Imposto (base '+o.impostoBase+')',s.imposto,true)}
+      <div class="line total"><span>Lucro operacional</span><span>${brl(s.lucro)}</span></div>
+    </div><div class="pill-note">Receita <b>contratada</b> ao longo do termo; o caixa entra mensalmente (GAP-008). Modelo de fluxo de caixa no tempo ainda não implementado.</div></div>
+    <div><h3 class="grp" style="margin-top:0">Distribuição (base: ${o.splitBase})</h3><div class="casc">
+      ${o.recuperaInvest?`<div class="line"><span>Recuperação de investimento</span><span>${brl(d.recovered)}</span></div>`:''}
+      ${partesOut}</div>
+      <h3 class="grp">Sensibilidade</h3><div class="casc">
+       <div class="line"><span>Conversão de break-even</span><span>${r.be!=null?pct(r.be/100):'—'}</span></div>
+       <div class="line"><span>Sua premissa de conversão</span><span>${pct(o.convLista/100)}</span></div>
+       <div class="line"><span>Folga até o zero</span><span class="${r.sens&&r.sens.margem<0.3?'neg':''}">${r.sens?pct(r.sens.margem):'—'}</span></div>
+      </div>
+      ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão (premissa [D]) vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ---------------- router ---------------- */
+document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
+  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+main.addEventListener('click',e=>{
+  const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
+  if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
+  if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
+  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+
+/* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
+if(opps.length===0){
+  const ex=blankOpp();
+  ex.nome='EXEMPLO (TESTE) — apague quando quiser';
+  ex.nicho='trader / mercado financeiro · demonstração';
+  ex.produtoNome='Assinatura plataforma (fictício)';
+  ex.hipotese='Cenário fictício só para mostrar o motor. Todos os números são premissas [D].';
+  ex.redes=[{rede:'Instagram',handle:'@exemplo',seguidores:300000,engaj:3},{rede:'YouTube',handle:'@exemplo',seguidores:120000,engaj:4}];
+  ex.alcancePct=10; ex.optinPct=5; ex.convLista=2;
+  ex.ticketMensal=300; ex.prazoFidelidade=12; ex.churnMensalPct=5; ex.cancel7Pct=10; ex.multaPct=50;
+  ex.qtdLeadsDB=5000; ex.custoLeadDB=1.60; ex.verbaTrafego=20000; ex.cpl=8;
+  ex.partes=[{nome:'Expert',pct:40,operador:false},{nome:'Nelogica',pct:60,operador:true}];
+  ex.status='exemplo';
+  opps=[ex];save(opps);
+}
+viewList();
+</script>
+</body>
+</html>
