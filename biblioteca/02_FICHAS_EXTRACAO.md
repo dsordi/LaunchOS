@@ -210,6 +210,37 @@
 
 ---
 
+## SRC-031 — Donald Miller, *Building a StoryBrand* (livro) · framework de mensagem/copy · `[A]` parcial
+
+**Acesso:** EPUB (Davi, 2026-10-28). **Lido integralmente:** Introdução + cap. 1 (por que o marketing falha) + cap. 2 (o resumo do SB7). **Não lido integralmente:** caps. 3–13 (cada elemento em detalhe, website, cultura).
+
+**Tese `[A]`:** *"If you confuse, you'll lose."* O cérebro busca sobrevivência e **economiza energia** ("calorias"); mensagem confusa é ignorada. Regra central: **o cliente é o herói; a marca é o guia** (como Obi-Wan / Q), nunca o contrário. "Words sell things, not pretty websites."
+
+**SB7 — os 7 elementos `[A]`:** (1) um **Personagem** (cliente) que quer algo → (2) tem um **Problema** → (3) encontra um **Guia** (a marca, com **empatia + autoridade**) → (4) que lhe dá um **Plano** → (5) e o **chama à ação** → (6) ajudando a **evitar o fracasso** (o que está em jogo) → (7) terminando em **sucesso** (a transformação).
+
+**Aplicação ao LaunchOS (forte):**
+- **E3/oferta e os CPLs:** estruturar a comunicação com o **cliente como herói** e o expert/Nelogica como **guia**. Preenche GAP-006 com framework **auditado `[A]`** (não mais só `[L]`).
+- O **gerador de pitch** do app pode seguir o SB7 (hoje é genérico) — mantendo o disclaimer de não-promessa.
+- "A oferta/mensagem clara vence o produto superior mal comunicado" → converge com SRC-001 ("a oferta é o coração").
+
+---
+
+## SRC-032 — Kotler, Kartajaya, Setiawan, *Marketing 5.0* (livro) · estratégia · `[A]` parcial
+
+**Acesso:** EPUB (Davi, 2026-10-28). **Lido integralmente:** cap. 1 (Tecnologia para a humanidade — a tese e os 5 componentes) + início do cap. 2 (as 5 gerações). **Não lido integralmente:** demais capítulos (next tech, as aplicações em detalhe, Partes 2–5).
+
+**Tese `[A]`:** Marketing 5.0 = usar **tecnologia que mimetiza o humano** para criar/comunicar/entregar/aumentar valor ao longo da jornada do cliente; combina a antropocentricidade do Marketing 3.0 com o poder tecnológico do 4.0. Começa **mapeando a jornada** e achando onde a martech agrega.
+
+**5 componentes `[A]`:** 2 disciplinas — **marketing direcionado por dados** e **marketing ágil**; 3 aplicações — **preditivo** (prever o resultado antes do lançamento), **contextual** (1-para-1 em tempo real) e **aumentado** (IA/chatbot potencializando o humano).
+
+**Achado diretamente útil `[A]`:** a **geração Y valoriza experiência > posse → migração da venda de produto para a venda de ASSINATURA** (streaming vs. comprar CD). → **valida a escolha de modelo recorrente** do LaunchOS (DEC-014), com fonte externa e independente.
+
+**Aplicação ao LaunchOS (parcial — é livro corporativo/omnichannel):**
+- "Decisão **direcionada por dados**" e "marketing **preditivo** (prever antes de lançar)" **ecoam a própria tese do decisor** — e reforçam que, **sem dado real, a projeção é só estrutura** (GAP-002).
+- Boa parte do 5.0 (sensores, contextual físico, varejo) **não** se aplica a lançamento de infoproduto — não importar como regra. Aplicabilidade seletiva.
+
+---
+
 ## Fontes não extraídas
 
 - **SRC-006 (v4company):** bloqueio de bot em 2 tentativas. Esperava-se postura crítica (agência de performance tende a criticar a FL). **Lacuna:** falta a perspectiva crítica de uma agência de performance. Se o Davi quiser, pode colar o texto ou enviar o PDF.
