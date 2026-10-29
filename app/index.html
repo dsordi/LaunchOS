@@ -705,14 +705,15 @@ function renderPitchHTML(o){
   const partesRows=o.partes.map((p,i)=>`<tr><td>${esc(p.nome)} (${p.pct}%)</td><td>${brl(a.dC.nets[i])}</td><td>${brl(a.dB.nets[i])}</td><td>${brl(a.dO.nets[i])}</td></tr>`).join('');
   return `<div class="pitch">
    <h1>Proposta de parceria${o.produtoNome?' — '+esc(o.produtoNome):''}</h1>
-   <p class="lead">${esc(o.nome)||'Expert'}${o.nicho?' · '+esc(o.nicho):''} &nbsp;×&nbsp; Nelogica</p>
+   <p class="lead">${esc(o.nome)||'Expert'}${o.nicho?' · '+esc(o.nicho):''} &nbsp;×&nbsp; ${esc(opName(o))}</p>
    <h2>A oportunidade</h2>
-   <p>${esc(o.hipotese)||'Unir a audiência e a autoridade do expert à infraestrutura, à base de leads e ao método de lançamento da Nelogica, num modelo de parceria por divisão de receita — cada lado entra com o que tem de mais forte.'}</p>
+   <p>${esc(o.hipotese)||('Unir a audiência e a autoridade do expert à infraestrutura, à base de leads e ao método de lançamento de '+opName(o)+' (operador), num modelo de parceria por divisão de receita — cada lado entra com o que tem de mais forte.')}</p>
    <h2>O que cada lado traz</h2>
    <ul>
      <li><b>Você (expert):</b> audiência e autoridade — ${num(seg)} seguidores (${redesList}).</li>
-     <li><b>Nelogica:</b> o produto (${esc(o.produtoNome)||'assinatura'}), a infraestrutura, a base de leads${o.qtdLeadsDB>0?` (${num(o.qtdLeadsDB)} leads)`:''}, o método de lançamento e a operação ponta a ponta.</li>
+     <li><b>${esc(opName(o))} (operador):</b> a infraestrutura, a base de leads${o.qtdLeadsDB>0?` (${num(o.qtdLeadsDB)} leads)`:''}, o método de lançamento e a operação ponta a ponta — arca com o investimento e o recupera antes do split.</li>
    </ul>
+   <p class="hint" style="margin:-4px 0 0">O produto (${esc(o.produtoNome)||'assinatura'}) e sua titularidade são definidos pelo acordo — o dono pode ser o expert ou o operador.</p>
    <h2>Premissas da proposta</h2>
    <table>
      <tr><td>Audiência alcançável</td><td>${num(audienciaAlcancavel(o))} pessoas (${o.alcancePct}% dos seguidores)</td></tr>
@@ -728,7 +729,7 @@ function renderPitchHTML(o){
      <tr style="color:#64748b"><td>Lucro operacional total</td><td>${brl(a.cons.lucro)}</td><td>${brl(a.b.lucro)}</td><td>${brl(a.otim.lucro)}</td></tr>
    </table>
    <h2>Como vamos executar</h2>
-   <p>Lançamento em 4 fases: <b>Captação</b> (construir a lista) → <b>Aquecimento</b> (3 aulas de conteúdo) → <b>Carrinho</b> (oferta por tempo limitado) → <b>Pós</b> (entrega e retenção). Tráfego e operação pela Nelogica; você entra com conteúdo e autoridade.</p>
+   <p>Lançamento em 4 fases: <b>Captação</b> (construir a lista) → <b>Aquecimento</b> (3 aulas de conteúdo) → <b>Carrinho</b> (oferta por tempo limitado) → <b>Pós</b> (entrega e retenção). Tráfego e operação por ${esc(opName(o))} (operador); você entra com conteúdo e autoridade.</p>
    <h2>Próximo passo</h2>
    <p>Alinhar estas premissas com os seus números reais, validar a oferta e marcar a data do lançamento.</p>
    <div class="disc"><b>Transparência:</b> os valores acima são <b>projeções calculadas a partir das premissas listadas</b>, recalculáveis — <b>não são promessa de resultado</b>. Faturamento não é lucro; o resultado real depende da execução, da conversão e do churn efetivos. Um primeiro lançamento raramente atinge o cenário otimista.</div>
@@ -797,9 +798,9 @@ function viewDetail(o){
   </div>
 
   <div class="card"><h2>Premissas da projeção <span class="tag">[D] · assinatura recorrente</span></h2>
-    <h3 class="grp">1. Produto (ecossistema Nelogica) — assinatura</h3>
+    <h3 class="grp">1. Produto — assinatura</h3>
     <div class="grid">
-      ${field(o,'Produto a vender','produtoNome',{type:'text',q:'linha/produto Nelogica'})}
+      ${field(o,'Produto a vender','produtoNome',{type:'text',q:'linha/produto (expert ou operador)'})}
     </div>
     <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Formatos de comercialização <span class="muted" style="font-weight:400">— 1 produto, vários planos (ex.: mensal, semestral, anual, bianual)</span></h4>
     <div style="display:grid;grid-template-columns:1fr 70px 100px 60px 80px auto;gap:8px;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px"><span>Formato</span><span>Meses</span><span>R$/mês</span><span>Mix %</span><span>Churn % período</span><span></span></div>
@@ -865,8 +866,8 @@ function viewDetail(o){
 
   <div class="card" id="results"></div>
 
-  <div class="card"><h2>Recuperação do investimento <span class="tag">caixa no tempo · Nelogica recupera primeiro</span></h2>
-    <p class="hint">A Nelogica aporta o investimento e <b>recupera antes do split</b> com o influenciador. Aqui: em quanto tempo o caixa cobre o aporte, considerando PIX (à vista) e cartão (parcelado/compensação).</p>
+  <div class="card"><h2>Recuperação do investimento <span class="tag">caixa no tempo · ${esc(opName(o))} recupera primeiro</span></h2>
+    <p class="hint">O <b>operador</b> (quem arca com os custos) aporta o investimento e <b>recupera antes do split</b> com o influenciador. Aqui: em quanto tempo o caixa cobre o aporte, considerando PIX (à vista) e cartão (parcelado/compensação).</p>
     <div class="grid">
       ${field(o,'% em PIX (à vista)','pixPct',{suffix:'% das vendas'})}
       ${field(o,'Parcelas no cartão','cartaoParcelas',{suffix:'x'})}
@@ -923,6 +924,35 @@ function bindParties(o){
   main.querySelectorAll('[data-prm]').forEach(el=>el.onclick=()=>{const i=+el.dataset.prm;if(o.partes.length<=1)return;const wasOp=o.partes[i].operador;o.partes.splice(i,1);if(wasOp)o.partes[0].operador=true;viewDetail(o);});
 }
 
+// nome do operador (quem arca com os custos / aporta / recupera) — pode ser Nelogica, o expert, ou outro
+function opName(o){const p=(o.partes||[]).find(x=>x.operador)||(o.partes||[])[0];return (p&&p.nome)||'operador';}
+// detalhamento linha-a-linha dos 3 cenários (conservador / base / otimista)
+function renderScenDetail(o,r){
+  const cols=[['Conservador',r.cons,r.dC],['Base',r.b,r.dB],['Otimista',r.otim,r.dO]];
+  const rt=cols.map(([n,s])=>recoveryTimeline(o,s));
+  const row=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,s,d])=>`<td style="text-align:right;font-family:var(--fmono)">${fn(s,d)}</td>`).join('')}</tr>`;
+  return `<div style="overflow:auto;margin-top:10px"><table>
+    <thead><tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr></thead><tbody>
+    ${row('Conversão efetiva', s=>pct(s.conv))}
+    ${row('Leads', s=>num(s.leads))}
+    ${row('Vendas', s=>num(s.vendas,1))}
+    ${row('Clientes efetivos', s=>num(s.efetivos,1))}
+    ${row('Receita contratada', s=>brl(s.bruto))}
+    ${row('− Taxa de plataforma', s=>brl(s.taxaPlat))}
+    ${row('− Custos fixos', s=>brl(s.fixos))}
+    ${row('− Custo base de leads', s=>brl(s.leadsDBCost))}
+    ${row('− Imposto', s=>brl(s.imposto))}
+    ${row('<b>Lucro operacional</b>', s=>'<b>'+brl(s.lucro)+'</b>')}
+    ${row('Recuperação do aporte', (s,d)=>brl(d.recovered))}
+    ${row('<b>Resultado — '+esc(opName(o))+' (operador)</b>', (s,d)=>`<b style="color:${d.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(d.operadorNet)}</b>`)}
+    ${row('Repasse aos demais', (s,d)=>brl(d.repasseParceiros))}
+    ${row('CAC calculado', s=>brl(s.cac))}
+    ${row('Payback (meses)', s=>isFinite(s.paybackMeses)?num(s.paybackMeses,1):'—')}
+    ${row('LTV:CAC (margem)', s=>isFinite(s.ltvMargemCac)?num(s.ltvMargemCac,1)+'x':'—')}
+    <tr><td>Recuperação em caixa (meses)</td>${rt.map(x=>`<td style="text-align:right;font-family:var(--fmono)">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <div class="pill-note" style="margin-top:8px">Cenários flexionam a <b>conversão</b> (−${o.hairConserv}% / base / +${o.hairOtim}%) — a premissa de maior incerteza. Demais premissas constantes. Tudo [D], recalculável.</div>`;
+}
 function renderRecovery(o,s){
   const rt=recoveryTimeline(o,s);
   const recTxt = rt.invest<=0 ? 'sem aporte a recuperar'
@@ -936,7 +966,7 @@ function renderRecovery(o,s){
       <span style="font-size:11px">${brl(r.cum)}</span></div>`;
   }).join('');
   return `<div class="statbar" style="margin-top:4px">
-     <div class="s"><b>${brl(rt.invest)}</b><span>investido pela Nelogica (mídia+prod+ferr+leads)</span></div>
+     <div class="s"><b>${brl(rt.invest)}</b><span>aporte do operador (${esc(opName(o))}) · mídia+prod+ferr+leads</span></div>
      <div class="s"><b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera')}</b><span>recuperação em caixa</span></div>
      <div class="s"><b>${num(rt.pix)}% / ${num(rt.card)}%</b><span>PIX à vista / cartão ${rt.antecipa?'antecipado':rt.parcelas+'x'}</span></div>
    </div>
@@ -981,6 +1011,8 @@ function recompute(o){
     <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.b.lucro)}</div></div>
     <div class="scen"><h4>Otimista (+${o.hairOtim}%)</h4><div class="big" style="color:${r.dO.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dO.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.otim.lucro)}</div></div>
   </div>
+  <div style="margin-top:8px"><button class="btn ghost sm" id="scenToggle">${o._scenOpen?'Ocultar detalhamento':'Ver detalhado dos 3 cenários'}</button></div>
+  <div id="scenDetail" style="${o._scenOpen?'':'display:none'}">${renderScenDetail(o,r)}</div>
   <div class="statbar" style="margin-top:14px">
     <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado (mídia+base ÷ clientes)</span></div>
     <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—'}</b><span>payback do CAC</span></div>
@@ -1013,6 +1045,7 @@ function recompute(o){
     </div>
   </div>`;
   const rb=document.getElementById('recoveryBody'); if(rb) rb.innerHTML=renderRecovery(o,s);
+  const stg=document.getElementById('scenToggle'); if(stg) stg.onclick=()=>{o._scenOpen=!o._scenOpen;recompute(o);};
 }
 
 /* ---------------- Raio-X / Gerador de estrutura de lançamento ---------------- */
@@ -1301,7 +1334,7 @@ function gonogoReadoutGTM(o){
      <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' m':'—'}</b><span>payback</span></div>
      <div class="s"><b>${r.be!=null?pct(r.be/100):'—'}</b><span>conv. break-even</span></div>
      <div class="s"><b>${r.sens?pct(r.sens.margem):'—'}</b><span>folga até o zero</span></div></div>
-   <div class="pill-note" style="margin-top:8px">Nelogica recupera o aporte (<b>${brl(rt.invest)}</b>) em <b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}</b> de caixa (PIX à vista / cartão ${rt.parcelas}x) — <b>o split só começa depois</b>.</div>
+   <div class="pill-note" style="margin-top:8px">${esc(opName(o))} recupera o aporte (<b>${brl(rt.invest)}</b>) em <b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}</b> de caixa (PIX à vista / cartão ${rt.parcelas}x) — <b>o split só começa depois</b>.</div>
    ${pbWarn?`<div class="alertbox">Payback (${num(s.paybackMeses,1)}m) > fidelidade (${o.prazoFidelidade}m): recupera o CAC depois que o cliente já pode sair.</div>`:''}
    ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão [D] vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}`;
 }
@@ -1482,7 +1515,7 @@ function viewDashboard(){
          ${sel?`<span class="chip ${selA.vclass}">${selA.verdict}</span>`:''}
        </div>
        <div style="height:258px">${sel?'<canvas id="dashChart"></canvas>':'<div class="muted" style="padding:40px;text-align:center">Crie uma oportunidade para ver a curva de caixa.</div>'}</div>
-       ${sel?`<p class="muted" style="font-size:11px;margin-top:8px">Caixa líquido acumulado vs. aporte (${brl(rt.invest)}). PIX à vista / cartão ${rt.parcelas}x. Premissa [D] — recupera em ${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}. A Nelogica recupera antes do split.</p>`:''}
+       ${sel?`<p class="muted" style="font-size:11px;margin-top:8px">Caixa líquido acumulado vs. aporte (${brl(rt.invest)}). PIX à vista / cartão ${rt.parcelas}x. Premissa [D] — recupera em ${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}. O operador recupera antes do split.</p>`:''}
      </div>
      <div class="card">
        <h2 style="margin:0 0 3px">Carteira</h2>
@@ -1495,7 +1528,7 @@ function viewDashboard(){
     if(el){const labels=rt.rows.map(r=>'M'+r.m), cum=rt.rows.map(r=>Math.round(r.cum)), inv=rt.rows.map(()=>Math.round(rt.invest));
     dashChart=new Chart(el,{type:'line',data:{labels,datasets:[
       {label:'Caixa acumulado',data:cum,borderColor:'#FF8C00',backgroundColor:'rgba(255,140,0,.07)',fill:true,tension:.3,borderWidth:2,pointRadius:0},
-      {label:'Aporte da Nelogica',data:inv,borderColor:'rgba(150,170,195,.55)',borderDash:[4,4],fill:false,borderWidth:1.5,pointRadius:0}
+      {label:'Aporte do operador',data:inv,borderColor:'rgba(150,170,195,.55)',borderDash:[4,4],fill:false,borderWidth:1.5,pointRadius:0}
     ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8A99AD',font:{size:11},boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}});}
   }
 }
