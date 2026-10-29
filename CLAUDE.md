@@ -48,6 +48,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   15_CERTIFICACAO_MOTOR_FINANCEIRO.md ← auditoria/fórmulas/premissas do motor financeiro do app (board-grade) (O)
   16_FICHA_EXPERT_SECRETS.md  ← ficha de Expert Secrets + DotCom Secrets/Brunson (SRC-041/042): copy/funil (P)
   17_PSICOLOGIA_COMPORTAMENTO.md ← Psychology of Money, Hooked, Naval (SRC-043/044/045): audiência/retenção (Q)
+  18_FICHA_COPY_SUGARMAN.md   ← The Adweek Copywriting Handbook/Sugarman (SRC-046): redação/gatilhos (R)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)

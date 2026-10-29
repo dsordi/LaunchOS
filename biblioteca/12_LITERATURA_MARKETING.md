@@ -31,7 +31,7 @@ Skill principal = **transformar uma oportunidade em decisão de viabilidade defe
 - **Eugene Schwartz — *Breakthrough Advertising*** `[L]`: **5 níveis de consciência** do prospect (inconsciente → consciente do problema → da solução → do produto → o mais consciente) e **5 níveis de sofisticação** do mercado. → Define o ângulo do **CPL 1 (quebra de crença)**: mercado saturado pede **mecanismo novo**, não promessa maior. O ângulo muda conforme a consciência da audiência do expert.
 - **Claude Hopkins — *Scientific Advertising*** `[L]`: "vendedor no papel", **razão-porquê**, oferta específica, **teste e mensuração**. → Reforça a disciplina de medir (KPIs do `06`) e de fazer **promessa específica e verificável** — crítico para compliance de renda variável (GAP-003).
 - **David Ogilvy — *Ogilvy on Advertising*** `[L]`: peso da headline, a "big idea", respeito ao consumidor. → Estrutura da página de vendas/VSL.
-- **Gary Halbert / Joe Sugarman** `[L]`: o "escorregador" (cada linha faz ler a próxima), PAS/AIDA na prática. → Sequência de e-mails e VSL do carrinho.
+- **Gary Halbert / Joe Sugarman** `[L]`: o "escorregador" (cada linha faz ler a próxima), PAS/AIDA na prática. → Sequência de e-mails e VSL do carrinho. **Atualização 2026-10-29:** o Sugarman foi lido via **resumo** de *The Adweek Copywriting Handbook* (**SRC-046**, `[A-resumo]`) — ficha dedicada em `18` (slippery slide, sementes de curiosidade, copy=emoção, 7 passos, ~22 gatilhos, com separação permitido×bloqueado por compliance). Esses princípios deixam de ser só `[L]` de memória.
 
 ### Posicionamento e oferta (E3)
 - **Ries & Trout — *Positioning*** `[L]`: ser o primeiro na mente, foco, posição única e defensável.
