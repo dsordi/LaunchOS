@@ -925,7 +925,7 @@ function viewDetail(o){
     <div class="pill-note">⚠️ Alíquota de imposto é hipótese sua — defina com contador. Não há comissão de afiliado neste modelo.</div>
     <h3 class="grp">Cenários</h3>
     <div class="grid">
-      ${field(o,'Haircut conservador','hairConserv',{suffix:'% abaixo da conversão'})}
+      ${field(o,'Cenário pé no chão','hairConserv',{suffix:'% abaixo da conversão'})}
       ${field(o,'Acréscimo otimista','hairOtim',{suffix:'% acima da conversão'})}
     </div>
   </div>
@@ -1012,8 +1012,8 @@ function renderScenDetail(o,r){
     ${row('Recuperação do aporte', (s,d)=>brl(d.recovered))}
     ${row('<b>Resultado — '+esc(opName(o))+' (operador)</b>', (s,d)=>`<b style="color:${d.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(d.operadorNet)}</b>`)}
     ${row('Repasse aos demais', (s,d)=>brl(d.repasseParceiros))}
-    ${row('CAC calculado', s=>brl(s.cac))}
-    ${row('Payback (meses)', s=>isFinite(s.paybackMeses)?num(s.paybackMeses,1):'—')}
+    ${row('Custo por cliente (CAC)', s=>brl(s.cac))}
+    ${row('Prazo p/ recuperar (payback, meses)', s=>isFinite(s.paybackMeses)?num(s.paybackMeses,1):'—')}
     ${row('LTV:CAC (margem)', s=>isFinite(s.ltvMargemCac)?num(s.ltvMargemCac,1)+'x':'—')}
     <tr><td>Recuperação em caixa (meses)</td>${rt.map(x=>`<td style="text-align:right;font-family:var(--fmono)">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
     </tbody></table></div>
@@ -1083,7 +1083,30 @@ function recompute(o){
   const r=analyze(o), s=r.b, d=r.dB, el=document.getElementById('results'); if(!el)return;
   const line=(l,v,neg=false)=>`<div class="line"><span>${l}</span><span class="${neg?'neg':''}">${neg&&v>0?'− ':''}${brl(v)}</span></div>`;
   const partesOut=o.partes.map((p,i)=>`<div class="line"><span>${esc(p.nome)}${i===d.opIdx?' <span class="muted">(operador)</span>':''} · ${p.pct}%</span><span class="${r.dC.nets[i]<0?'neg':''}">${brl(d.nets[i])}</span></div>`).join('');
-  el.innerHTML=`<h2>Resultado <span class="tag">cenário-base · receita contratada</span></h2>
+  // ---- Resumo comercial (visão principal: lucro líquido primeiro) ----
+  const vmap={good:['GO','good'],warn:['ANÁLISE NECESSÁRIA','warn'],bad:['NO-GO','bad']};
+  const vg=vmap[r.vclass]||['—','neutral'];
+  const margem=s.receita>0?s.lucro/s.receita:0, investTot=(s.fixos||0)+(s.leadsDBCost||0);
+  const riscos=['Conversão lead→venda é premissa [D] — a variável de maior incerteza; só um piloto confirma.'];
+  if(o.rendaVariavel) riscos.push('Renda variável: a copy não vai ao ar sem parecer jurídico (compliance).');
+  if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) riscos.push('Prazo para recuperar o investimento maior que a fidelidade — risco de caixa.');
+  if(r.sens&&r.sens.margem<0.3) riscos.push('Folga pequena até o zero: variação modesta na conversão vira prejuízo.');
+  const resumoComercial=`<div class="card" style="border-color:rgba(255,140,0,.35)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Lucro líquido projetado da campanha <span style="text-transform:none">(cenário-base)</span></div>
+        <div style="font-family:var(--fmono);font-size:30px;font-weight:700;color:${s.lucro<0?'var(--bad)':'var(--good)'};line-height:1.1;margin-top:2px">${brl(s.lucro)}</div></div>
+      <span class="chip ${vg[1]}" style="font-size:14px;padding:6px 14px;align-self:center">${vg[0]}</span>
+    </div>
+    <div class="statbar" style="margin-top:12px">
+      <div class="s"><b>${brl(s.bruto)}</b><span>faturamento potencial contratado</span></div>
+      <div class="s"><b>${brl(investTot)}</b><span>investimento total (mídia+prod+ferr+leads)</span></div>
+      <div class="s"><b>${s.receita>0?pct(margem):'—'}</b><span>margem líquida</span></div>
+      <div class="s"><b>${brl(d.operadorNet)}</b><span>resultado do operador (após split)</span></div>
+    </div>
+    <div style="margin-top:10px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px">Principais riscos</div><ul class="gaps" style="margin:0">${riscos.slice(0,3).map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul></div>
+    <div class="pill-note" style="margin-top:10px">Visão comercial. <b>Faturamento ≠ lucro ≠ caixa.</b> Projeção a partir das premissas [D], recalculável — não é promessa. Detalhes abaixo.</div>
+  </div>`;
+  el.innerHTML=resumoComercial+`<h2>Resultado <span class="tag">cenário-base · receita contratada</span></h2>
   <div class="verdict ${r.vclass}"><b>${r.verdict}</b><br>${r.vmsg}</div>
   ${d.estouro?`<div class="alertbox"><b>Guard-rail do split:</b> com split sobre a <b>receita</b>, os repasses às outras partes (${brl(d.repasseParceiros)}) deixam o operador <b>negativo</b> embora haja lucro (${brl(s.lucro)}). Risco nº1 da auditoria — reveja a base do split.</div>`:''}
   ${Math.abs((d.pctSum||100)-100)>0.5?`<div class="alertbox"><b>Atenção ao split:</b> os percentuais das partes somam <b>${num(d.pctSum)}%</b> (≠ 100%). Os repasses foram <b>normalizados</b> para conservar o total (nada vaza), mas corrija os % para refletir o acordo real.</div>`:''}
@@ -1099,15 +1122,15 @@ function recompute(o){
   <div id="scenResumo" style="${o._scenResumo?'':'display:none'}">${renderScenResumo(o,r)}</div>
   <div id="scenDetail" style="${o._scenOpen?'':'display:none'}">${renderScenDetail(o,r)}</div>
   <div class="statbar" style="margin-top:14px">
-    <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado (mídia+base ÷ clientes)</span></div>
-    <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—'}</b><span>payback do CAC</span></div>
+    <div class="s"><b>${brl(s.cac)}</b><span>custo por cliente (CAC)</span></div>
+    <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—'}</b><span>prazo p/ recuperar o investimento (payback)</span></div>
     <div class="s"><b>${isFinite(s.ltvMargemCac)?num(s.ltvMargemCac,1)+'x':'—'}</b><span>LTV:CAC (margem de contrib.)</span></div>
     <div class="s"><b>${brl(s.netMensal)}</b><span>margem mensal / cliente</span></div>
   </div>
   ${isFinite(s.paybackMeses)&&s.paybackMeses>o.prazoFidelidade?`<div class="alertbox">⚠️ Payback (${num(s.paybackMeses,1)} meses) maior que a fidelidade (${o.prazoFidelidade} meses): você recupera o CAC <b>depois</b> que o cliente já pode sair. Risco alto de caixa.</div>`:''}
   <div class="pill-note">CAC é <b>calculado</b> (você não precisa estimar): investimento em mídia + custo da base de leads, dividido pelos clientes efetivos. Payback = CAC ÷ margem mensal por cliente. [D] — depende das premissas acima.</div>
   <div class="grid" style="margin-top:14px;align-items:start">
-    <div><h3 class="grp" style="margin-top:0">Cascata (cenário-base)</h3><div class="casc">
+    <div><h3 class="grp" style="margin-top:0">Distribuição do resultado (cenário-base)</h3><div class="casc">
       <div class="line sub"><span>Leads: aud ${num(s.leadsAud)} + mídia ${num(s.leadsPagos)} + base Nelogica ${num(s.leadsDB)}</span><span>${num(s.leads)}</span></div>
       <div class="line sub"><span>Vendas (leads × ${o.convLista}%)</span><span>${num(s.vendas,1)}</span></div>
       <div class="line sub"><span>− Cancelam em 7 dias (${o.cancel7Pct}%)</span><span>${num(s.vendas-s.efetivos,1)}</span></div>
@@ -1356,7 +1379,7 @@ function ledgerGTM(o){
     {item:'Clientes potenciais',val:num(m.clientesCap,0),mk:'C',src:'base × adesão, limitado pelo teto',tipo:'derivado de premissas'},
     {item:'Ticket médio',val:brl(m.tk)+'/mês',mk:'B',src:'Formatos do produto · faixa real Nelogica R$76–148 (SRC-036)',tipo:(tkOk?'dentro da faixa real':'FORA da faixa real da Nelogica')},
     {item:'Conversão lead→venda',val:pct((o.convLista||0)/100),mk:'D',src:'Premissa — sem benchmark de lançamento',tipo:'estimado · o piloto valida'},
-    {item:'CAC calculado',val:brl(s.cac),mk:'C',src:'(mídia + base Nelogica) ÷ clientes efetivos',tipo:'derivado'},
+    {item:'Custo por cliente (CAC)',val:brl(s.cac),mk:'C',src:'(mídia + base Nelogica) ÷ clientes efetivos',tipo:'derivado'},
     {item:'Ângulo recomendado',val:'Educação/disciplina',mk:'B',src:'FInfluence SRC-037 + dor Nelogica SRC-035/036',tipo:'convergência independente'},
     {item:'Veredito go/no-go',val:r.verdict,mk:'C',src:'Decisor E5 — cenário conservador',tipo:'derivado das premissas'}
   ];
@@ -1416,8 +1439,8 @@ function gonogoReadoutGTM(o){
      <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador</div></div>
      <div class="scen"><h4>Otimista</h4><div class="big" style="color:${r.dO.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dO.operadorNet)}</div><div class="muted">operador</div></div></div>
    <div class="statbar" style="margin-top:12px">
-     <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado</span></div>
-     <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' m':'—'}</b><span>payback</span></div>
+     <div class="s"><b>${brl(s.cac)}</b><span>custo por cliente (CAC)</span></div>
+     <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' m':'—'}</b><span>prazo p/ recuperar (payback)</span></div>
      <div class="s"><b>${r.be!=null?pct(r.be/100):'—'}</b><span>conv. break-even</span></div>
      <div class="s"><b>${r.sens?pct(r.sens.margem):'—'}</b><span>folga até o zero</span></div></div>
    <div class="pill-note" style="margin-top:8px">${esc(opName(o))} recupera o aporte (<b>${brl(rt.invest)}</b>) em <b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}</b> de caixa (PIX à vista / cartão ${rt.parcelas}x) — <b>o split só começa depois</b>.</div>
@@ -1521,14 +1544,14 @@ function viewGTM(){
         ${gf2('Conversão (lead→venda)','convLista',{suffix:'% [D]'})}
         ${gf2('Leads base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
         ${gf2('Custo/lead Nelogica','custoLeadDB',{suffix:'R$'})}
-        ${gf2('Haircut conservador','hairConserv',{suffix:'%'})}
+        ${gf2('Cenário pé no chão','hairConserv',{suffix:'%'})}
         ${gf2('Acréscimo otimista','hairOtim',{suffix:'%'})}
       </div></div>
       <div id="gtmGonogo"></div>
     </div>
   </div>
 
-  <div class="card"><h2>Ledger de confiança <span class="tag">cada número com fonte e marca</span></h2>
+  <div class="card"><h2>Evidências e premissas <span class="tag">cada número com fonte e marca</span></h2>
     <p class="hint">A assinatura do LaunchOS: nada é afirmado sem dizer de onde veio e se é observado ou estimado.</p>
     <div id="gtmLedger"></div>
     <div class="legend" style="margin-top:10px"><span><span class="mark mA">A</span> fato lido</span><span><span class="mark mB">B</span> convergência independente</span><span><span class="mark mC">C</span> inferência/derivado</span><span><span class="mark mD">D</span> premissa não validada</span></div>
@@ -2036,6 +2059,7 @@ function renderEstrategiaInner(o){
     <div class="pill-note" style="margin-top:12px"><b>Retenção:</b> ${esc(pb.retencao)}</div>
     <div class="pill-note" style="margin-top:8px"><b>Compliance:</b> ${esc(pb.compliance)}</div>
     <div class="pill-note" style="margin-top:8px"><b>Transparência:</b> ${esc(pb.transparencia)}</div>
+    <div style="margin-top:14px"><button class="btn" id="roteiroCplBtn">Gerar roteiro de CPL com base no seu mecanismo único</button></div>
   </div>
 
   <div class="card"><h2>Portão de compliance <span class="tag">bloqueio, não detalhe</span></h2>
@@ -2101,7 +2125,8 @@ function viewEstrategia(){
     </div>
   </div>
   <div id="estrOut">${renderEstrategiaInner(o)}</div>`;
-  main.querySelectorAll('[data-ek]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.ek;o[k]= el.type==='checkbox'?el.checked:el.value; const out=document.getElementById('estrOut'); if(out) out.innerHTML=renderEstrategiaInner(o);}));
+  bindRoteiroCpl(o);
+  main.querySelectorAll('[data-ek]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.ek;o[k]= el.type==='checkbox'?el.checked:el.value; const out=document.getElementById('estrOut'); if(out){out.innerHTML=renderEstrategiaInner(o); bindRoteiroCpl(o);}}));
   document.getElementById('estrLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){estrOpp=JSON.parse(JSON.stringify(src));viewEstrategia();}}});
   document.getElementById('estrPrint').onclick=()=>openReport(renderEstrategiaInner(o),'Plano de Lançamento — '+(esc(o.nome)||o.produtoNome||''));
 }
@@ -2116,6 +2141,65 @@ function normalizeOppDefaults(o){
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
   return o;
 }
+// Roteiro de CPL personalizado — usa mecanismo/promessa/público/aquisição/meta de leads do projeto
+function renderRoteiroCPL(o){
+  const a=analyze(o), s=a.b;
+  const mec=(o.ofertaMecanismo||'').trim(), prom=(o.ofertaPromessa||'').trim();
+  const publico=(o.nicho||'').trim()||'seu público';
+  const canal=CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro, mod=crencaNucleo(o), cr=crencasFalsas(o);
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const metaLeads=Math.round(s.leads||0), verba=+o.verbaTrafego||0, cpl=+o.cpl||0;
+  const falta=(!mec||!prom);
+  const M=mec||'[seu mecanismo único]', P=prom||'[sua promessa central — competência/processo, sem prometer retorno]';
+  const H3='font-size:13px;margin:16px 0 6px;color:#0f172a';
+  const aviso=falta?`<div class="alertbox">Para um roteiro 100% específico, preencha o <b>Essencial da oferta</b> (promessa + mecanismo único) no Estrategista. A estrutura abaixo já sai montada; os [colchetes] são o que falta.</div>`:'';
+  const cplBlock=(n,nome,objetivo,crenca,gancho,corpo,gatilho,cta)=>`
+   <h3 style="${H3}">CPL ${n} — ${nome}</h3>
+   <table>
+     <tr><td style="width:150px">Objetivo</td><td>${esc(objetivo)}</td></tr>
+     <tr><td>Crença a quebrar</td><td>${esc(crenca)}</td></tr>
+     <tr><td>Gancho / headline</td><td><b>${esc(gancho)}</b></td></tr>
+     <tr><td>Estrutura (Epiphany Bridge)</td><td>${esc(corpo)}</td></tr>
+     <tr><td>Gatilho</td><td>${esc(gatilho)}</td></tr>
+     <tr><td>Chamada (CTA)</td><td>${esc(cta)}</td></tr>
+   </table>`;
+  return `
+   <p class="lead">${esc(o.produtoNome)||'Produto'} · ${esc(publico)} · mecanismo: <b>${esc(M)}</b></p>
+   ${aviso}
+   <h2>1 · Base do roteiro</h2>
+   <table>
+     <tr><td>Promessa central</td><td>${esc(P)}</td></tr>
+     <tr><td>Mecanismo único</td><td>${esc(M)}</td></tr>
+     <tr><td>Público · nível</td><td>${esc(publico)} · ${esc(NIVEL[o.nivelPublico]||'—')}</td></tr>
+     <tr><td>Canal principal</td><td>${esc(canal.topo)}</td></tr>
+     <tr><td>Ângulo</td><td>Educação / disciplina${rv?' — sem promessa de ganho (compliance)':''}</td></tr>
+   </table>
+   <h2>2 · Plano de captação &amp; meta de leads</h2>
+   <table>
+     <tr><td>Orçamento de tráfego</td><td>${brl(verba)}</td></tr>
+     <tr><td>CPL premissado</td><td>${cpl>0?brl(cpl):'[defina o CPL]'}</td></tr>
+     <tr><td>Leads de mídia paga (verba ÷ CPL)</td><td>${cpl>0?num(verba/cpl):'—'}</td></tr>
+     <tr><td>Leads da audiência (opt-in ${o.optinPct||0}%)</td><td>${num(s.leadsAud)}</td></tr>
+     <tr><td>Leads da base</td><td>${num(s.leadsDB)}</td></tr>
+     <tr><td><b>Meta total de leads</b></td><td><b>${num(metaLeads)}</b></td></tr>
+   </table>
+   <p class="muted" style="font-size:11px">Meta derivada do funil do projeto (cenário-base). Conversão lead→venda premissada: ${o.convLista}% [D].</p>
+   <h2>3 · Roteiro dos 3 CPLs</h2>
+   ${cplBlock(1,'Oportunidade — quebra de crença','Mostrar que existe um caminho melhor e destruir a crença que trava.',cr[0].obj+' (veículo)',M+' — '+P+', sem depender de '+(rv?'achar o ativo/setup perfeito':'sorte'),'Backstory → o muro (frustração) → a epifania ('+M+') → como isso muda tudo. '+mod.crenca,'Autoridade + Reciprocidade','Convide para o CPL 2 (a prova).')}
+   ${cplBlock(2,'Transformação — prova',rv?'Provar o PROCESSO e a consistência — nunca retorno garantido.':'Provar que o método funciona.',cr[1].obj+' (interna)',(o.ofertaProva?o.ofertaProva:'[caso/depoimento real]'),'Caso real → como '+M+' foi aplicado passo a passo → resultado de PROCESSO. '+cr[1].ponte,'Prova social','Convide para o CPL 3 (a virada).')}
+   ${cplBlock(3,'Propriedade — ponte','Fazer o prospect se ver praticando; abrir o carrinho.',cr[2].obj+' (externa)','Você usando '+M+' na sua rotina',mod.ponte+' '+cr[2].ponte,'Compromisso/coerência + antecipação','Abrir oferta: '+((o.produtoNome||'o produto'))+(o.ofertaBonus?' · bônus/garantia: '+o.ofertaBonus:'')+'.')}
+   <h2>4 · Sequência de e-mail / WhatsApp (carrinho)</h2>
+   <ul>
+     <li><b>Abertura:</b> o carrinho abriu — reforce a promessa (${esc(P)}) e o mecanismo (${esc(M)}).</li>
+     <li><b>Conteúdo / objeção:</b> quebre a objeção interna — ${esc(cr[1].obj)}.</li>
+     <li><b>Prova:</b> ${esc(o.ofertaProva||'[caso/depoimento]')}.</li>
+     <li><b>Últimas 24h:</b> escassez real (${esc(o.ofertaBonus||'bônus/prazo que expira de verdade')}); a maioria compra agora.</li>
+     <li><b>Última chamada:</b> fecha na data marcada.</li>
+   </ul>
+   <div class="disc"><b>Compliance:</b> ${rv?'renda variável — promessa sobre COMPETÊNCIA/processo, específica e verificável; disclaimer de risco; sem claim de retorno; a copy só vai ao ar com parecer jurídico (GAP-003).':'mantenha a promessa específica e verificável.'} Roteiro gerado das premissas do projeto — é estrutura, não garantia; conversão é [D].</div>
+  `;
+}
+function bindRoteiroCpl(o){const b=document.getElementById('roteiroCplBtn'); if(b) b.onclick=()=>openReport(renderRoteiroCPL(o),'Roteiro de CPL — '+(esc(o.produtoNome)||esc(o.nome)||'Lançamento'));}
 // Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
@@ -2262,6 +2346,7 @@ function viewCompilador(){
     main.querySelectorAll('.tabpane').forEach(p=>p.style.display=(p.dataset.pane===t)?'':'none');});
   document.getElementById('compLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){compOpp=JSON.parse(JSON.stringify(src));viewCompilador();}}});
   const ca=document.getElementById('compApres'); if(ca) ca.onclick=()=>openReport(renderApresentacao(o),'Apresentação de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  bindRoteiroCpl(o);
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const g=b.dataset.goto, clone=JSON.parse(JSON.stringify(o));
     if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
     else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);}});
