@@ -176,6 +176,100 @@
   @media(max-width:980px){.dashmain{grid-template-columns:1fr}}
   @media(max-width:820px){.app{flex-direction:column;height:auto;overflow:visible}aside{width:auto;height:auto;position:static}.content{height:auto;overflow:visible}main#main{height:auto}}
 </style>
+<style id="craft">
+  /* ===== Camada craft — contencao e hierarquia (visual/usabilidade; engine intacta) ===== */
+  :root{
+    --bg:#0A121C; --panel:#0C1724; --surface:#0F1C2B; --surface2:#16273A;
+    --line:rgba(150,170,195,.11); --line2:rgba(150,170,195,.18);
+    --ink:#E8EEF4; --muted:#93A4B8; --faint:#5E6E80;
+    --accent:#FF8C00; --accent-soft:rgba(255,140,0,.13); --focus:#3BA3F2;
+    --good:#3FB37F; --warn:#D9A441; --bad:#E5706B; --cyan:#5AA9C9; --yellow:#D9A441;
+    --good-bg:rgba(63,179,127,.12); --warn-bg:rgba(217,164,65,.12); --bad-bg:rgba(229,112,107,.12);
+    --card:var(--surface); --nav:var(--panel); --nav-active:var(--accent); --radius:11px;
+    --fhead:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --a:#4C8DF6; --b:#3FB37F; --c:#9A7CF0; --d:#E0923C;
+  }
+  body{background:var(--bg);background-image:none;color:var(--ink);font-size:13.5px;-webkit-font-smoothing:antialiased}
+  ::selection{background:rgba(255,140,0,.22);color:#fff}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-thumb{background:rgba(150,170,195,.16);border-radius:6px;border:3px solid transparent;background-clip:content-box}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(150,170,195,.3);background-clip:content-box}
+  .app{height:100vh;overflow:hidden}
+  aside{width:238px;background:var(--panel);border-right:1px solid var(--line)}
+  aside .brand{padding:15px 16px 13px;border-bottom:1px solid var(--line)}
+  aside .brand .rk{width:30px;height:30px;border:1px solid var(--line2);background:#0A1422;border-radius:8px;box-shadow:none}
+  aside .brand .nm{font-family:'Montserrat';font-weight:800;font-size:16px;letter-spacing:-.2px;color:#fff}
+  aside .brand .nm .os{color:var(--accent)} aside .brand small{font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+  nav#nav{padding:7px 8px}
+  nav .sec{font-size:10px;font-weight:600;letter-spacing:.09em;color:var(--faint);padding:16px 10px 6px;text-transform:uppercase}
+  nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;color:var(--muted);font-size:13px;font-weight:450;border-left:0;position:relative;margin-bottom:1px}
+  nav a svg{width:16px;height:16px;flex:0 0 16px;opacity:.9}
+  nav a:hover{background:rgba(150,170,195,.06);color:var(--ink)}
+  nav a.active{background:rgba(150,170,195,.07);color:#fff;font-weight:550}
+  nav a.active::before{content:"";position:absolute;left:-7px;top:7px;bottom:7px;width:2px;border-radius:2px;background:var(--accent)}
+  nav a.active svg{opacity:1;color:var(--accent)}
+  aside .foot{padding:14px;border-top:1px solid var(--line);color:var(--faint);font-size:10.5px}
+  .content{background:var(--bg)}
+  .topbar{height:52px;flex-basis:52px;border-bottom:1px solid var(--line);background:var(--panel);padding:0 24px}
+  .topbar .crumb{font-size:12.5px;color:var(--muted)} .topbar .crumb b{color:var(--ink);font-weight:550}
+  .topbar .status{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:5px 10px;font-size:11px}
+  .topbar .dot{background:var(--good);box-shadow:none;animation:none;width:6px;height:6px}
+  main#main{padding:28px 32px}
+  h1{font-family:var(--fhead);font-weight:650;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+  .sub{color:var(--muted);font-size:13px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:none;padding:20px 22px}
+  .card:hover{border-color:var(--line)}
+  .card h2{font-family:var(--fhead);font-weight:600;font-size:13.5px;letter-spacing:-.01em;color:var(--ink)}
+  .card h2 .tag{font-weight:500;color:var(--muted);background:rgba(150,170,195,.08);border:1px solid var(--line);border-radius:5px;letter-spacing:0}
+  .card .hint,.hint{color:var(--muted);font-size:12px}
+  h3.grp{font-family:var(--fhead);font-weight:600;font-size:11.5px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;margin:18px 0 8px}
+  label{font-size:11.5px;font-weight:500;color:var(--muted)}
+  input,select,textarea{background:#0A1422;border:1px solid var(--line);border-radius:7px;font-size:13px;color:var(--ink);padding:8px 10px}
+  input::placeholder{color:var(--faint)}
+  input:focus,select:focus,textarea:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px rgba(59,163,242,.14)}
+  button{font-family:var(--fhead);font-weight:550;border-radius:7px}
+  .btn{background:var(--accent);color:#231504;box-shadow:none;font-weight:650;padding:8px 14px}
+  .btn:hover{filter:none;background:#ffa033}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+  .btn.ghost:hover{background:rgba(150,170,195,.06)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .btn.danger{color:var(--bad);border:1px solid rgba(229,112,107,.3);background:transparent}
+  .btn svg{width:14px;height:14px;vertical-align:-2px;margin-right:6px}
+  table th{font-size:10.5px;font-weight:600;letter-spacing:.05em;color:var(--faint);text-transform:uppercase;padding:9px 12px}
+  table td{padding:10px 12px;font-size:13px;border-color:var(--line)}
+  tr.clickable:hover td{background:rgba(150,170,195,.045)}
+  .statbar{background:#0A1422;border:1px solid var(--line);border-radius:10px;gap:24px;padding:14px 18px}
+  .statbar .s b,.scen .big,.kpi .v{font-family:var(--fmono);font-variant-numeric:tabular-nums}
+  .statbar .s b{font-size:16px;font-weight:600;color:var(--ink)} .statbar .s span{font-size:11px;color:var(--muted)}
+  .casc{font-variant-numeric:tabular-nums}
+  .chip{font-family:var(--fmono);font-size:10.5px;font-weight:600;border:1px solid transparent;padding:2px 8px}
+  .chip.good{background:var(--good-bg);color:var(--good);border-color:rgba(63,179,127,.25)}
+  .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:rgba(217,164,65,.25)}
+  .chip.bad{background:var(--bad-bg);color:var(--bad);border-color:rgba(229,112,107,.25)}
+  .chip.neutral{background:rgba(150,170,195,.08);color:var(--muted)}
+  .mark{font-size:9.5px;font-weight:700;border-radius:3px;padding:1px 4px}
+  .mA{background:var(--a)}.mB{background:var(--b)}.mC{background:var(--c)}.mD{background:var(--d)}.mL{background:#64748b}
+  .verdict{border:1px solid var(--line);border-radius:10px;font-size:13.5px}
+  .verdict.good{background:var(--good-bg);border-color:rgba(63,179,127,.3);color:#a9e3c6}
+  .verdict.warn{background:var(--warn-bg);border-color:rgba(217,164,65,.3);color:#ecd298}
+  .verdict.bad{background:var(--bad-bg);border-color:rgba(229,112,107,.3);color:#f0b6b3}
+  .scen{background:#0A1422;border:1px solid var(--line);border-radius:9px} .scen .big{font-weight:650}
+  .scen h4{color:var(--faint);font-weight:600}
+  .casc .line{border-color:var(--line)} .casc .line.total{border-color:var(--line2)}
+  .mkbar{background:#0A1422;border:1px solid var(--line);border-radius:7px}
+  .pill-note,.disc{background:rgba(150,170,195,.05);border:1px solid var(--line);color:var(--muted);border-radius:9px;font-size:12px}
+  .alertbox{background:var(--warn-bg);border:1px solid rgba(217,164,65,.3);color:#ecd298;border-radius:9px;font-size:12.5px}
+  .legend{color:var(--muted)}
+  .kpigrid{gap:14px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .kpi:hover{border-color:var(--line2)}
+  .kpi .lab{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+  .kpi .v{font-weight:600;font-size:27px;color:var(--ink);margin-top:10px}
+  .kpi .ic{width:28px;height:28px;border-radius:7px;color:var(--muted)!important;background:rgba(150,170,195,.08)!important}
+  .kpi .ic svg{width:15px;height:15px}
+  table.ledger td:first-child{color:var(--ink)} table.ledger .src{color:var(--faint)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+</style>
 </head>
 <body>
 <div class="glow o"></div>
@@ -195,14 +289,14 @@
     </div>
     <nav id="nav">
       <div class="sec">Visão</div>
-      <a data-view="dashboard" class="active">📊 Dashboard</a>
-      <a data-view="list">📋 Oportunidades</a>
-      <a data-view="new">➕ Nova oportunidade</a>
+      <a data-view="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span></a>
+      <a data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Oportunidades</span></a>
+      <a data-view="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Nova oportunidade</span></a>
       <div class="sec">Decisor</div>
-      <a data-view="gtm">🧭 GTM Builder</a>
-      <a data-view="gerador">🚀 Estrutura de lançamento</a>
+      <a data-view="gtm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.2 7.8 13 13 7.8 16.2 11 11"/></svg><span>GTM Builder</span></a>
+      <a data-view="gerador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span>Estrutura de lançamento</span></a>
       <div class="sec">Conhecimento</div>
-      <a data-view="biblio">📚 Princípios da base</a>
+      <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Princípios da base</span></a>
     </nav>
     <div class="foot">
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
@@ -216,7 +310,7 @@
       <div class="crumb">LaunchOS <span style="color:#5d7389">/</span> <b id="crumb">Dashboard</b></div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="status"><span class="dot"></span> Motor determinístico · <b style="color:#34d399">auditado</b></span>
-        <button class="btn" id="topNew" style="padding:8px 14px;font-size:12px">➕ Nova oportunidade</button>
+        <button class="btn" id="topNew" style="padding:8px 14px;font-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova oportunidade</button>
       </div>
     </header>
     <main id="main"></main>
@@ -565,7 +659,7 @@ function renderPlanoBody(o){
   let html=`<div class="grid" style="margin-bottom:10px">
      <div><label>Data de abertura do carrinho (D0)</label><input type="date" id="dataCarrinhoInput" value="${esc(o.dataCarrinho)}"/></div>
      <div><label>Progresso geral</label><div style="padding-top:7px"><b>${st.done}/${st.total}</b> tarefas · ${pct(st.pct)}</div></div>
-     <div><label>&nbsp;</label><button class="btn ghost sm" id="genPlano">↻ gerar / resetar plano padrão</button></div>
+     <div><label>&nbsp;</label><button class="btn ghost sm" id="genPlano">Resetar plano padrão</button></div>
    </div>`;
   if(compPend) html+=`<div class="alertbox" style="margin-bottom:10px"><b>Portão de compliance aberto:</b> renda variável + validação jurídica não concluída → a copy não pode ser liberada.</div>`;
   [0,1,2,3].forEach(f=>{
@@ -644,7 +738,7 @@ function openPitch(o){
   const old=document.getElementById('pitchModal'); if(old)old.remove();
   const ov=document.createElement('div'); ov.className='modal-overlay'; ov.id='pitchModal';
   ov.innerHTML=`<div class="modal"><div class="modal-actions">
-     <button class="btn ghost sm" id="pitchPrint">🖨️ Imprimir / Salvar PDF</button>
+     <button class="btn ghost sm" id="pitchPrint">Imprimir / PDF</button>
      <button class="btn sm" id="pitchClose">fechar</button>
    </div>${renderPitchHTML(o)}</div>`;
   document.body.appendChild(ov);
@@ -679,7 +773,7 @@ function viewDetail(o){
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
     <div><h1>${esc(o.nome)||'Nova oportunidade'}</h1><p class="sub">Preencha só o que move o resultado. O painel recalcula sozinho.</p></div>
-    <div style="display:flex;gap:8px"><button class="btn ghost" data-view="list">← voltar</button><button class="btn" id="saveBtn">💾 Salvar</button></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" data-view="list">← voltar</button><button class="btn" id="saveBtn">Salvar</button></div>
   </div>
 
   <div class="card"><h2>E0 · Oportunidade</h2><p class="hint">Identificação + hipótese comercial em uma frase.</p>
@@ -692,7 +786,7 @@ function viewDetail(o){
     <div class="rede-row" style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px"><span>Rede</span><span>Perfil</span><span>Seguidores</span><span>Engaj. %</span><span></span></div>
     ${redesHtml}
     <button class="btn ghost sm" id="addRede">+ adicionar rede</button>
-    <button class="btn ghost sm" id="fetchRede" style="margin-left:6px">🔍 Buscar dados públicos</button>
+    <button class="btn ghost sm" id="fetchRede" style="margin-left:6px">Buscar dados públicos</button>
     <div class="grid" style="margin-top:12px">
       ${field(o,'Taxa de alcance','alcancePct',{suffix:'% dos seguidores'})}
       ${field(o,'Intenção de compra','intencao',{type:'select',options:[['alta','Alta'],['media','Média'],['baixa','Baixa']],q:'já compram?'})}
@@ -788,8 +882,8 @@ function viewDetail(o){
   </div>
 
   <div class="card" style="text-align:center">
-    <button class="btn" id="pitchBtn" style="padding:12px 24px;font-size:14px">📄 Gerar pitch para o influenciador</button>
-    <button class="btn ghost" id="estrutBtn" style="padding:12px 24px;font-size:14px;margin-left:8px">🚀 Gerar estrutura de lançamento</button>
+    <button class="btn" id="pitchBtn" style="padding:11px 22px">Gerar pitch para o influenciador</button>
+    <button class="btn ghost" id="estrutBtn" style="padding:11px 22px;margin-left:8px">Gerar estrutura de lançamento</button>
     <div class="muted" style="font-size:12px;margin-top:8px">Pitch: relatório da ideia/premissas. Estrutura: raio-X + tipo + mote + etapas. Ambos imprimíveis.</div>
   </div>`;
 
@@ -1062,12 +1156,12 @@ function renderEstruturaInner(res){
    <div class="disc"><b>Transparência:</b> análise <b>sugerida por regras</b>, cruzando a base (Walker, StoryBrand, Kotler, Pissarra, matriz de tipos, arquitetura de preços). Os [colchetes] são para você completar com a realidade. <b>Nenhum número de mercado foi inventado</b> — dimensionamento bottom-up, depende da base real (GAP-002). Não é promessa de resultado; viabilidade financeira no Decisor (E5).</div>`;
 }
 function renderEstrutura(res){
-  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Raio-X + Estrutura</h2><button class="btn ghost sm" id="estrutPrint">🖨️ Imprimir / PDF</button></div><div style="margin-top:4px">${renderEstruturaInner(res)}</div></div>`;
+  return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Raio-X + Estrutura</h2><button class="btn ghost sm" id="estrutPrint">Imprimir / PDF</button></div><div style="margin-top:4px">${renderEstruturaInner(res)}</div></div>`;
 }
 function openReport(inner,title){
   const old=document.getElementById('reportModal'); if(old)old.remove();
   const ov=document.createElement('div');ov.className='modal-overlay';ov.id='reportModal';
-  ov.innerHTML=`<div class="modal"><div class="modal-actions"><button class="btn ghost sm" id="rptPrint">🖨️ Imprimir / Salvar PDF</button><button class="btn sm" id="rptClose">fechar</button></div><div class="pitch"><h1>${esc(title)}</h1>${inner}</div></div>`;
+  ov.innerHTML=`<div class="modal"><div class="modal-actions"><button class="btn ghost sm" id="rptPrint">Imprimir / PDF</button><button class="btn sm" id="rptClose">fechar</button></div><div class="pitch"><h1>${esc(title)}</h1>${inner}</div></div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
   document.getElementById('rptClose').onclick=()=>ov.remove();
@@ -1104,7 +1198,7 @@ function viewGerador(){
       ${gfield(p,'Adesão/conversão esperada','adesaoPct',{q:'% [D]'})}
       ${gfield(p,'Ticket de referência','ticketRef',{q:'R$'})}
     </div>
-    <div style="margin-top:14px"><button class="btn" id="genEstrut">🔎 Gerar análise + estrutura</button></div>
+    <div style="margin-top:14px"><button class="btn" id="genEstrut">Gerar análise + estrutura</button></div>
   </div>
   <div id="estrutOut"></div>`;
   main.querySelectorAll('[data-g]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.g;p[k]= el.type==='checkbox'?el.checked:el.value;}));
@@ -1249,7 +1343,7 @@ function viewGTM(){
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="gtmLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
       <button class="btn ghost sm" id="gtmNew">novo</button>
-      <button class="btn sm" id="gtmSave">💾 Salvar</button><span id="gtmSaved" class="muted" style="font-size:12px"></span>
+      <button class="btn sm" id="gtmSave">Salvar</button><span id="gtmSaved" class="muted" style="font-size:12px"></span>
     </div>
   </div>
 
@@ -1327,8 +1421,8 @@ function viewGTM(){
   </div>
 
   <div class="card" style="text-align:center">
-    <button class="btn ghost" id="gtmDetail" style="padding:11px 20px">🧮 Abrir detalhe completo (todos os custos)</button>
-    <button class="btn" id="gtmDossier" style="padding:11px 20px;margin-left:8px">📄 Gerar dossiê GTM imprimível</button>
+    <button class="btn ghost" id="gtmDetail" style="padding:11px 20px">Abrir detalhe completo</button>
+    <button class="btn" id="gtmDossier" style="padding:11px 20px;margin-left:8px">Gerar dossiê GTM imprimível</button>
   </div>`;
 
   main.querySelectorAll('[data-g2]').forEach(el=>el.addEventListener('input',()=>{
@@ -1362,17 +1456,24 @@ function viewDashboard(){
   const ag=dashAgg();
   const sel = current || opps[0] || null;
   const selA = sel?analyze(sel):null, selS=selA?selA.b:null, rt = sel?recoveryTimeline(sel,selS):null;
-  const kpi=(lab,v,ic,col)=>`<div class="kpi"><div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="lab">${lab}</span><span class="ic" style="background:${col}22;color:${col}">${ic}</span></div><div class="v">${v}</div></div>`;
+  const SV='viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  const ico={
+    folder:`<svg ${SV}><path d="M3 7a2 2 0 0 1 2-2h3.5l2 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`,
+    check:`<svg ${SV}><polyline points="20 6 9 17 4 12"/></svg>`,
+    activity:`<svg ${SV}><polyline points="22 12 18 12 15 20 9 4 6 12 2 12"/></svg>`,
+    flag:`<svg ${SV}><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`
+  };
+  const kpi=(lab,v,svg)=>`<div class="kpi"><div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="lab">${lab}</span><span class="ic">${svg}</span></div><div class="v">${v}</div></div>`;
   const rows = opps.length? opps.map(o=>{let v='—',cls='neutral';if(o.nome||o.ticketMensal){const a=analyze(o);v=a.verdict;cls=a.vclass;}
     return `<tr class="clickable" data-open="${o.id}"><td><b>${esc(o.nome)||'<span class=muted>sem nome</span>'}</b><br><span class="muted" style="font-size:11px">${esc(o.nicho)}</span></td><td>${esc(o.produtoNome)||'—'}</td><td style="font-family:var(--fmono)">${brl(ticketMedio(o))}</td><td><span class="chip ${cls}">${v}</span></td></tr>`;}).join('')
     : `<tr><td colspan="4" class="muted" style="padding:20px">Nenhuma oportunidade ainda. Clique em “Nova oportunidade”.</td></tr>`;
   main.innerHTML=`
    <div style="margin-bottom:16px"><h1>Dashboard</h1><p class="sub" style="margin:2px 0 0">Visão da carteira — números reais dos seus dados; projeções são premissas <span class="mark mD">D</span>, recalculáveis.</p></div>
    <div class="kpigrid">
-     ${kpi('Oportunidades', ag.total, '📁', '#00FFFF')}
-     ${kpi('Viáveis (conservador)', ag.viaveis, '✓', '#34d399')}
-     ${kpi('Em teste / no-go', ag.teste+' / '+ag.nogo, '◐', '#FFD700')}
-     ${kpi('Tocam renda variável', ag.rv, '⚑', '#FF8C00')}
+     ${kpi('Oportunidades', ag.total, ico.folder)}
+     ${kpi('Viáveis (conservador)', ag.viaveis, ico.check)}
+     ${kpi('Em teste / no-go', ag.teste+' / '+ag.nogo, ico.activity)}
+     ${kpi('Tocam renda variável', ag.rv, ico.flag)}
    </div>
    <div class="dashmain">
      <div class="card">
@@ -1393,8 +1494,8 @@ function viewDashboard(){
     const el=document.getElementById('dashChart');
     if(el){const labels=rt.rows.map(r=>'M'+r.m), cum=rt.rows.map(r=>Math.round(r.cum)), inv=rt.rows.map(()=>Math.round(rt.invest));
     dashChart=new Chart(el,{type:'line',data:{labels,datasets:[
-      {label:'Caixa acumulado',data:cum,borderColor:'#00FFFF',backgroundColor:'rgba(0,255,255,.08)',fill:true,tension:.3,borderWidth:2,pointRadius:2},
-      {label:'Aporte da Nelogica',data:inv,borderColor:'#FF8C00',borderDash:[5,5],fill:false,borderWidth:2,pointRadius:0}
+      {label:'Caixa acumulado',data:cum,borderColor:'#FF8C00',backgroundColor:'rgba(255,140,0,.07)',fill:true,tension:.3,borderWidth:2,pointRadius:0},
+      {label:'Aporte da Nelogica',data:inv,borderColor:'rgba(150,170,195,.55)',borderDash:[4,4],fill:false,borderWidth:1.5,pointRadius:0}
     ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8A99AD',font:{size:11},boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}});}
   }
 }
