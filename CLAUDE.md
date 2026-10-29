@@ -49,6 +49,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   16_FICHA_EXPERT_SECRETS.md  ← ficha de Expert Secrets + DotCom Secrets/Brunson (SRC-041/042): copy/funil (P)
   17_PSICOLOGIA_COMPORTAMENTO.md ← Psychology of Money, Hooked, Naval (SRC-043/044/045): audiência/retenção (Q)
   18_FICHA_COPY_SUGARMAN.md   ← The Adweek Copywriting Handbook/Sugarman (SRC-046): redação/gatilhos (R)
+  19_PSICOLOGIA_TRADING.md    ← Reminiscences + Trading in the Zone (SRC-047/048): psicologia do trader (S)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)
