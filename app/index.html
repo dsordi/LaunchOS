@@ -2199,7 +2199,10 @@ function renderRoteiroCPL(o){
    <div class="disc"><b>Compliance:</b> ${rv?'renda variável — promessa sobre COMPETÊNCIA/processo, específica e verificável; disclaimer de risco; sem claim de retorno; a copy só vai ao ar com parecer jurídico (GAP-003).':'mantenha a promessa específica e verificável.'} Roteiro gerado das premissas do projeto — é estrutura, não garantia; conversão é [D].</div>
   `;
 }
-function bindRoteiroCpl(o){const b=document.getElementById('roteiroCplBtn'); if(b) b.onclick=()=>openReport(renderRoteiroCPL(o),'Roteiro de CPL — '+(esc(o.produtoNome)||esc(o.nome)||'Lançamento'));}
+// binding por DELEGAÇÃO (robusto a re-renders): bindRoteiroCpl só registra a oportunidade ativa;
+// o clique é tratado no handler global de 'main' (abaixo), com try/catch.
+let _roteiroOpp=null;
+function bindRoteiroCpl(o){_roteiroOpp=o;}
 // Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
@@ -2413,6 +2416,13 @@ function viewDashboard(){
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
   if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
+  const rcpl=e.target.closest('#roteiroCplBtn');
+  if(rcpl){ e.preventDefault();
+    try{ const o=_roteiroOpp||estrOpp||compOpp||current;
+      if(o) openReport(renderRoteiroCPL(o),'Roteiro de CPL — '+(esc(o.produtoNome)||esc(o.nome)||'Lançamento'));
+      else alert('Abra o Estrategista (ou o Compilador) e carregue uma oportunidade primeiro.');
+    }catch(err){ alert('Não consegui gerar o roteiro: '+(err&&err.message||err)); }
+    return; }
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
