@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>LaunchOS — Apoio à decisão (board)</title>
+<meta name="description" content="Deck executivo do LaunchOS: decisor de lançamentos digitais com influenciadores, com origem e grau de confiança em cada número."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#001A33; --navy2:#003366; --orange:#FF8C00; --teal:#0a7d8c; --gold:#b5820a;
+    --ink:#10243a; --muted:#5b7085; --faint:#8498ab; --line:#e1e8f0; --tint:#f4f7fa; --tint2:#eef3f8;
+    --A:#2563eb; --B:#059669; --C:#7c3aed; --D:#ea7317; --L:#64748b;
+    --mh:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#dfe6ee;color:var(--ink);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5}
+  .bar{position:sticky;top:0;z-index:50;background:#001A33;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-size:13px}
+  .bar b{font-family:var(--mh);font-weight:800} .bar .os{color:var(--orange)}
+  .bar button{font-family:var(--mh);font-weight:700;background:var(--orange);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
+  .deck{padding:22px 10px 60px}
+  .slide{position:relative;width:1280px;max-width:100%;min-height:720px;margin:0 auto 26px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,20,40,.14);padding:52px 64px 70px;overflow:hidden}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .rk{width:34px;height:34px;flex:0 0 34px;background:#001A33;border-radius:9px;padding:4px}
+  .brand .nm{font-family:var(--mh);font-weight:800;font-size:18px;color:var(--navy);line-height:1}
+  .brand .nm .os{color:var(--orange)} .brand small{display:block;font-size:8px;letter-spacing:.09em;color:var(--teal);text-transform:uppercase;margin-top:2px}
+  .pg{font-family:var(--mh);font-weight:700;color:var(--faint);font-size:13px}
+  .kicker{font-family:var(--mh);font-weight:700;font-size:12.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);margin:0 0 10px}
+  h1.title{font-family:var(--mh);font-weight:800;font-size:40px;line-height:1.08;color:var(--navy);margin:0 0 8px;letter-spacing:-.5px}
+  h1.title.sm{font-size:33px}
+  .lead{font-size:18px;color:var(--ink);max-width:50ch;margin:0 0 18px}
+  .src{position:absolute;left:64px;right:64px;bottom:24px;font-size:11px;color:var(--faint);border-top:1px solid var(--line);padding-top:9px;display:flex;justify-content:space-between;gap:16px}
+  .mk{display:inline-block;font-family:var(--mh);font-size:10px;font-weight:800;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle}
+  .A{background:var(--A)} .B{background:var(--B)} .C{background:var(--C)} .D{background:var(--D)} .L{background:var(--L)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
+  .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{position:relative;padding-left:22px;margin-bottom:13px;font-size:16px}
+  ul.clean li::before{content:"";position:absolute;left:0;top:9px;width:9px;height:9px;border-radius:2px;background:var(--orange);transform:rotate(45deg)}
+  ul.clean li b{color:var(--navy)}
+  .stat{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .stat .big{font-family:var(--mh);font-weight:900;font-size:34px;color:var(--navy);line-height:1}
+  .stat .big.or{color:var(--orange)}
+  .stat .lab{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .card{background:var(--tint);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card h3{font-family:var(--mh);font-weight:700;font-size:15px;color:var(--navy);margin:0 0 8px}
+  .pipe{display:flex;gap:7px;align-items:stretch;flex-wrap:wrap;margin-top:8px}
+  .step{flex:1 1 0;min-width:90px;background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center}
+  .step .e{font-family:var(--mh);font-weight:800;color:var(--navy2);font-size:15px}
+  .step .t{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+  .step.hot{background:#fff4e6;border-color:#ffcf8f}
+  .step.hot .e{color:var(--orange)}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:6px}
+  .fnode{flex:1 1 0;min-width:120px;padding:14px 12px;border:1px solid var(--line);border-top-width:3px;border-top-color:var(--navy2);background:#fff;text-align:center}
+  .fnode:not(:last-child){border-right:0}
+  .fnode .v{font-family:var(--mh);font-weight:900;font-size:22px;color:var(--navy)}
+  .fnode .v.or{color:var(--orange)}
+  .fnode .k{font-size:11px;color:var(--muted);margin-top:3px}
+  table.t{width:100%;border-collapse:collapse;font-size:14px}
+  table.t th,table.t td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.t th{font-family:var(--mh);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  table.t td b{color:var(--navy)}
+  .verdict{display:inline-block;font-family:var(--mh);font-weight:800;font-size:15px;padding:8px 16px;border-radius:30px;background:#e9f9f0;color:#067a4e;border:1px solid #9fe3c2}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:#eef6ff;border:1px solid #c7e0fb;color:#1d4ed8;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600}
+  .note{background:#fff8ee;border:1px solid #ffdca6;color:#8a5a00;border-radius:10px;padding:12px 16px;font-size:13.5px}
+  .disc{background:var(--tint2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--muted)}
+  .big-quote{font-family:var(--mh);font-weight:800;font-size:30px;color:var(--navy);line-height:1.18;letter-spacing:-.3px}
+  .big-quote .or{color:var(--orange)}
+  /* cover */
+  .slide.cover{background:linear-gradient(135deg,#001A33 0%,#002b52 55%,#003366 100%);border:none;color:#fff;display:flex;flex-direction:column;justify-content:center}
+  .slide.cover::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.05) 1px,transparent 1px);background-size:46px 46px;opacity:.6}
+  .slide.cover::after{content:"";position:absolute;top:-120px;right:-80px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(255,140,0,.22),transparent 70%)}
+  .cover .inner{position:relative;z-index:2}
+  .cover .nm{font-family:var(--mh);font-weight:900;font-size:60px;letter-spacing:-1px;line-height:1}
+  .cover .nm .os{color:var(--orange)}
+  .cover h1{font-family:var(--mh);font-weight:700;font-size:30px;color:#dbe9f7;margin:20px 0 10px;max-width:24ch;line-height:1.15}
+  .cover p{color:#9fc0dd;font-size:17px;max-width:52ch}
+  .cover .meta{margin-top:34px;color:#7fa5c6;font-size:14px;border-top:1px solid rgba(255,255,255,.15);padding-top:16px;display:flex;gap:26px;flex-wrap:wrap}
+  .cover .rkbig{width:62px;height:62px;background:rgba(0,51,102,.6);border:1px solid rgba(0,255,255,.35);border-radius:16px;padding:9px;box-shadow:0 0 30px rgba(0,255,255,.2);margin-bottom:26px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  @media (max-width:1300px){ .slide{padding:40px 34px 64px} h1.title{font-size:32px} .src{left:34px;right:34px} }
+  @media print{
+    html,body{background:#fff}
+    .noprint{display:none!important}
+    .deck{padding:0}
+    .slide{margin:0;border:none;border-radius:0;box-shadow:none;width:100%;min-height:100vh;page-break-after:always;padding:6% 7%}
+    .slide,.slide *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:landscape;margin:0}
+  }
+</style>
+</head>
+<body>
+<div class="bar noprint">
+  <span><b>Launch<span class="os">OS</span></b> &nbsp;·&nbsp; deck de apoio ao board</span>
+  <button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+</div>
+<div class="deck">
+
+<!-- ======= CAPA ======= -->
+<section class="slide cover">
+  <div class="inner">
+    <div class="rkbig"><svg viewBox="0 0 100 100" style="width:100%;height:100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 10C65 25 75 45 70 70L50 60L30 70C25 45 35 25 50 10Z" fill="url(#rg)"/>
+      <circle cx="50" cy="32" r="3" fill="#00FFFF"/><circle cx="42" cy="45" r="2.5" fill="#00FFFF"/><circle cx="58" cy="45" r="2.5" fill="#00FFFF"/>
+      <path d="M30 55L15 68L28 72L33 62Z" fill="#003366" stroke="#00FFFF" stroke-width="1"/><path d="M70 55L85 68L72 72L67 62Z" fill="#003366" stroke="#00FFFF" stroke-width="1"/>
+      <path d="M40 65C40 65 50 90 50 90C50 90 60 65 60 65C55 70 45 70 40 65Z" fill="url(#fg)"/>
+      <defs><linearGradient id="rg" x1="50" y1="10" x2="50" y2="70" gradientUnits="userSpaceOnUse"><stop stop-color="#00FFFF"/><stop offset=".6" stop-color="#003366"/><stop offset="1" stop-color="#001A33"/></linearGradient><linearGradient id="fg" x1="50" y1="65" x2="50" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8C00"/><stop offset="1" stop-color="#FFD700"/></linearGradient></defs>
+    </svg></div>
+    <div class="nm">Launch<span class="os">OS</span></div>
+    <h1>Decisor de lançamentos digitais com influenciadores</h1>
+    <p>Transforma conhecimento em diagnóstico, diagnóstico em go/no-go — com <b style="color:#fff">origem e grau de confiança em cada número</b>, e cálculo 100% determinístico.</p>
+    <div class="meta">
+      <span>Novos Negócios · Nelogica</span>
+      <span>Apoio à decisão — board</span>
+      <span>O sistema propõe; o humano decide.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======= 1. A TESE ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">01</span></div>
+  <p class="kicker">A tese</p>
+  <h1 class="title">O mercado de lançamentos opera no escuro.</h1>
+  <div class="cols" style="margin-top:24px">
+    <ul class="clean">
+      <li><b>Métricas infladas.</b> "6 em 7" (R$100k/7d) é <b>receita bruta</b>, não lucro — e o próprio criador admite que leva 3 a 7 lançamentos para acontecer.</li>
+      <li><b>Sem benchmark auditável.</b> Não existe média pública verificável de faturamento por tipo de lançamento. Números de anúncio são casos de ponta.</li>
+      <li><b>Promessa de renda variável = risco de compliance.</b> O público confunde aposta e investimento; promessa de retorno é bloqueio, não detalhe.</li>
+    </ul>
+    <div class="card" style="background:#001A33;color:#fff;border:none">
+      <h3 style="color:#fff">O LaunchOS é o oposto disso</h3>
+      <p style="color:#bcd3e8;font-size:15px;margin:0">Cada recomendação carrega <b style="color:#fff">fonte</b> e <b style="color:#fff">marca de confiança</b>. O cálculo é determinístico (mesma entrada → mesma saída). E o sistema <b style="color:#fff">barra</b> lançamentos que não se sustentam no cenário conservador.</p>
+      <div class="legend" style="margin-top:16px;color:#9fc0dd">
+        <span><span class="mk A">A</span> fato lido</span><span><span class="mk B">B</span> convergência independente</span><span><span class="mk C">C</span> inferência</span><span><span class="mk D">D</span> premissa não validada</span>
+      </div>
+    </div>
+  </div>
+  <div class="src"><span>Fontes: corpus auditado (Walker/Érico); regra do projeto. Ver biblioteca/01, 09, 10.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 2. O MÉTODO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">02</span></div>
+  <p class="kicker">Como funciona</p>
+  <h1 class="title">Um lançamento atravessa 9 portões. Qualquer um pode barrá-lo.</h1>
+  <div class="pipe" style="margin-top:28px">
+    <div class="step"><div class="e">E0</div><div class="t">Oportunidade</div></div>
+    <div class="step"><div class="e">E1</div><div class="t">Diagnóstico do expert/audiência</div></div>
+    <div class="step"><div class="e">E2</div><div class="t">Mercado (bottom-up)</div></div>
+    <div class="step"><div class="e">E3</div><div class="t">Produto / oferta</div></div>
+    <div class="step"><div class="e">E4</div><div class="t">Modelo de lançamento</div></div>
+    <div class="step hot"><div class="e">E5</div><div class="t">Viabilidade (go/no-go)</div></div>
+    <div class="step"><div class="e">E6</div><div class="t">Plano operacional</div></div>
+    <div class="step"><div class="e">E7</div><div class="t">Execução</div></div>
+    <div class="step"><div class="e">E8</div><div class="t">Resultado / aprendizado</div></div>
+  </div>
+  <div class="cols3" style="margin-top:30px">
+    <div class="card"><h3>Diagnóstico, não template</h3><p style="margin:0;font-size:14px;color:var(--muted)">O método (4 sequências, 3 CPLs) é o esqueleto; o que o especializa é o dado real do expert, do mercado e da dor.</p></div>
+    <div class="card"><h3>Portões que barram</h3><p style="margin:0;font-size:14px;color:var(--muted)">Compliance, tracking antes da captação, go/no-go conservador, escassez honesta — cada um pode interromper.</p></div>
+    <div class="card"><h3>Fecha o ciclo</h3><p style="margin:0;font-size:14px;color:var(--muted)">E8 reconcilia previsto × realizado e retroalimenta a base — cada lançamento vira aprendizado.</p></div>
+  </div>
+  <div class="src"><span>Método operacional: biblioteca/11 (MET-001; Jeff Walker, SRC-030 [A]).</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 3. MERCADO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">03</span></div>
+  <p class="kicker">O mercado — bottom-up, honesto</p>
+  <h1 class="title">Dimensionamos de baixo para cima. E o teto é real.</h1>
+  <p class="lead">Dados oficiais da bolsa (B3, 2º tri 2026) — não TAM de cima para baixo. É a disciplina que mata projeção inflada.</p>
+  <div class="grid4" style="margin-top:8px">
+    <div class="stat"><div class="big">5,7<span style="font-size:18px"> mi</span></div><div class="lab">CPFs em renda variável <span class="mk A">A</span></div></div>
+    <div class="stat"><div class="big">4,3<span style="font-size:18px"> mi</span></div><div class="lab">CPFs em ações à vista <span class="mk A">A</span></div></div>
+    <div class="stat"><div class="big">1,7<span style="font-size:18px"> mi</span></div><div class="lab">ativos/mês em equities <span class="mk A">A</span></div></div>
+    <div class="stat"><div class="big or">235<span style="font-size:18px"> mil</span></div><div class="lab">CPFs em futuros (core BM&F) <span class="mk A">A</span></div></div>
+  </div>
+  <div class="note" style="margin-top:26px"><b>Leitura honesta:</b> o nicho de day-trade/futuros, onde a Nelogica/BM&F opera, é <b>pequeno e exige foco</b> — ~235 mil CPFs, e o carro-chefe (Mini Índice) tem ~173 mil pessoas. Não existe "milhões de traders". Toda projeção parte deste teto.</div>
+  <div class="src"><span>Fonte: B3 — "Uma análise da evolução dos investidores na B3", 2T2026 (SRC-039 [A]). Ver biblioteca/14.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 4. CLIENTE ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">04</span></div>
+  <p class="kicker">O cliente — dado real, corroborado</p>
+  <h1 class="title">Sabemos quem é o cliente — e por duas fontes independentes.</h1>
+  <div class="cols" style="margin-top:22px">
+    <ul class="clean">
+      <li><b>Perfil:</b> homem, 25–59 anos, Sudeste + Sul, ensino superior.</li>
+      <li><b>Economia real:</b> ticket <b>R$76–148/mês</b>, vida do cliente <b>11–20 meses</b>, assinatura Profit Pro 28–71%.</li>
+      <li><b>Dor nº1:</b> controle emocional, tempo e conhecimento — <b>não</b> "ganho rápido" (marginal: 1,5–3,2%).</li>
+      <li><b>Realidade:</b> 1 em 3 clientes está inativo; só <b>14–27% dizem ter atingido seus objetivos</b>.</li>
+    </ul>
+    <div>
+      <div class="card" style="margin-bottom:16px"><h3>Convergência que vira <span class="mk B">B</span></h3><p style="margin:0;font-size:14px;color:var(--muted)">O perfil interno da Nelogica (pesquisa própria) <b>bate</b> com o dado independente da B3 (homem, 40s nos futuros, Sudeste+Sul). Duas origens diferentes, mesma conclusão.</p></div>
+      <div class="note"><b>Compliance embutido:</b> a própria base confirma que "viver de trading" raramente se concretiza. Qualquer promessa de resultado contraria o dado da casa.</div>
+    </div>
+  </div>
+  <div class="src"><span>Fontes: Nelogica — Projeto Persona + Segmentação de Clientes (SRC-035/036 [A] interno) · B3 (SRC-039 [A]). Ver biblioteca/13, 14.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 5. ÂNGULO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">05</span></div>
+  <p class="kicker">O ângulo que converte</p>
+  <h1 class="title">O que mais se promete é o que menos engaja.</h1>
+  <div class="grid2" style="margin-top:22px">
+    <div class="card"><h3 style="color:var(--B)">+158% de engajamento</h3><p style="margin:0;font-size:15px">Conteúdo <b>didático / educação / disciplina</b> engaja muito acima da média nas redes financeiras.</p></div>
+    <div class="card"><h3 style="color:var(--D)">Último em engajamento</h3><p style="margin:0;font-size:15px"><b>Ações, day-trade e "ganho rápido"</b> têm muito volume, mas ficam por último em interação.</p></div>
+  </div>
+  <div class="big-quote" style="margin-top:30px">Ângulo recomendado: <span class="or">educação e disciplina</span>,<br>não promessa de ganho.</div>
+  <p class="lead" style="margin-top:14px">Casa com a dor real do cliente <b>e</b> protege o compliance — o regulador alerta que o público confunde aposta e investimento quando a linguagem é "método/renda".</p>
+  <div class="src"><span>Fontes: ANBIMA — FInfluence 10ª ed (SRC-037 [A]) · Aposta online no Brasil (SRC-038 [A]) · Nelogica (SRC-035/036). Convergência [B].</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 6. MOTOR CERTIFICADO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">06</span></div>
+  <p class="kicker">O motor financeiro</p>
+  <h1 class="title">Números defensáveis: auditados contra o código, determinísticos.</h1>
+  <div class="cols3" style="margin-top:22px">
+    <div class="card"><h3>CAC calculado</h3><p style="margin:0;font-size:14px;color:var(--muted)">(mídia + base de leads) ÷ clientes efetivos. Não é estimado — é derivado.</p></div>
+    <div class="card"><h3>LTV:CAC de margem</h3><p style="margin:0;font-size:14px;color:var(--muted)">Margem de contribuição ÷ CAC — não receita bruta. A métrica correta.</p></div>
+    <div class="card"><h3>Recuperação antes do split</h3><p style="margin:0;font-size:14px;color:var(--muted)">A Nelogica recupera o aporte primeiro; depois o split (normalizado, conserva o total). Tempo de recuperação em caixa: PIX × cartão.</p></div>
+    <div class="card"><h3>Go/no-go conservador</h3><p style="margin:0;font-size:14px;color:var(--muted)">Viável só se o operador fica positivo no cenário conservador.</p></div>
+    <div class="card"><h3>Cascata completa</h3><p style="margin:0;font-size:14px;color:var(--muted)">Faturamento → cancelamentos → lucro → split. Faturamento ≠ caixa ≠ lucro.</p></div>
+    <div class="card"><h3>Break-even do operador</h3><p style="margin:0;font-size:14px;color:var(--muted)">Conversão em que o operador zera (bisseção numérica).</p></div>
+  </div>
+  <div class="badge" style="margin-top:26px">✓ Auditoria 2026-10-28 — conservação do split, linearidade, break-even e casos-limite verificados contra o código real.</div>
+  <div class="src"><span>Certificação e fórmulas: biblioteca/15 (DEC-026). Cálculo determinístico; nenhum número vem de texto de IA.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 7. EXEMPLO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">07</span></div>
+  <p class="kicker">Como o decisor raciocina — exemplo ilustrativo</p>
+  <h1 class="title sm">De uma audiência a um veredito defensável.</h1>
+  <div class="note" style="margin:0 0 18px"><b>Ilustrativo.</b> Todos os números abaixo são <b>premissas [D] de demonstração</b> — não previsão de um lançamento real. Mude a conversão e o veredito muda: é exatamente isso que um piloto valida.</div>
+  <div class="flow">
+    <div class="fnode"><div class="v">420 mil</div><div class="k">seguidores</div></div>
+    <div class="fnode"><div class="v">42 mil</div><div class="k">audiência alcançável</div></div>
+    <div class="fnode"><div class="v">9.600</div><div class="k">leads</div></div>
+    <div class="fnode"><div class="v">192</div><div class="k">vendas (2% conv [D])</div></div>
+    <div class="fnode"><div class="v">173</div><div class="k">clientes efetivos</div></div>
+  </div>
+  <div class="grid4" style="margin-top:18px">
+    <div class="stat"><div class="big">R$397 mil</div><div class="lab">receita <b>contratada</b> da safra (12–24m) — não caixa</div></div>
+    <div class="stat"><div class="big">R$162</div><div class="lab">CAC calculado</div></div>
+    <div class="stat"><div class="big or">11,4×</div><div class="lab">LTV:CAC (margem de contribuição)</div></div>
+    <div class="stat"><div class="big">~0,8 mês</div><div class="lab">payback (aprox., s/ caixa no tempo)</div></div>
+  </div>
+  <div class="note" style="margin-top:18px"><b>Recuperação primeiro:</b> a Nelogica aporta ~R$34 mil (mídia + produção + ferramentas + leads) e <b>recupera em caixa antes do split</b> com o influenciador — o tempo depende do mix PIX (à vista) × cartão (parcelado, D+30). <span style="color:var(--muted)">Premissa [D], ilustrativo.</span></div>
+  <div style="margin-top:16px"><span class="verdict">Veredito: VIÁVEL (condicional)</span> <span style="color:var(--muted);font-size:13px;margin-left:10px">— positivo no cenário conservador; confirmar conversão, churn e alcance antes de comprometer verba.</span></div>
+  <div class="src"><span>Exemplo verificado no motor (biblioteca/15). "Receita contratada" = valor de contrato ao longo do termo, não caixa do lançamento.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 8. HONESTIDADE ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">08</span></div>
+  <p class="kicker">Honestidade = credibilidade</p>
+  <h1 class="title">Não prometemos o que não podemos provar.</h1>
+  <p class="lead">O que ainda é premissa — e exatamente o que um lançamento piloto converte em fato observado.</p>
+  <table class="t" style="margin-top:6px">
+    <tr><th>Premissa hoje <span class="mk D">D</span></th><th>O piloto produz</th><th>Vira</th></tr>
+    <tr><td><b>Conversão</b> lead → venda</td><td>funil real observado</td><td><span class="mk A">A</span></td></tr>
+    <tr><td><b>CPL</b> por canal</td><td>custo real por lead por canal</td><td><span class="mk A">A</span></td></tr>
+    <tr><td><b>Adesão</b> do mercado</td><td>taxa real de compra</td><td><span class="mk A">A</span></td></tr>
+    <tr><td><b>Churn</b> por formato</td><td>cancelamento real (7d + multa)</td><td><span class="mk A">A</span></td></tr>
+    <tr><td><b>Ângulo</b> (educação × promessa)</td><td>qual converteu melhor no teste</td><td><span class="mk B">B</span></td></tr>
+  </table>
+  <div class="disc" style="margin-top:20px"><b>Lacunas declaradas:</b> já modelamos o <b>tempo de recuperação do aporte</b> (caixa, PIX × cartão); falta o <b>fluxo de caixa completo</b> pós-recuperação e não há benchmark público de conversão. A credibilidade do sistema vem de <b>dizer isto</b>, não de esconder.</div>
+  <div class="src"><span>Lacunas: GAP-002 (benchmark de conversão), GAP-011 (caixa no tempo). Ver biblioteca/09, 15.</span><span>LaunchOS</span></div>
+</section>
+
+<!-- ======= 9. O PEDIDO ======= -->
+<section class="slide">
+  <div class="top"><div class="brand"><Logo/></div><span class="pg">09</span></div>
+  <p class="kicker">O pedido</p>
+  <h1 class="title">O insumo de maior valor agora: um caso piloto real.</h1>
+  <div class="cols" style="margin-top:22px">
+    <ul class="clean">
+      <li>Confirmar <b>um lançamento piloto</b> comprometido (candidato: Roxo/Delboni, revenue share a três).</li>
+      <li>Rodar esse lançamento <b>pelo decisor</b>, ponta a ponta.</li>
+      <li>Resultado: calibra a conversão (de <span class="mk D">D</span> para <span class="mk A">A</span>), preenche o "o que aconteceu" e <b>prova o método</b>.</li>
+    </ul>
+    <div class="card" style="background:#001A33;color:#fff;border:none;display:flex;flex-direction:column;justify-content:center">
+      <div class="big-quote" style="color:#fff;font-size:26px">"Método sem caso real<br>é <span class="or">decoração</span>."</div>
+      <p style="color:#bcd3e8;margin:16px 0 0;font-size:14px">O LaunchOS já está construído para decidir. Falta o dado real que o transforma de bem fundamentado em calibrado.</p>
+    </div>
+  </div>
+  <div class="src"><span>Pendência humana crítica (CLAUDE.md). O sistema propõe; o Davi decide.</span><span>LaunchOS · confidencial</span></div>
+</section>
+
+</div>
+
+<script>
+// injeta o cabeçalho de marca em cada slide (placeholder <Logo/>)
+document.querySelectorAll('.brand').forEach(b=>{b.innerHTML=`
+  <div class="rk"><svg viewBox="0 0 100 100" style="width:100%;height:100%" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50 10C65 25 75 45 70 70L50 60L30 70C25 45 35 25 50 10Z" fill="url(#rg2)"/>
+    <circle cx="50" cy="32" r="3" fill="#00FFFF"/><circle cx="42" cy="45" r="2.5" fill="#00FFFF"/><circle cx="58" cy="45" r="2.5" fill="#00FFFF"/>
+    <path d="M40 65C40 65 50 90 50 90C50 90 60 65 60 65C55 70 45 70 40 65Z" fill="url(#fg2)"/>
+    <defs><linearGradient id="rg2" x1="50" y1="10" x2="50" y2="70" gradientUnits="userSpaceOnUse"><stop stop-color="#00FFFF"/><stop offset=".6" stop-color="#003366"/><stop offset="1" stop-color="#001A33"/></linearGradient><linearGradient id="fg2" x1="50" y1="65" x2="50" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8C00"/><stop offset="1" stop-color="#FFD700"/></linearGradient></defs>
+  </svg></div><div class="nm">Launch<span class="os">OS</span><small>Inteligência p/ lançamento</small></div>`;});
+</script>
+</body>
+</html>

@@ -56,6 +56,16 @@ valor de contrato potencial = clientes potenciais × receita/cliente       ← t
 ```
 Tetos (B3, 2T2026 — SRC-039): day-trade/futuros ~235,8 mil CPFs · ações ~4,3 mi · RV total ~5,7 mi · FIIs ~3,4 mi.
 
+**Recuperação do investimento em caixa (DEC-027):**
+```
+aporte Nelogica = mídia + produção + ferramentas + outros + custo da base de leads   (caixa adiantado)
+caixa do mês m = receitas que entram no mês m × (1 − taxa plataforma% − imposto s/ receita%)
+  · PIX     → valor integral do período no mês 0 (≈ D+1)
+  · cartão  → parcela k no mês k (D+30 × k), ou antecipado no mês 0 (− taxa de antecipação)
+tempo de recuperação = mês em que o caixa acumulado ≥ aporte   (interpolado p/ meses fracionários)
+```
+→ a Nelogica **recupera o aporte antes de qualquer split**; o repasse ao influenciador só começa depois. É uma **fatia** do fluxo de caixa no tempo (GAP-011), não o fluxo completo (não projeta o caixa após a recuperação nem o timing de reembolso de churn). Premissa-chave: **PIX à vista = valor integral do período pago de uma vez**.
+
 **Veredito go/no-go (E5):**
 ```
 VIÁVEL  se operador ≥ 0 no cenário conservador
@@ -93,7 +103,7 @@ Correções aplicadas nesta auditoria (DEC-026): **F1** normalização do split 
 
 ## 5. Lacunas honestas (o que falta para virar veredito calibrado)
 
-- **GAP-011 — Fluxo de caixa no tempo.** Em assinatura + revenue share, gasta-se tráfego hoje e recebe-se ao longo de meses. Dá para ser "lucrativo no papel" e quebrar de caixa. O app mostra payback aproximado, **não** a curva de caixa mês a mês. **Maior lacuna para uma decisão de board.**
+- **GAP-011 — Fluxo de caixa no tempo (parcialmente coberto).** Já modelamos o **tempo de recuperação do aporte** em caixa (PIX à vista × cartão parcelado/antecipado — DEC-027). **Falta** o fluxo de caixa completo pós-recuperação (entradas e saídas mês a mês até o fim dos contratos) e o timing de reembolso de churn. Em assinatura + revenue share ainda dá para ser "lucrativo no papel" e ter aperto de caixa no meio — o fluxo completo é a próxima camada.
 - **GAP-002 — Benchmark de conversão.** A conversão lead→venda é `[D]`. Nenhuma fonte pública a sustenta. **Só um lançamento piloto a converte de `[D]` para `[A]`** — é exatamente o que o investimento valida.
 - **Caso piloto real** ainda não definido (candidato: Roxo/Delboni). Sem ele, o Decisor é bem fundamentado, não calibrado.
 

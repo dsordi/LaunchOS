@@ -201,8 +201,10 @@ function blankOpp(){
     taxaPlataformaPct:10, producao:5000, ferramentas:1000, outrosFixos:0,
     impostoPct:10, impostoBase:'faturamento',
     hairConserv:30, hairOtim:20,
-    // revenue share
-    splitBase:'lucro', recuperaInvest:false, investRecuperar:0, parceirosNote:'',
+    // revenue share — Nelogica aporta e recupera o investido ANTES do split
+    splitBase:'lucro', recuperaInvest:true, investAuto:true, investRecuperar:0, parceirosNote:'',
+    // meios de pagamento / recuperação no tempo (caixa)
+    pixPct:40, cartaoParcelas:12, cartaoAntecipa:false, taxaAntecipPct:2.5,
     partes:[{nome:'Nelogica',pct:100,operador:true}],
     // execução (E6/E7)
     dataCarrinho:'', plano:null,
@@ -279,13 +281,41 @@ function computeScenario(o, convMult){
   return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,margemRate,ltvMargem,ltvCac,ltvMargemCac};
 }
 
+// investimento aportado pela Nelogica (caixa adiantado, antes de qualquer receita entrar)
+function investidoOperador(o){
+  return (+o.verbaTrafego||0)+(+o.producao||0)+(+o.ferramentas||0)+(+o.outrosFixos||0)+((+o.qtdLeadsDB||0)*(+o.custoLeadDB||0));
+}
+// linha do tempo de recuperação do investimento em CAIXA: PIX à vista (mês 0) + cartão parcelado (D+30/parcela) ou antecipado.
+// O caixa líquido (após taxa de plataforma + imposto s/ receita) cobre o aporte; o split só começa depois.
+function recoveryTimeline(o,s){
+  const invest=investidoOperador(o);
+  const receita=(s&&s.bruto)||0;                               // receita contratada (líquida de churn/multa)
+  const pix=Math.min(100,Math.max(0,+o.pixPct||0))/100, card=1-pix;
+  const P=Math.max(1,Math.round(+o.cartaoParcelas||1));
+  const taxRev=o.impostoBase==='faturamento'?((o.impostoPct||0)/100):0;
+  const netRate=Math.max(0,1-((o.taxaPlataformaPct||0)/100)-taxRev);
+  const antecipa=!!o.cartaoAntecipa, antFee=antecipa?Math.max(0,(+o.taxaAntecipPct||0)/100):0;
+  const H=Math.max(P,1)+1, gross=new Array(H+1).fill(0);
+  gross[0]+=receita*pix;                                       // PIX à vista (D+1 ≈ mês 0)
+  if(antecipa) gross[0]+=receita*card*(1-antFee);             // cartão antecipado no mês 0 (com taxa)
+  else for(let k=1;k<=P;k++) gross[k]+=receita*card/P;        // parcela k no mês k (D+30×k)
+  let cum=0, recMonth=null; const rows=[];
+  for(let m=0;m<=H;m++){
+    const net=gross[m]*netRate, prev=cum; cum+=net;
+    if(recMonth===null && invest>0 && cum>=invest){ const frac=net>0?(invest-prev)/net:0; recMonth=m+Math.min(1,Math.max(0,frac)); }
+    rows.push({m,net,cum});
+  }
+  if(invest<=0) recMonth=0;
+  return {invest,receita,pix:+o.pixPct||0,card:100-(+o.pixPct||0),parcelas:P,antecipa,netRate,rows,recMonth,recuperado:(invest<=0)||cum>=invest,horizonte:H,cumFinal:cum};
+}
+
 function distribute(o,s){
   const partes=o.partes; const opIdx=Math.max(0,partes.findIndex(p=>p.operador));
   // normaliza os % pela soma real: garante conservação (Σ repasses == valor a distribuir) mesmo se não somarem 100
   const pctSum=partes.reduce((a,p)=>a+(+p.pct||0),0); const totPct=pctSum||100;
   const base = o.splitBase==='receita'? s.receita : s.lucro;
   let recovered=0;
-  if(o.recuperaInvest) recovered=Math.min(+o.investRecuperar||0, Math.max(0,base));
+  if(o.recuperaInvest){ const alvo = (o.investAuto!==false) ? investidoOperador(o) : (+o.investRecuperar||0); recovered=Math.min(alvo, Math.max(0,base)); }
   const distributable = base - recovered;
   const nets=partes.map((p,i)=>{
     let v=distributable*((+p.pct||0)/totPct);
@@ -673,6 +703,17 @@ function viewDetail(o){
 
   <div class="card" id="results"></div>
 
+  <div class="card"><h2>Recuperação do investimento <span class="tag">caixa no tempo · Nelogica recupera primeiro</span></h2>
+    <p class="hint">A Nelogica aporta o investimento e <b>recupera antes do split</b> com o influenciador. Aqui: em quanto tempo o caixa cobre o aporte, considerando PIX (à vista) e cartão (parcelado/compensação).</p>
+    <div class="grid">
+      ${field(o,'% em PIX (à vista)','pixPct',{suffix:'% das vendas'})}
+      ${field(o,'Parcelas no cartão','cartaoParcelas',{suffix:'x'})}
+      ${field(o,'Antecipar recebíveis do cartão?','cartaoAntecipa',{type:'check'})}
+      ${field(o,'Taxa de antecipação','taxaAntecipPct',{suffix:'% (se antecipar)'})}
+    </div>
+    <div id="recoveryBody"></div>
+  </div>
+
   <div class="card"><h2>E6/E7 · Playbook e plano de execução <span class="tag">método [A-raiz] · editável</span></h2>
     <p class="hint">O lançamento em 4 fases: tarefas, responsáveis, prazos relativos ao carrinho (D0) e portões. Marque o que concluir; informe a data do carrinho para virar prazos em datas reais.</p>
     <div id="planoBody">${renderPlanoBody(o)}</div>
@@ -720,6 +761,28 @@ function bindParties(o){
   main.querySelectorAll('[data-prm]').forEach(el=>el.onclick=()=>{const i=+el.dataset.prm;if(o.partes.length<=1)return;const wasOp=o.partes[i].operador;o.partes.splice(i,1);if(wasOp)o.partes[0].operador=true;viewDetail(o);});
 }
 
+function renderRecovery(o,s){
+  const rt=recoveryTimeline(o,s);
+  const recTxt = rt.invest<=0 ? 'sem aporte a recuperar'
+    : (rt.recuperado ? '<b>'+num(rt.recMonth,1)+' meses</b>' : '<b class="neg">não recupera</b> em '+rt.horizonte+' meses ('+pct(rt.cumFinal/rt.invest)+' do aporte coberto)');
+  const maxShow=Math.min(rt.rows.length,14);
+  const bars=rt.rows.slice(0,maxShow).map(r=>{
+    const cover=rt.invest>0?Math.min(1,r.cum/rt.invest):1, done=cover>=1;
+    return `<div style="display:grid;grid-template-columns:40px 1fr 110px;gap:8px;align-items:center;margin-bottom:3px">
+      <span class="muted" style="font-size:11px">mês ${r.m}</span>
+      <div class="mkbar" style="height:15px;margin:0"><div class="fill" style="width:${(cover*100).toFixed(1)}%${done?';background:linear-gradient(90deg,rgba(16,185,129,.55),rgba(16,185,129,.95))':''}"></div></div>
+      <span style="font-size:11px">${brl(r.cum)}</span></div>`;
+  }).join('');
+  return `<div class="statbar" style="margin-top:4px">
+     <div class="s"><b>${brl(rt.invest)}</b><span>investido pela Nelogica (mídia+prod+ferr+leads)</span></div>
+     <div class="s"><b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera')}</b><span>recuperação em caixa</span></div>
+     <div class="s"><b>${num(rt.pix)}% / ${num(rt.card)}%</b><span>PIX à vista / cartão ${rt.antecipa?'antecipado':rt.parcelas+'x'}</span></div>
+   </div>
+   <h3 class="grp" style="margin-top:14px">Caixa acumulado vs. aporte (${brl(rt.invest)})</h3>
+   <div>${bars}</div>
+   <div class="pill-note"><b>Premissa:</b> PIX à vista = <b>valor integral do período pago de uma vez</b> no mês 0 (D+1) — é o que torna a recuperação rápida; cartão ${rt.antecipa?'é antecipado no mês 0 (com taxa de '+num(o.taxaAntecipPct)+'%)':'entra parcela a parcela (D+30 cada)'}. O caixa líquido (após taxa de plataforma + imposto s/ receita) cobre o aporte de ${brl(rt.invest)} em ${recTxt}. <b>O split com o influenciador só começa depois disso.</b></div>
+   <div class="alertbox" style="margin-top:8px">⚠️ Modelado sobre a <b>receita contratada</b> (líquida de churn); reembolsos de churn não têm timing próprio e o restante do caixa após a recuperação não é projetado aqui — é uma fatia do fluxo de caixa no tempo (GAP-011), não o fluxo completo.</div>`;
+}
 function recompute(o){
   const seg=seguidoresTotais(o),aud=audienciaAlcancavel(o),leadsAud=aud*((o.optinPct||0)/100);
   const engMed= seg>0 ? (o.redes||[]).reduce((a,r)=>a+(+r.seguidores||0)*(+r.engaj||0),0)/seg : 0;
@@ -787,6 +850,7 @@ function recompute(o){
       ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão (premissa [D]) vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}
     </div>
   </div>`;
+  const rb=document.getElementById('recoveryBody'); if(rb) rb.innerHTML=renderRecovery(o,s);
 }
 
 /* ---------------- Raio-X / Gerador de estrutura de lançamento ---------------- */
@@ -1064,7 +1128,7 @@ function anguloReadoutGTM(o){
   return `<div class="verdict ${cls}"><b>Ângulo: ${nome}</b><br>${head}.<br><span style="font-size:12.5px">Recomendado: <b>educação / disciplina / cotidiano</b> — didático engaja +158% e ação/day-trade engaja pouco (FInfluence SRC-037 [A]); casa com a dor do público (SRC-035/036 [B]).</span></div>${a.alerta?`<div class="alertbox">${a.alerta}</div>`:''}`;
 }
 function gonogoReadoutGTM(o){
-  const r=analyze(o),s=r.b, pbWarn=isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12);
+  const r=analyze(o),s=r.b, rt=recoveryTimeline(o,r.b), pbWarn=isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12);
   return `<div class="verdict ${r.vclass}"><b>${r.verdict}</b><br>${r.vmsg}</div>
    <div class="scenarios">
      <div class="scen"><h4>Conservador</h4><div class="big" style="color:${r.dC.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dC.operadorNet)}</div><div class="muted">operador</div></div>
@@ -1075,6 +1139,7 @@ function gonogoReadoutGTM(o){
      <div class="s"><b>${isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' m':'—'}</b><span>payback</span></div>
      <div class="s"><b>${r.be!=null?pct(r.be/100):'—'}</b><span>conv. break-even</span></div>
      <div class="s"><b>${r.sens?pct(r.sens.margem):'—'}</b><span>folga até o zero</span></div></div>
+   <div class="pill-note" style="margin-top:8px">Nelogica recupera o aporte (<b>${brl(rt.invest)}</b>) em <b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}</b> de caixa (PIX à vista / cartão ${rt.parcelas}x) — <b>o split só começa depois</b>.</div>
    ${pbWarn?`<div class="alertbox">Payback (${num(s.paybackMeses,1)}m) > fidelidade (${o.prazoFidelidade}m): recupera o CAC depois que o cliente já pode sair.</div>`:''}
    ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão [D] vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}`;
 }
