@@ -133,6 +133,10 @@
   .opt-row{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,.015)}
   .opt-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .opt-b{font-size:12.5px;line-height:1.5}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 16px;border-bottom:1px solid var(--line);padding-bottom:0}
+  .tabs .tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;font-size:13px;padding:8px 12px;cursor:pointer;border-radius:0;box-shadow:none;margin-bottom:-1px}
+  .tabs .tab:hover{color:var(--ink)}
+  .tabs .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
   @media(max-width:720px){.cpl-grid{grid-template-columns:1fr}}
   /* pitch / relatório (adicionado) */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:1000}
@@ -343,6 +347,7 @@
       <a data-view="gtm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.2 7.8 13 13 7.8 16.2 11 11"/></svg><span>GTM Builder</span></a>
       <a data-view="estrategia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m8 8-2-2"/><path d="m18 18-2-2"/></svg><span>Estrategista</span></a>
       <a data-view="gerador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span>Estrutura de lançamento</span></a>
+      <a data-view="compilador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>Compilador</span></a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Princípios da base</span></a>
     </nav>
@@ -424,6 +429,8 @@ function blankOpp(){
     produtoValidado:'parcial', jaVendeBase:'nao', temParceiros:false,
     objetivoCampanha:'faturar_base', janelaCampanha:'normal', audienciaTemp:'fria', modeloEscolhido:'',
     modalidadeProduto:'operacao', // operacao | copy | educacional | ferramenta | outro — NÃO assumir day-trade para todo produto
+    // Essencial da oferta — alimenta copy específica (Big Domino, headlines, stack) no Playbook
+    ofertaPromessa:'', ofertaMecanismo:'', ofertaProva:'', ofertaBonus:'',
     status:'rascunho'
   };
 }
@@ -580,7 +587,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',biblio:'Princípios da base'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',compilador:'Compilador',biblio:'Princípios da base'};
 const setActive=(v)=>{document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));const c=document.getElementById('crumb');if(c)c.textContent=CRUMB[v]||(v===''?'Oportunidade':c.textContent);};
 
 function viewList(){
@@ -1787,7 +1794,29 @@ function playbookAplicado(o){
   const retencao='Ative na 1ª semana (janela de cancelamento '+(o.cancel7Pct||0)+'%). Crie '+mod.habito+' (Hooked SRC-044; evita frame aposta SRC-038).';
   const compliance=rv?'Promessa sobre competência/processo, específica e verificável; disclaimer de risco; escassez só se verdadeira. Sem claim de retorno, em nenhuma forma (GAP-003 · SRC-038/048). Falta fonte jurídica/CVM — bloqueio para liberar copy.':'Nicho fora de RV: compliance padrão; mantenha promessa verificável.';
   const transparencia='Mostre premissas, origem e grau de confiança — transparência converte (Sugarman SRC-046) e é o diferencial do LaunchOS frente a métricas infladas.';
-  return {rv,angulo,cpl,use,evite,retencao,compliance,transparencia};
+  // ---- Copy ESPECÍFICA a partir do Essencial da oferta (SRC-041 Big Domino + SRC-046 headlines; compliance-safe) ----
+  const prod=(o.produtoNome||'').trim()||'seu produto';
+  const publico=(o.nicho||'').trim()||'seu público';
+  const promessa=(o.ofertaPromessa||'').trim(), mecanismo=(o.ofertaMecanismo||'').trim(), prova=(o.ofertaProva||'').trim(), bonus=(o.ofertaBonus||'').trim();
+  const temOferta=!!(promessa||mecanismo);
+  const bigDomino = temOferta
+    ? `Se ${publico} acreditar que ${promessa||'a transformação é possível'} — e que isso vem de ${mecanismo||'um método/processo claro'}, não de sorte —, as outras objeções caem.`
+    : null;
+  const headlines = temOferta ? [
+    `${mecanismo||'O método'}: ${promessa||'o caminho'} — sem depender de ${rv?'achar o setup/ativo perfeito':'sorte'}`,
+    `O que ${publico} ainda não entende sobre ${(o.nicho||'o tema')} — e que ${prod} torna simples`,
+    prova ? `Como ${prova}` : `${promessa||'A virada'} começa por ${mecanismo||'um processo que dá para repetir'}`
+  ] : [];
+  if(mecanismo) cpl[1].d+=` Mecanismo: ${mecanismo}.`;
+  if(prova) cpl[1].d+=` Prova: ${prova}.`;
+  if(mecanismo) cpl[0].d+=` Reposicione para o seu mecanismo: ${mecanismo}.`;
+  const stack={produto:prod,planos:getPlanos(o),prova:prova||'(inclua um caso/depoimento real — prova é gatilho de Sugarman/Brunson)',bonus:bonus||'(defina um bônus que expira DE VERDADE + garantia — escassez honesta)'};
+  const ofertaGaps=[];
+  if(!promessa) ofertaGaps.push('Promessa central vazia — sem ela o Big Domino e as headlines ficam genéricos.');
+  if(!mecanismo) ofertaGaps.push('Mecanismo único vazio — é o que diferencia e sustenta a crença (Brunson SRC-041).');
+  if(!prova) ofertaGaps.push('Prova/caso vazio — a prova social é o CPL 2; sem ela a conversão cai.');
+  if(rv&&promessa&&/ganh|lucro|rentab|retorno|% ao|reais|r\$/i.test(promessa)) ofertaGaps.push('⚠️ A promessa parece citar GANHO/retorno — em RV isso é bloqueio de compliance. Reescreva em competência/processo.');
+  return {rv,angulo,cpl,use,evite,retencao,compliance,transparencia,temOferta,bigDomino,headlines,stack,ofertaGaps,prod};
 }
 function estrategia(o){
   const dor = DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
@@ -1854,6 +1883,12 @@ function renderEstrategiaInner(o){
   const pb=playbookAplicado(o);
   const pbCpl=pb.cpl.map(c=>`<div class="step"><b>${esc(c.t)}:</b> ${esc(c.d)}</div>`).join('');
   const chips=(arr,cls)=>arr.map(x=>`<span class="chip ${cls}">${esc(x)}</span>`).join(' ');
+  const pbDomino = pb.bigDomino
+    ? `<div class="verdict good" style="margin-top:4px"><b>Big Domino (a UMA crença):</b> ${esc(pb.bigDomino)}</div>`
+    : `<div class="alertbox">Preencha o <b>Essencial da oferta</b> (promessa + mecanismo) para gerar o Big Domino e as headlines <b>específicas do seu produto</b> — sem isso a copy fica genérica.</div>`;
+  const pbHeads = pb.headlines.length? `<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 4px">Headlines sugeridas</h4><div class="steps">${pb.headlines.map(h=>`<div class="step">${esc(h)}</div>`).join('')}</div>`:'';
+  const pbStack = pb.temOferta? `<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 4px">Stack da oferta — ${esc(pb.stack.produto)}</h4><div class="casc">${pb.stack.planos.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('')}<div class="line"><span>Prova</span><span class="muted" style="font-size:11.5px">${esc(pb.stack.prova)}</span></div><div class="line"><span>Bônus + garantia</span><span class="muted" style="font-size:11.5px">${esc(pb.stack.bonus)}</span></div></div>`:'';
+  const pbOfertaGaps = pb.ofertaGaps.length? `<div class="pill-note" style="margin-top:8px"><b>Para refinar:</b> ${pb.ofertaGaps.map(esc).join(' · ')}</div>`:'';
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
   return `
@@ -1903,10 +1938,14 @@ function renderEstrategiaInner(o){
   </div>
 
   <div class="card"><h2>Playbook aplicado da base ${mk('B')}<span class="tag">recomendação direta — biblioteca/20</span></h2>
-    <p class="hint">O que a base inteira, cruzada, sugere para ESTE caso — direto ao ponto.</p>
+    <p class="hint">O que a base inteira, cruzada, sugere para ESTE caso — direto ao ponto. Quanto mais completo o Essencial da oferta, mais específica a copy.</p>
     <div class="verdict good"><b>Ângulo recomendado:</b> ${esc(pb.angulo)}</div>
+    ${pbDomino}
+    ${pbHeads}
     <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">Temas de CPL (compliance-safe)</h4>
     <div class="steps">${pbCpl}</div>
+    ${pbStack}
+    ${pbOfertaGaps}
     <div class="gtm-split" style="margin-top:12px">
       <div><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--good);margin:0 0 6px">Use na copy</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${chips(pb.use,'good')}</div></div>
       <div><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--bad);margin:0 0 6px">Evite (bloqueado)</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${chips(pb.evite,'bad')}</div></div>
@@ -1938,6 +1977,7 @@ function viewEstrategia(){
   const oppOptions=opps.map(x=>`<option value="${x.id}" ${estrOpp&&estrOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
   const sel=(key,label,opts,hint)=>`<div><label>${label}${hint?` <span class="q">${hint}</span>`:''}</label><select data-ek="${key}">${opts.map(([v,t])=>`<option value="${v}" ${String(o[key])===String(v)?'selected':''}>${esc(t)}</option>`).join('')}</select></div>`;
   const chk=(key,label)=>`<div><label>${label}</label><label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" data-ek="${key}" ${o[key]?'checked':''}/> sim</label></div>`;
+  const tf=(key,label,ph)=>`<div><label>${label}</label><input type="text" data-ek="${key}" value="${esc(o[key]||'')}" placeholder="${esc(ph||'')}"/></div>`;
   const modeloSel=`<div><label>Modelo de lançamento</label><select data-ek="modeloEscolhido"><option value="">— automático (recomendado) —</option>${Object.keys(MODELOS).map(k=>`<option value="${k}" ${o.modeloEscolhido===k?'selected':''}>${MODELOS[k].label}</option>`).join('')}</select></div>`;
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
@@ -1966,10 +2006,91 @@ function viewEstrategia(){
       ${modeloSel}
     </div>
   </div>
+  <div class="card"><h2>Essencial da oferta <span class="tag">deixa a copy específica, não genérica</span></h2>
+    <p class="hint">Alimenta o Big Domino, as headlines e o stack do Playbook abaixo. Em RV, a promessa é sobre <b>competência/processo</b> — nunca retorno.</p>
+    <div class="grid">
+      ${tf('ofertaPromessa','Promessa central (uma frase)','ex.: operar com processo, sem descontrole emocional')}
+      ${tf('ofertaMecanismo','Mecanismo único','o que torna o seu método diferente')}
+      ${tf('ofertaProva','Prova / caso','depoimento, caso real ou dado verificável')}
+      ${tf('ofertaBonus','Bônus + garantia','bônus que expira de verdade + garantia')}
+    </div>
+  </div>
   <div id="estrOut">${renderEstrategiaInner(o)}</div>`;
   main.querySelectorAll('[data-ek]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.ek;o[k]= el.type==='checkbox'?el.checked:el.value; const out=document.getElementById('estrOut'); if(out) out.innerHTML=renderEstrategiaInner(o);}));
   document.getElementById('estrLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){estrOpp=JSON.parse(JSON.stringify(src));viewEstrategia();}}});
   document.getElementById('estrPrint').onclick=()=>openReport(renderEstrategiaInner(o),'Plano de Lançamento — '+(esc(o.nome)||o.produtoNome||''));
+}
+
+/* ---------------- Compilador (painel integrado: GTM + Estrategista + Estrutura, por oportunidade) ---------------- */
+let compOpp=null;
+function normalizeOppDefaults(o){
+  const d=blankOpp();
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','splitBase'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
+  if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
+  if(o.adesaoMercado==null)o.adesaoMercado=5;
+  if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
+  return o;
+}
+function viewCompilador(){
+  setActive('compilador');
+  if(!compOpp) compOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
+  const o=normalizeOppDefaults(compOpp);
+  const a=analyze(o), rt=recoveryTimeline(o,a.b), rec=recomendarModelo(o);
+  const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const oppOptions=opps.map(x=>`<option value="${x.id}" ${compOpp&&compOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  const kpi=(lab,v,cls)=>`<div class="kpi"><span class="lab">${lab}</span><div class="v ${cls||''}" style="font-size:18px">${v}</div></div>`;
+  const diag=`<div class="card"><h2>Diagnóstico — expert &amp; audiência</h2>${diagReadoutGTM(o)}</div>
+    <div class="card"><h2>Mercado endereçável</h2>${mercadoReadoutGTM(o)}</div>
+    <div class="card"><h2>Ângulo de campanha</h2>${anguloReadoutGTM(o)}</div>
+    <div class="card"><h2>Go / No-Go &amp; recuperação</h2>${gonogoReadoutGTM(o)}</div>`;
+  const estrat=renderEstrategiaInner(o);
+  let estrut; try{ estrut=`<div class="card">${renderEstruturaInner(gerarEstrutura(oppToProduto(o)))}</div>`; }catch(e){ estrut='<div class="card"><p class="hint">Informe produto e mercado para gerar a estrutura operacional.</p></div>'; }
+  const resumo=`
+    <div class="kpigrid">
+      ${kpi('Veredito', a.verdict)}
+      ${kpi('Modelo', MODELOS[modelo].label)}
+      ${kpi('Operador (base)', brl(a.dB.operadorNet), a.dB.operadorNet<0?'neg':'')}
+      ${kpi('Recupera em', rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' m':'n/d'))}
+    </div>
+    <div class="card"><h2>Resumo executivo <span class="tag">compilado das 3 features</span></h2>
+      <div class="verdict ${a.vclass}"><b>${a.verdict}:</b> ${a.vmsg}</div>
+      <div class="casc" style="margin-top:8px">
+        <div class="line"><span>Produto · modalidade</span><span>${esc(o.produtoNome)||'—'} · ${esc((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label)}</span></div>
+        <div class="line"><span>Nicho</span><span>${esc(nichoInfo(o).label)}</span></div>
+        <div class="line"><span>Modelo recomendado</span><span>${MODELOS[rec.top].label}${modelo!==rec.top?' · fixado: '+MODELOS[modelo].label:''}</span></div>
+        <div class="line"><span>Ticket médio</span><span style="font-family:var(--fmono)">${brl(ticketMensalBlend(o))}/mês</span></div>
+        <div class="line"><span>Aporte a recuperar</span><span style="font-family:var(--fmono)">${brl(rt.invest)}</span></div>
+      </div>
+      <div class="pill-note" style="margin-top:10px">É a mesma oportunidade vista pelas 3 lentes. Para editar em profundidade, abra em cada feature:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn ghost sm" data-goto="gtm">Abrir no GTM Builder</button>
+        <button class="btn ghost sm" data-goto="estrategia">Abrir no Estrategista</button>
+        <button class="btn ghost sm" data-goto="gerador">Abrir na Estrutura</button>
+        <button class="btn ghost sm" data-goto="detail">Abrir no Decisor (E5)</button>
+      </div>
+    </div>`;
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div><h1>Compilador de Lançamento</h1><p class="sub">Uma oportunidade, as 3 features num só painel: <b>diagnóstico → estratégia → estrutura</b>. Por etapas, clean, replicável.</p></div>
+    <select id="compLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+  </div>
+  <div class="tabs" id="compTabs">
+    <button class="tab active" data-tab="resumo">Resumo</button>
+    <button class="tab" data-tab="diag">1 · Diagnóstico</button>
+    <button class="tab" data-tab="estrat">2 · Estratégia + Playbook</button>
+    <button class="tab" data-tab="estrut">3 · Estrutura</button>
+  </div>
+  <div class="tabpane" data-pane="resumo">${resumo}</div>
+  <div class="tabpane" data-pane="diag" style="display:none">${diag}</div>
+  <div class="tabpane" data-pane="estrat" style="display:none">${estrat}</div>
+  <div class="tabpane" data-pane="estrut" style="display:none">${estrut}</div>`;
+  main.querySelectorAll('#compTabs .tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
+    main.querySelectorAll('#compTabs .tab').forEach(x=>x.classList.toggle('active',x===b));
+    main.querySelectorAll('.tabpane').forEach(p=>p.style.display=(p.dataset.pane===t)?'':'none');});
+  document.getElementById('compLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){compOpp=JSON.parse(JSON.stringify(src));viewCompilador();}}});
+  main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const g=b.dataset.goto, clone=JSON.parse(JSON.stringify(o));
+    if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
+    else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);}});
 }
 
 /* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
@@ -2031,12 +2152,12 @@ function viewDashboard(){
 
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
