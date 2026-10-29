@@ -429,6 +429,8 @@ function blankOpp(){
     produtoValidado:'parcial', jaVendeBase:'nao', temParceiros:false,
     objetivoCampanha:'faturar_base', janelaCampanha:'normal', audienciaTemp:'fria', modeloEscolhido:'',
     modalidadeProduto:'operacao', // operacao | copy | educacional | ferramenta | outro — NÃO assumir day-trade para todo produto
+    // Entendimento do produto — mais dimensões = sugestão mais embasada
+    nivelPublico:'iniciante', formatoEntrega:'gravado',
     // Essencial da oferta — alimenta copy específica (Big Domino, headlines, stack) no Playbook
     ofertaPromessa:'', ofertaMecanismo:'', ofertaProva:'', ofertaBonus:'',
     status:'rascunho'
@@ -1591,7 +1593,58 @@ const MODALIDADE={
     habito:'hábito de uso/estudo adequado ao produto'}
 };
 function crencaNucleo(o){return MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao;}
+// ---- Camada de entendimento do produto (mais dimensões → sugestão embasada) ----
+const NIVEL={iniciante:'Iniciante',intermediario:'Intermediário',avancado:'Avançado'};
+const FORMATO={gravado:'Curso gravado',aovivo:'Mentoria / ao vivo',comunidade:'Comunidade',software:'Software / assinatura',carteira:'Carteira / sinais',robo:'Robô / automação',misto:'Misto'};
+function ticketBand(o){
+  const v=receitaPorCliente(o); // valor de contrato por cliente ao longo do termo
+  if(!(v>0)) return {k:'nd',label:'—',v:0};
+  if(v<1000) return {k:'low',label:'baixo (<R$1k)',v};
+  if(v<5000) return {k:'mid',label:'médio (R$1–5k)',v};
+  return {k:'high',label:'alto (>R$5k)',v};
+}
+// as 3 crenças falsas (veículo/interna/externa) inferidas por modalidade + nível + nicho — Brunson SRC-041, Douglas SRC-048
+function crencasFalsas(o){
+  const mod=o.modalidadeProduto||'operacao', niv=o.nivelPublico||'iniciante';
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const veic = mod==='copy' ? '"Copiar estratégia não funciona — eu faço melhor sozinho."'
+    : mod==='educacional' ? '"Curso não resolve, é só teoria."'
+    : mod==='ferramenta' ? '"A ferramenta que já uso resolve."'
+    : mod==='operacao' ? '"Esse método/abordagem não funciona pra mim."'
+    : '"Esse tipo de produto não é pra mim."';
+  const interna = niv==='avancado' ? '"Já tentei de tudo, meu caso é diferente."' : '"Não sou capaz / não tenho perfil / não sou bom com número."';
+  const externa = rv ? '"O mercado é manipulado / não tenho capital / não tenho tempo."' : '"Não tenho tempo / não é o momento / falta dinheiro agora."';
+  return [
+    {t:'Veículo',obj:veic,ponte:'Epiphany Bridge mostrando o MECANISMO funcionando'+(rv?' (processo/competência, sem prometer retorno).':'.')},
+    {t:'Interna',obj:interna,ponte:'História de alguém comum, igual ao prospect, que aprendeu o processo do zero.'},
+    {t:'Externa',obj:externa,ponte:'Reframe: começar pequeno / rotina curta / gestão de risco em qualquer cenário.'}
+  ];
+}
+// diagnóstico do produto: cruza as dimensões e devolve implicações com fonte (embasamento)
+function diagnosticoProduto(o){
+  const out=[]; const push=(d,l,imp,f,mk)=>out.push({d,l,imp,f,mk:mk||'C'});
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const niv=o.nivelPublico||'iniciante', fmt=o.formatoEntrega||'gravado', tb=ticketBand(o);
+  if(niv==='iniciante') push('Nível do público','Iniciante → consciente do problema.','Lidere quebrando a crença (CPL 1 forte); copy simples (3ª série); a objeção INTERNA ("não sou capaz") domina.','Schwartz/Sugarman','L');
+  else if(niv==='avancado') push('Nível do público','Avançado → consciente da solução/produto.','Menos quebra de crença, mais MECANISMO e diferenciação (por que o SEU método); a objeção de VEÍCULO domina.','Schwartz/Dunford','L');
+  else push('Nível do público','Intermediário → entre problema e solução.','Equilibre quebra de crença e prova; mecanismo + caso.','Schwartz','L');
+  if(fmt==='gravado') push('Formato','Curso gravado.','Churn alto sem acompanhamento — hábito de ESTUDO é crítico; a 1ª semana decide a retenção.','Hooked SRC-044','A');
+  else if(fmt==='aovivo') push('Formato','Mentoria / ao vivo.','High-touch sustenta ticket alto, mas tem CAPACIDADE limitada — pode barrar escala (externo).','Método E6','C');
+  else if(fmt==='carteira'||fmt==='robo') push('Formato',FORMATO[fmt]+'.','Modalidade seguir/automatizar: disciplina = NÃO interferir; compliance redobrado (frame aposta).','SRC-038/048','A');
+  else if(fmt==='software') push('Formato','Software / assinatura.','Retenção por USO/hábito; churn é a variável-chave do motor financeiro.','Hooked SRC-044','A');
+  else if(fmt==='comunidade') push('Formato','Comunidade.','Retenção por pertencimento/identidade (movimento); cuide do risco reputacional.','Brunson SRC-041','L');
+  if(tb.k==='high') push('Faixa de ticket','Ticket ALTO ('+tb.label+').','Venda por APLICAÇÃO + call (4-Question Close) — não vende "no grito"; qualifica e dá segurança.','Brunson SRC-041','L');
+  else if(tb.k==='mid') push('Faixa de ticket','Ticket médio ('+tb.label+').','Perfect Webinar / PLF com stack — o cavalo de batalha.','Brunson SRC-041','L');
+  else if(tb.k==='low') push('Faixa de ticket','Ticket baixo ('+tb.label+').','Self-serve / webinar perpétuo; o jogo é volume e eficiência de CPL.','DotCom Secrets SRC-042','L');
+  if(o.produtoValidado==='nao') push('Validação','Produto não validado.','Semente/validação antes de escalar; não recrute afiliado (queima o parceiro).','Matriz 03','B');
+  if(rv) push('Compliance','Toca renda variável.','Promessa = competência/processo; sem retorno; disclaimer de risco; falta fonte jurídica/CVM (bloqueio).','GAP-003 · SRC-038','A');
+  const tk=ticketMensalBlend(o); if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio fora da faixa real da base (R$76–148).','Justifique por valor ou reposicione os formatos.','SRC-036','B');
+  return out;
+}
 function nivelConsciencia(o){
+  const niv=o.nivelPublico||'';
+  if(niv==='avancado') return {rot:'Consciente da solução/produto',ent:'Público avançado — vá ao mecanismo e à diferenciação; menos tempo quebrando crença.'};
+  if(niv==='iniciante') return {rot:'Consciente do problema',ent:'Público iniciante — nomeie a dor e quebre a crença limitante ANTES de ofertar; copy simples. Não pule o CPL 1.'};
   const quente = o.intencao==='alta' || (o.intencao==='media' && o.expertAutoridade==='alta');
   const frio = o.intencao==='baixa';
   if(quente) return {rot:'Consciente da solução',ent:'A audiência já sente a dor e busca saída — o aquecimento pode ir mais rápido ao mecanismo e à prova, com menos tempo quebrando crença.'};
@@ -1889,6 +1942,9 @@ function renderEstrategiaInner(o){
   const pbHeads = pb.headlines.length? `<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 4px">Headlines sugeridas</h4><div class="steps">${pb.headlines.map(h=>`<div class="step">${esc(h)}</div>`).join('')}</div>`:'';
   const pbStack = pb.temOferta? `<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 4px">Stack da oferta — ${esc(pb.stack.produto)}</h4><div class="casc">${pb.stack.planos.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('')}<div class="line"><span>Prova</span><span class="muted" style="font-size:11.5px">${esc(pb.stack.prova)}</span></div><div class="line"><span>Bônus + garantia</span><span class="muted" style="font-size:11.5px">${esc(pb.stack.bonus)}</span></div></div>`:'';
   const pbOfertaGaps = pb.ofertaGaps.length? `<div class="pill-note" style="margin-top:8px"><b>Para refinar:</b> ${pb.ofertaGaps.map(esc).join(' · ')}</div>`:'';
+  const diagProd=diagnosticoProduto(o);
+  const diagProdH=diagProd.map(x=>`<div class="opt-row"><div class="opt-h"><span class="chip neutral">${esc(x.d)}</span>${mk(x.mk)}<span class="muted" style="font-size:11px;margin-left:auto">${esc(x.f)}</span></div><div class="opt-b"><b>${esc(x.l)}</b> ${esc(x.imp)}</div></div>`).join('');
+  const crencasH=crencasFalsas(o).map(c=>`<div class="step"><b>Crença ${esc(c.t)}:</b> ${esc(c.obj)} <span class="muted">→ ${esc(c.ponte)}</span></div>`).join('');
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
   return `
@@ -1900,6 +1956,11 @@ function renderEstrategiaInner(o){
       <div class="s"><b>${esc(o.canalPrincipal||'—')}</b><span>canal principal</span></div>
       <div class="s"><b>${e.rv?'sim':'não'}</b><span>renda variável</span></div>
       <div class="s"><b>${e.compra.tkOk?'na faixa':'fora'}</b><span>ticket vs. base R$76–148</span></div></div>
+  </div>
+
+  <div class="card"><h2>Diagnóstico do produto <span class="tag">embasamento das sugestões</span></h2>
+    <p class="hint">Como as dimensões do produto (modalidade, nível, formato, ticket) moldam a estratégia — cada leitura com a fonte que a sustenta.</p>
+    <div class="opt-list">${diagProdH}</div>
   </div>
 
   <div class="card"><h2>Modelo de lançamento ${mk('B')}${mk('C')}<span class="tag">scoring dos vetores — E4</span></h2>
@@ -1942,6 +2003,8 @@ function renderEstrategiaInner(o){
     <div class="verdict good"><b>Ângulo recomendado:</b> ${esc(pb.angulo)}</div>
     ${pbDomino}
     ${pbHeads}
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">Objeções a quebrar — 3 crenças (veículo · interna · externa)</h4>
+    <div class="steps">${crencasH}</div>
     <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">Temas de CPL (compliance-safe)</h4>
     <div class="steps">${pbCpl}</div>
     ${pbStack}
@@ -1965,7 +2028,7 @@ let estrOpp=null;
 function ensureEstrOpp(){
   if(!estrOpp) estrOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
   const o=estrOpp, d=blankOpp();
-  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto']
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','nivelPublico','formatoEntrega']
     .forEach(k=>{if(o[k]==null||o[k]==='') o[k]=d[k];});
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
@@ -1991,6 +2054,8 @@ function viewEstrategia(){
     <p class="hint">Ajuste os vetores — o modelo recomendado, a jornada, os ads e a compra se recalculam na hora. Premissas financeiras (verba, ticket, conversão) vêm do Decisor.</p>
     <div class="grid">
       ${sel('modalidadeProduto','Modalidade do produto',Object.keys(MODALIDADE).map(k=>[k,MODALIDADE[k].label]),'define a crença/ângulo')}
+      ${sel('nivelPublico','Nível do público',Object.keys(NIVEL).map(k=>[k,NIVEL[k]]),'consciência/copy')}
+      ${sel('formatoEntrega','Formato de entrega',Object.keys(FORMATO).map(k=>[k,FORMATO[k]]),'retenção/venda')}
       ${sel('produtoValidado','Produto validado?',[['nao','Não'],['parcial','Parcialmente'],['sim','Sim, convertendo']])}
       ${sel('jaVendeBase','Já vende na base?',[['nao','Não / pouco'],['sim','Sim, com consistência']])}
       ${sel('audienciaTemp','Audiência disponível',[['nenhuma','Nenhuma'],['fria','Fria'],['quente','Quente / relacionada']])}
@@ -2025,7 +2090,7 @@ function viewEstrategia(){
 let compOpp=null;
 function normalizeOppDefaults(o){
   const d=blankOpp();
-  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','splitBase'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','nivelPublico','formatoEntrega','splitBase'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(o.adesaoMercado==null)o.adesaoMercado=5;
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
