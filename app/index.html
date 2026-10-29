@@ -119,6 +119,20 @@
   .cpl-meta{display:flex;gap:6px;flex-wrap:wrap}
   .steps{display:flex;flex-direction:column;gap:9px;margin-top:12px}
   .step{border-left:2px solid rgba(255,140,0,.45);padding:3px 0 3px 12px;font-size:13px;line-height:1.5}
+  .mdl-list{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+  .mdl-row{padding:7px 0;border-bottom:1px dashed var(--line)}
+  .mdl-row.sel{background:rgba(255,140,0,.06);border-radius:8px;padding:8px 10px;border-bottom:none}
+  .mdl-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+  .mdl-head b{font-size:13px}
+  .mdl-barwrap{display:flex;align-items:center;gap:10px}
+  .mdl-bar{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden}
+  .mdl-fill{height:100%;background:var(--accent);border-radius:5px}
+  .mdl-score{font-family:var(--fmono);font-size:12px;color:var(--muted);width:26px;text-align:right}
+  .mdl-why{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:3px}
+  .opt-list{display:flex;flex-direction:column;gap:10px}
+  .opt-row{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,.015)}
+  .opt-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .opt-b{font-size:12.5px;line-height:1.5}
   @media(max-width:720px){.cpl-grid{grid-template-columns:1fr}}
   /* pitch / relatório (adicionado) */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:1000}
@@ -151,6 +165,9 @@
   .pitch .pill-note{background:#f1f5f9;border:1px solid #e2e8f0;color:#475569}
   .pitch .gaps li{color:#334155}
   .pitch .mark{color:#fff}
+  .pitch .mdl-row{border-color:#e2e8f0} .pitch .mdl-row.sel{background:#fff7ed}
+  .pitch .mdl-bar{background:#e2e8f0} .pitch .mdl-fill{background:#ea580c} .pitch .mdl-score{color:#64748b} .pitch .mdl-why{color:#475569}
+  .pitch .opt-row{border:1px solid #e2e8f0;background:#f8fafc} .pitch .opt-b{color:#334155}
   @media print{ body>.app{display:none!important} .glow{display:none!important} .modal-overlay{position:static;background:none;padding:0;display:block;overflow:visible} .modal{box-shadow:none;max-width:none} .modal .modal-actions{display:none!important} }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -403,6 +420,9 @@ function blankOpp(){
     // GTM Builder (diagnóstico / mercado / ângulo)
     nichoB3:'futuros', canalPrincipal:'youtube', expertConteudo:'misto', expertAutoridade:'media', expertCert:false,
     dorPrimaria:'Controle emocional / psicológico', angulo:'educacao', adesaoMercado:5,
+    // Estrategista — vetores de decisão de modelo + personalização
+    produtoValidado:'parcial', jaVendeBase:'nao', temParceiros:false,
+    objetivoCampanha:'faturar_base', janelaCampanha:'normal', audienciaTemp:'fria', modeloEscolhido:'',
     status:'rascunho'
   };
 }
@@ -1536,6 +1556,185 @@ function nivelConsciencia(o){
   if(frio)   return {rot:'Consciente do problema',ent:'Audiência fria / pouca intenção — é preciso primeiro nomear a dor e quebrar a crença limitante ANTES de qualquer oferta. Não pule o CPL 1.'};
   return {rot:'Entre problema e solução',ent:'Equilibre quebra de crença (CPL 1) e prova (CPL 2) antes da ponte.'};
 }
+// ---- Modelos de lançamento (5 núcleo — matriz biblioteca/03) ----
+const MODELOS={
+  semente:{label:'Semente',problema:'Validar ideia/oferta sem produto pronto',risco:'Tratar a 1ª turma como resultado definitivo',dur:'Ao vivo, variável'},
+  interno:{label:'Interno',problema:'Faturar na própria base aquecida',risco:'Captar lead frio demais para a base',dur:'~30 dias · carrinho 3–7d'},
+  externo:{label:'Externo',problema:'Escalar alcance além da base (parceiros/afiliados)',risco:'Promover produto não validado queima o parceiro',dur:'~30 dias + recrutar parceiros'},
+  perpetuo:{label:'Perpétuo',problema:'Previsibilidade / fluxo contínuo',risco:'Urgência falsa; estagnação',dur:'Contínuo'},
+  relampago:{label:'Relâmpago',problema:'Caixa rápido na base quente',risco:'Uso frequente → base aprende a esperar',dur:'24–72h'}
+};
+function verbaFaixa(o){const v=+o.verbaTrafego||0;return v>=40000?'alta':(v>=10000?'media':'baixa');}
+// Scoring transparente de modelo por vetores do caso (E4). Tipo define esforço/verba/alcance, NÃO teto de faturamento (SRC-001; HYP-001).
+function recomendarModelo(o){
+  const val=o.produtoValidado||'parcial', vende=o.jaVendeBase==='sim', parc=!!o.temParceiros;
+  const aut=o.expertAutoridade||'media', obj=o.objetivoCampanha||'faturar_base', jan=o.janelaCampanha||'normal';
+  const temp=o.audienciaTemp||'fria', vb=verbaFaixa(o);
+  const quente=temp==='quente', semAud=temp==='nenhuma';
+  const S={semente:0,interno:0,externo:0,perpetuo:0,relampago:0}, F={}, gate={};
+  const add=(k,p,txt)=>{S[k]+=p;(F[k]=F[k]||[]).push({p,txt});};
+  // SEMENTE
+  if(val==='nao')add('semente',40,'produto não validado — semente valida a oferta antes de gastar verba');
+  else add('semente',-25,'produto já (ao menos) semeado — semente seria retrabalho');
+  if(vb==='baixa')add('semente',15,'verba baixa combina com semente (orgânico/baixo custo)');
+  if(obj==='validar')add('semente',25,'objetivo é validar — é exatamente o papel do semente');
+  if(aut==='alta')add('semente',-20,'expert com autoridade estabelecida tende a pular o semente (HYP-005)');
+  if(vende)add('semente',-15,'já vende na base — não precisa validar demanda');
+  // INTERNO
+  if(!semAud)add('interno',25,'tem audiência própria para ativar');
+  if(quente)add('interno',15,'base quente converte melhor no interno');
+  if(val!=='nao')add('interno',15,'produto ao menos semeado — interno é o cavalo de batalha');
+  if(aut==='media'||aut==='alta')add('interno',10,'autoridade suficiente para sustentar os CPLs');
+  if(obj==='faturar_base')add('interno',25,'objetivo é faturar na base — núcleo do interno');
+  if(vb==='media'||vb==='alta')add('interno',8,'verba permite captar e aquecer');
+  if(semAud)add('interno',-20,'sem audiência própria o interno fica sem combustível');
+  // EXTERNO — gate: validado + histórico
+  if(val==='sim'&&vende)add('externo',30,'produto validado e convertendo — escala sem queimar parceiro');
+  else gate.externo = val==='sim'?'Requer histórico de conversão (um interno de sucesso) antes de recrutar parceiros.':'Requer produto VALIDADO — promover não validado queima afiliado (matriz 03).';
+  if(parc)add('externo',20,'parceiros/afiliados disponíveis (casa com o revenue share)');
+  if(vb==='alta')add('externo',10,'verba alta sustenta escala fria');
+  if(obj==='escalar')add('externo',25,'objetivo é escalar alcance — papel do externo');
+  if(aut==='alta')add('externo',8,'autoridade ajuda a atrair parceiros');
+  // PERPÉTUO — gate: validado
+  if(val==='nao')gate.perpetuo='Requer produto validado — não se automatiza o que ainda não converte.';
+  else add('perpetuo',15,'produto validado — pode automatizar o que funciona');
+  add('perpetuo',10,'assinatura recorrente combina com fluxo contínuo');
+  if(obj==='recorrencia')add('perpetuo',30,'objetivo é previsibilidade/recorrência — núcleo do perpétuo');
+  if(jan==='continuo')add('perpetuo',15,'janela contínua, sem data única');
+  if(obj==='caixa_rapido')add('perpetuo',-20,'perpétuo não entrega pico de caixa rápido');
+  if(vb==='alta')add('perpetuo',5,'verba constante sustenta o sempre-on');
+  // RELÂMPAGO — gate: base quente + produto pronto
+  if(quente&&val!=='nao')add('relampago',25,'base quente + produto pronto — dá para abrir rápido');
+  else gate.relampago = val==='nao'?'Requer produto pronto para entregar.':'Requer base quente/engajada já existente.';
+  if(obj==='caixa_rapido')add('relampago',30,'objetivo é caixa rápido — papel do relâmpago');
+  if(jan==='curta')add('relampago',20,'janela curta combina com o formato 24–72h');
+  if((getPlanos(o).length||1)<=2)add('relampago',8,'oferta simples (poucos formatos) favorece o relâmpago');
+  const rank=Object.keys(MODELOS).map(k=>({k,score:Math.max(0,Math.min(100,Math.round(S[k]))),apt:!gate[k],gate:gate[k]||null,fatores:(F[k]||[]).slice().sort((a,b)=>b.p-a.p)}));
+  const aptos=rank.filter(r=>r.apt).sort((a,b)=>b.score-a.score);
+  const bloqueados=rank.filter(r=>!r.apt).sort((a,b)=>b.score-a.score);
+  return {aptos,bloqueados,top:aptos[0]?aptos[0].k:'interno'};
+}
+// Jornada de conteúdo ADAPTADA ao modelo
+function jornadaConteudo(o,modelo,ctx){
+  const {dor,canal,nc,rv}=ctx;
+  const cplBase=[
+    {n:1,nome:'Oportunidade — quebra de crença',obj:'Mostrar que existe um caminho melhor e destruir a crença que trava.',gatilho:'Autoridade + Reciprocidade [L]',tema:dor.crenca,alvo:nc.rot},
+    {n:2,nome:'Transformação — prova',obj:'Provar que o método funciona: demonstração, bastidores, antes/depois de PROCESSO.',gatilho:'Prova social [L]',tema:rv?'Prove competência/consistência — NUNCA retorno garantido (compliance). Processo, não promessa de lucro.':'Casos e demonstração do método em ação.',alvo:'Consciente da solução'},
+    {n:3,nome:'Propriedade — ponte',obj:'Fazer o prospect se ver praticando; ponte para a oferta; abre o carrinho.',gatilho:'Compromisso/coerência + antecipação [L]',tema:'O prospect se projeta usando o método; transição natural para a oferta.',alvo:'Consciente do produto'}
+  ];
+  if(modelo==='semente') return {estrutura:'Validação — o foco é descobrir a oferta, não escalar (sem os 3 CPLs formais)',fases:[
+      {f:'F0 · Sondagem',janela:'~1–2 semanas',obj:'Pesquisar a audiência: dor real, linguagem, objeções, disposição a pagar.',meta:'nº de respostas / conversas',foco:canal.topo+' + enquetes/DMs/formulário'},
+      {f:'F1 · Conteúdo de teste',janela:'~1–2 semanas',obj:'Testar 2–3 ângulos e ver o que engaja/gera pedido.',meta:'qual ângulo puxa mais salvamento/comentário/"quero"',foco:canal.cpl},
+      {f:'F2 · Oferta beta',janela:'janela curta e real',obj:'Vender a 1ª turma com vagas limitadas reais e preço de validação.',meta:'nº de vendas beta + feedback',foco:'oferta simples; preço de pioneiro; vagas de verdade'},
+      {f:'F3 · Aprendizado',janela:'pós-beta',obj:'Coletar o que converteu → vira insumo do interno.',meta:'oferta e copy validadas',foco:'depoimentos e linguagem do cliente para o próximo lançamento'}
+    ],blocos:{tipo:'Sondagem / validação',items:[
+      {n:1,nome:'Pesquisa de dor',obj:'Descobrir, nas palavras do público, a dor nº 1 e o que já tentaram.',gatilho:'Escuta > pitch',tema:dor.crenca,alvo:'Consciente do problema'},
+      {n:2,nome:'Teste de ângulo',obj:'Publicar o ângulo educacional e medir reação real.',gatilho:'Reciprocidade [L]',tema:dor.promessa,alvo:'—'},
+      {n:3,nome:'Convite beta',obj:'Abrir a 1ª turma para quem levantou a mão.',gatilho:'Escassez verdadeira [L]',tema:'Vagas reais limitadas; preço de pioneiro em troca de feedback.',alvo:'—'}
+    ]},nota:'Semente não busca faturamento — busca descobrir a oferta e financiar a 1ª turma. Não trate o resultado como definitivo.'};
+  if(modelo==='perpetuo') return {estrutura:'Evergreen sempre-on — os "CPLs" viram conteúdo automatizado no funil',fases:[
+      {f:'E1 · Aquisição contínua',janela:'sempre ativo',obj:'Tráfego constante para uma isca/VSL que captura o lead todo dia.',meta:'CPL e leads/dia',foco:canal.topo},
+      {f:'E2 · Nutrição automatizada',janela:'por lead (dias 0–7)',obj:'Sequência automática que reproduz os 3 CPLs em vídeo/e-mail.',meta:'avanço no funil',foco:canal.cpl+' (gravado/automatizado)'},
+      {f:'E3 · Oferta sempre aberta',janela:'deadline individual',obj:'Urgência REAL e rotativa (deadline por lead, turma mensal, bônus que expira de verdade).',meta:'conversão do funil',foco:'deadline individual honesto — nunca contador falso'},
+      {f:'E4 · Otimização',janela:'contínuo',obj:'Melhorar criativo/página/sequência com os dados que entram todo dia.',meta:'conversão por etapa no tempo',foco:'A/B honesto; sem urgência falsa'}
+    ],blocos:{tipo:'Conteúdo evergreen (automatizado)',items:cplBase},nota:'Perpétuo troca o pico por fluxo. Exige produto validado e vigilância contra urgência falsa.'};
+  if(modelo==='relampago') return {estrutura:'Curto e quente — 1 evento + carrinho 48–72h para base já engajada',fases:[
+      {f:'F0 · Aviso',janela:'D-3 a D-1',obj:'Avisar a base / montar lista de espera.',meta:'nº de interessados',foco:'base própria (e-mail/WhatsApp/stories)'},
+      {f:'F1 · Evento único',janela:'D-1 / D0',obj:'1 aula/live entregando valor e ancorando a oferta.',meta:'presença ao vivo',foco:canal.cpl+' — um evento, não 3 CPLs'},
+      {f:'F2 · Carrinho 48–72h',janela:'D0 a D+2/3',obj:'Oferta por tempo real curto; a maioria compra nas últimas horas.',meta:'conversão da base',foco:'urgência real; fecha na hora marcada'},
+      {f:'F3 · Pós',janela:'após',obj:'Entrega + onboarding; não repetir com frequência.',meta:'ativação e churn',foco:'espaçar relâmpagos (a base aprende a esperar)'}
+    ],blocos:{tipo:'Aquecimento curto',items:[cplBase[0],cplBase[2]].map((c,i)=>({...c,n:i+1}))},nota:'Relâmpago é caixa rápido na base quente — não é aquisição fria. Usar com parcimônia.'};
+  // interno / externo → PLF
+  const fases=[
+    {f:'F0 · Captação',janela:'~D-25 a D-11',obj:'Construir a lista (tráfego + base) antes de aquecer.',meta:'nº de leads na lista',foco:canal.topo},
+    {f:'F1 · Aquecimento',janela:'~D-10 a D-1',obj:'Entregar valor e ativar gatilhos com os 3 CPLs.',meta:'presença e engajamento nos CPLs',foco:canal.cpl},
+    {f:'F2 · Carrinho',janela:'D0 a ~D+5',obj:'Abrir a oferta por tempo limitado (escassez honesta).',meta:'conversão lead→venda',foco:'maioria das vendas nas últimas 24h — concentre o fundo aí'},
+    {f:'F3 · Pós / fidelização',janela:'D+6 em diante',obj:'Entrega, onboarding, retenção e indicação.',meta:'ativação na 1ª semana e churn',foco:'1ª semana é a janela de cancelamento ('+(o.cancel7Pct||0)+'%) — ative rápido'}
+  ];
+  if(modelo==='externo') fases.unshift({f:'F-1 · Recrutar parceiros',janela:'~D-35 a D-20',obj:'Recrutar e equipar afiliados/parceiros com material pronto e comissão clara.',meta:'nº de parceiros ativados',foco:'kit de campanha + comissão no split (casa com o revenue share)'});
+  return {estrutura:modelo==='externo'?'PLF + camada de parceiros/afiliados (escala além da base)':'PLF clássico — 4 fases + 3 CPLs',fases,blocos:{tipo:'3 CPLs (quebra de crença → prova → ponte)',items:cplBase},nota:modelo==='externo'?'Externo escala alcance via terceiros — só depois de o interno converter, para não queimar parceiro.':'Interno é o cavalo de batalha: fatura na base aquecida com previsibilidade.'};
+}
+// Trilha de ads ADAPTADA ao modelo
+function adsPorModelo(o,modelo){
+  const v=+o.verbaTrafego||0, nk=o.nichoB3||'futuros', demo=B3_DEMO[nk]||B3_DEMO.educacao;
+  const mk=(frac,t,obj,pub,cri)=>({t,verba:v*frac,obj,pub,cri});
+  let camadas,nota;
+  if(modelo==='semente'){camadas=[
+    mk(0.3,'Topo · alcance mínimo','Descobrir ângulo/dor','frio amplo do nicho (teste de mensagem)','3–4 criativos educativos para ver o que engaja'),
+    mk(0.7,'Meio · aquecer quem já segue','Levar à pesquisa/beta','remarketing de quem já te segue/engaja','convite para a pesquisa e para a turma beta')
+  ];nota='Verba baixa e orgânico primeiro: o objetivo é aprender, não escalar. Ainda não monte fundo de conversão pesado.';}
+  else if(modelo==='externo'){camadas=[
+    mk(0.4,'Topo · frio em escala','Volume de leads','frio amplo + tráfego dos parceiros','educativo; parceiros usam o próprio criativo'),
+    mk(0.25,'Meio · morno','Nutrir para os CPLs','remarketing próprio + audiências dos afiliados','prova + convite'),
+    mk(0.35,'Fundo · conversão','Fechar no carrinho','remarketing de CPL/carrinho (seu + dos parceiros)','escassez honesta; concentre nas últimas 48h')
+  ];nota='No externo parte do tráfego vem dos parceiros (afiliados trazem a própria audiência); sua verba reforça topo e fundo. Comissão entra no split.';}
+  else if(modelo==='perpetuo'){camadas=[
+    mk(0.45,'Prospecção contínua','Leads todo dia','frio do nicho, sempre ativo','criativos educativos rotativos (evitar fadiga)'),
+    mk(0.3,'Remarketing contínuo','Avançar no funil','quem viu a isca/VSL e não avançou','prova + quebra de objeção'),
+    mk(0.25,'Conversão por deadline','Fechar no prazo individual','quem está na janela de oferta','urgência real (deadline por lead), nunca falsa')
+  ];nota='No perpétuo a verba é constante (mensal), não um pico. Monitore fadiga de criativo e a honestidade do deadline.';}
+  else if(modelo==='relampago'){camadas=[
+    mk(0.2,'Topo · mínimo','Reforço de alcance','frio leve (opcional)','só se a base não for suficiente'),
+    mk(0.3,'Meio · aquecer base','Levar ao evento','remarketing da base/engajados','convite para a aula única'),
+    mk(0.5,'Fundo · conversão','Fechar em 48–72h','quem viu o evento / abriu o carrinho','urgência real concentrada nas últimas horas')
+  ];nota='Relâmpago vive do remarketing da base quente — pouco tráfego frio. Concentre a verba no fundo, nas últimas horas.';}
+  else {camadas=[
+    mk(0.5,'Topo · frio','Alcance + captação de lead','frio, segmentado pela demografia do nicho','educativo/didático (+158% — SRC-037); nunca promessa de ganho'),
+    mk(0.25,'Meio · morno','Levar quem engajou aos CPLs','remarketing: viu vídeo/visitou página/entrou na lista','prova + convite; quebra de objeção'),
+    mk(0.25,'Fundo · quente','Conversão no carrinho','remarketing: assistiu CPL 3 / abriu o carrinho','escassez honesta + depoimento; últimas 48h')
+  ];nota='Interno: equilíbrio topo/meio/fundo. Ajuste pela realidade do seu CPL por canal (não há benchmark — GAP-012).';}
+  return {camadas,nota,demo};
+}
+// Jornada de compra ADAPTADA ao modelo
+function compraPorModelo(o,modelo){
+  const pl=getPlanos(o), nOk=pl.length>=2&&pl.length<=4;
+  const ancora=pl.slice().sort((a,b)=>(b.ticketMensal*b.meses)-(a.ticketMensal*a.meses))[0];
+  const tkBlend=ticketMensalBlend(o), tkOk=(tkBlend>=NELOGICA_REF.ticketMin&&tkBlend<=NELOGICA_REF.ticketMax);
+  const an=ancora?ancora.nome:'formato mais longo';
+  let passos;
+  if(modelo==='semente') passos=[
+    {t:'Oferta beta',d:'1ª turma com vagas REAIS limitadas e preço de pioneiro em troca de feedback/depoimento.'},
+    {t:'Fechamento',d:'Simples: um formato, sem order bump. O objetivo é validar a oferta e colher prova social.'},
+    {t:'Pós',d:'Entrega próxima; colher depoimentos e a linguagem do cliente para o próximo lançamento.'}
+  ];
+  else if(modelo==='perpetuo') passos=[
+    {t:'Oferta sempre aberta',d:'Deadline individual honesto por lead (ex.: 5 dias após entrar no funil) — nunca contador falso.'},
+    {t:'Estrutura',d:'Oferta principal + order bump; downsell automático. Âncora: '+an+'.'},
+    {t:'Sequência',d:'Automatizada (e-mail/WhatsApp) no escorregador/PAS [L]; reforço no último dia do deadline.'},
+    {t:'Pós',d:'Onboarding automatizado na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção e indicação (STEPPS [L]).'}
+  ];
+  else if(modelo==='relampago') passos=[
+    {t:'Oferta única',d:'Carrinho 48–72h com 1–2 formatos; sem complicar. Urgência real (fecha na hora marcada).'},
+    {t:'Sequência curta',d:'Abertura → prova/objeção → últimas horas. A maioria compra no fim.'},
+    {t:'Pós',d:'Entrega + onboarding; espaçar os relâmpagos para a base não aprender a esperar.'}
+  ];
+  else passos=[
+    {t:'Abertura',d:'Após o CPL 3. Escassez honesta: data real de fechamento, vagas ou bônus que de fato expira — nunca falsa.'},
+    {t:'Estrutura',d:'Oferta principal + order bump + downsell para quem não leva o plano-alvo. Âncora: '+an+'.'+(modelo==='externo'?' Comissão de afiliado entra no split.':'')},
+    {t:'Sequência',d:'E-mail/WhatsApp (escorregador/PAS [L]): abertura → conteúdo/objeção → prova → últimas 24h → última chamada. Maioria das vendas nas últimas 24h.'},
+    {t:'Pós',d:'Onboarding rápido na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção contra churn e indicação (STEPPS [L]).'}
+  ];
+  return {planos:pl,nOk,ancora,tkBlend,tkOk,passos};
+}
+// Otimizações personalizadas — cruza os dados da oportunidade
+function otimizacoes(o){
+  const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), out=[];
+  const seg=seguidoresTotais(o), eng= seg>0?(o.redes||[]).reduce((x,r)=>x+(+r.seguidores||0)*(+r.engaj||0),0)/seg:0;
+  const tk=ticketMensalBlend(o);
+  const push=(area,leitura,acao,mk)=>out.push({area,leitura,acao,mk:mk||'C'});
+  if(eng>0&&eng<2) push('Audiência','Engajamento ponderado '+num(eng,1)+'% — baixo: seguidor ≠ influência.','Pese a audiência engajada, não o total; gere sinal de intenção antes de escalar verba.','A');
+  if(o.intencao==='baixa') push('Intenção','Intenção de compra declarada baixa.','Rode pesquisa / lista de espera / pré-venda para medir intenção antes de comprometer mídia (GAP-005).','C');
+  if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) push('Unit economics','Payback ('+num(s.paybackMeses,1)+'m) maior que a fidelidade ('+(o.prazoFidelidade||12)+'m).','Recupera o CAC depois que o cliente já pode sair — suba o ticket de entrada, reduza CPL ou amarre fidelidade.','C');
+  if(o.nichoB3==='futuros') push('Mercado','Nicho day-trade/futuros é minúsculo (~235,8 mil CPFs — SRC-039); CPL sobe ao escalar.','Priorize conversão e ticket altos (high-touch) e considere componente perpétuo em vez de depender de volume frio.','A');
+  if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio '+brl(tk)+'/mês fora da faixa real da base (R$76–148 — SRC-036).','Justifique o preço por valor ou reposicione os formatos.','B');
+  if(rt.invest>0&&!rt.recuperado) push('Caixa','O aporte não se recupera no horizonte projetado.','Aumente o % no PIX (entra à vista), reduza parcelas do cartão ou antecipe recebíveis para encurtar a recuperação.','C');
+  else if(rt.invest>0&&rt.recuperado&&rt.recMonth>3) push('Caixa','Recuperação do aporte em '+num(rt.recMonth,1)+' meses de caixa.','Para acelerar: mais peso no PIX à vista ou antecipação de cartão (custa taxa, mas libera caixa).','C');
+  if((+o.optinPct||0)<4) push('Captação','Opt-in '+(o.optinPct||0)+'% — baixo para converter audiência em lead.','Melhore a isca (específica para a dor) e a página de captura; teste formatos.','C');
+  if(tk>0&&(+o.cpl||0)/tk>0.1) push('Mídia','CPL ('+brl(+o.cpl||0)+') alto frente ao ticket mensal ('+brl(tk)+').','Trabalhe criativo e segmentação para baixar o CPL, ou suba o ticket de entrada.','C');
+  if(o.rendaVariavel&&!o.expertCert) push('Confiança','Nicho RV e expert sem certificação — certificação é rara (SRC-037).','Buscar certificação/figura certificada no time: diferencial de confiança e menor risco de compliance.','A');
+  if(!out.length) push('Geral','Sem alertas críticos nos vetores avaliados.','Mantenha as premissas sob revisão e valide a conversão com um piloto.','C');
+  return out;
+}
 function estrategia(o){
   const dor = DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
   const canal = CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro;
@@ -1544,61 +1743,59 @@ function estrategia(o){
   const rv = !!o.rendaVariavel || ['futuros','acoes','rv_total','fii'].includes(nk);
   const demo = B3_DEMO[nk]||B3_DEMO.educacao;
   const promessaRisco = o.angulo==='promessa';
-  // ---- 1. Jornada de conteúdo (4 fases + 3 CPLs) ----
-  const cpls=[
-    {n:1,nome:'Oportunidade — quebra de crença',obj:'Mostrar que existe um caminho melhor e destruir a crença que trava o prospect.',gatilho:'Autoridade + Reciprocidade [L]',tema:dor.crenca,alvo:nc.rot},
-    {n:2,nome:'Transformação — prova',obj:'Provar que o método funciona: demonstração ao vivo, bastidores, antes/depois de PROCESSO.',gatilho:'Prova social [L]',tema:rv?'Prove competência e consistência do método — NUNCA retorno financeiro garantido (compliance). Mostre o processo, não a promessa de lucro.':'Casos e demonstração do método em ação.',alvo:'Consciente da solução'},
-    {n:3,nome:'Propriedade — ponte',obj:'Fazer o prospect se ver praticando e criar a ponte para a oferta; abre o carrinho ao final.',gatilho:'Compromisso/coerência + antecipação [L]',tema:'O prospect se projeta usando o método; transição natural para a oferta.',alvo:'Consciente do produto'}
-  ];
-  const fases=[
-    {f:'F0 · Captação',janela:'~D-25 a D-11',obj:'Construir a lista (tráfego pago + base) antes de aquecer.',meta:'nº de leads na lista',foco:canal.topo},
-    {f:'F1 · Aquecimento',janela:'~D-10 a D-1',obj:'Entregar valor e ativar gatilhos com os 3 CPLs.',meta:'presença e engajamento nos CPLs',foco:canal.cpl},
-    {f:'F2 · Carrinho',janela:'D0 a ~D+5',obj:'Abrir a oferta por tempo limitado (escassez honesta).',meta:'conversão lead→venda',foco:'maioria das vendas vem nas últimas 24h — concentre esforço e verba de fundo aí'},
-    {f:'F3 · Pós / fidelização',janela:'D+6 em diante',obj:'Entrega, onboarding rápido, retenção e indicação.',meta:'ativação na 1ª semana e churn',foco:'a 1ª semana é a janela de cancelamento ('+(o.cancel7Pct||0)+'% cancelam em 7 dias) — ative rápido'}
-  ];
-  // ---- 2. Trilha de ads (temperatura × canal) ----
-  const v=+o.verbaTrafego||0;
-  const ads=[
-    {t:'Topo · frio',obj:'Alcance + captação de lead',verba:v*0.5,publico:'frio, segmentado pela demografia do nicho',criativo:'educativo/didático (didático engaja +158% — SRC-037). NUNCA promessa de ganho.',canal:canal.topo},
-    {t:'Meio · morno',obj:'Levar quem engajou para os CPLs',verba:v*0.25,publico:'remarketing: viu vídeo, visitou página, entrou na lista',criativo:'prova + convite para as aulas; quebra de objeção',canal:'onde o expert tem mais engajamento'},
-    {t:'Fundo · quente',obj:'Conversão no carrinho',verba:v*0.25,publico:'remarketing: assistiu CPL 3 / abriu o carrinho',criativo:'escassez honesta + depoimento + razão para agir agora',canal:'concentrar nas últimas 48h do carrinho'}
-  ];
-  // ---- 3. Jornada de compra (oferta + carrinho + pós) ----
-  const pl=getPlanos(o);
-  const nOk = pl.length>=2 && pl.length<=4;
-  const ancora = pl.slice().sort((a,b)=>(b.ticketMensal*b.meses)-(a.ticketMensal*a.meses))[0];
-  const tkBlend=ticketMensalBlend(o), tkOk=(tkBlend>=NELOGICA_REF.ticketMin&&tkBlend<=NELOGICA_REF.ticketMax);
-  const oferta={nOk,ancora,tkBlend,tkOk,planos:pl};
-  // ---- Compliance ----
+  const ctx={dor,canal,nc,rv};
+  const rec = recomendarModelo(o);
+  const modeloAuto = !(o.modeloEscolhido && MODELOS[o.modeloEscolhido]);
+  const modelo = modeloAuto ? rec.top : o.modeloEscolhido;
+  const jornada = jornadaConteudo(o,modelo,ctx);
+  const ads = adsPorModelo(o,modelo);
+  const compra = compraPorModelo(o,modelo);
+  const otim = otimizacoes(o);
   const compliance=[];
   if(rv){
     compliance.push('Nicho de renda variável: nenhuma promessa de ganho, rentabilidade ou "renda garantida" — em copy, ads ou CPL (GAP-003).');
     compliance.push('Promessa específica e verificável sobre COMPETÊNCIA/processo, não sobre resultado financeiro (Hopkins [L]).');
     compliance.push('Incluir disclaimer de risco; o público confunde aposta × investimento — o regulador vigia o frame "método/renda/estratégia" (SRC-038).');
-    if(!o.expertCert) compliance.push('Expert sem certificação (ANBIMA/CFP): cautela extra com qualquer afirmação técnica; certificação é rara e vira diferencial de confiança (SRC-037).');
+    if(!o.expertCert) compliance.push('Expert sem certificação (ANBIMA/CFP): cautela extra com afirmação técnica; certificação é rara e vira diferencial de confiança (SRC-037).');
   }
   if(promessaRisco) compliance.push('Ângulo "promessa de ganho" escolhido: é o de MENOR engajamento (SRC-037) e MAIOR risco jurídico. Recomendo pivotar para educação/disciplina.');
-  if(dor.flag) compliance.push('Dor "renda extra": fácil escorregar para promessa de ganho. Mantenha o frame em competência/consistência, não em quanto a pessoa vai ganhar.');
-  // ---- O que falta saber ----
+  if(dor.flag) compliance.push('Dor "renda extra": fácil escorregar para promessa de ganho. Mantenha o frame em competência/consistência.');
   const gaps=[
     'Conversão lead→venda ('+(o.convLista||0)+'%) é premissa [D] — nenhum benchmark de lançamento a sustenta; é o que o piloto valida (GAP-002).',
-    'Presença e conversão por CPL não são medidas ainda — o plano propõe a estrutura, não prevê a audiência real de cada aula.',
-    'CPL de ads varia por canal e por temperatura e degrada ao escalar (GAP-012); a divisão de verba abaixo é heurística [C], não benchmark.',
+    'Presença e conversão por CPL/etapa não são medidas ainda — o plano propõe a estrutura, não prevê a audiência real.',
+    'CPL de ads varia por canal e temperatura e degrada ao escalar (GAP-012); a divisão de verba é heurística [C], não benchmark.',
+    'O ranking de modelo é scoring transparente dos vetores, não lei: o tipo define esforço/verba/alcance, não teto de faturamento (SRC-001; HYP-001).',
     'Frameworks de copy/gatilho são [L] (memória do modelo, não auditados) — viram [A] só com os textos-fonte.'
   ];
   if(o.intencao==='baixa') gaps.push('Intenção de compra baixa: gere sinal de intenção (lista de espera, pesquisa, pré-venda) antes de comprometer verba (GAP-005).');
-  return {dor,canal,nc,rv,demo,cpls,fases,ads,oferta,compliance,gaps,promessaRisco};
+  return {dor,canal,nc,rv,demo,promessaRisco,rec,modelo,modeloAuto,jornada,ads,compra,otim,compliance,gaps};
 }
 function renderEstrategiaInner(o){
   const e=estrategia(o);
   const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
-  const faseRows=e.fases.map(f=>`<div class="line"><span><b>${f.f}</b> <span class="muted" style="font-weight:400">${f.janela}</span><br><span class="muted" style="font-size:11.5px">${esc(f.obj)} · foco: ${esc(f.foco)}</span></span><span style="white-space:nowrap;align-self:flex-start;font-size:11px" class="muted">meta: ${esc(f.meta)}</span></div>`).join('');
-  const cplCards=e.cpls.map(c=>`<div class="cpl-card"><div class="cpl-h"><span class="cpl-n">CPL ${c.n}</span><b>${esc(c.nome)}</b></div>
+  const ML=MODELOS[e.modelo].label;
+  // modelo recomendado (scoring)
+  const chosen=e.rec.aptos.concat(e.rec.bloqueados).find(r=>r.k===e.modelo);
+  const mdlRow=(r)=>{const isTop=r.k===e.rec.top,isSel=r.k===e.modelo;
+    return `<div class="mdl-row${isSel?' sel':''}"><div class="mdl-head"><b>${MODELOS[r.k].label}</b>${isTop?'<span class="chip good">recomendado</span>':''}${isSel&&!isTop?'<span class="chip neutral">em uso</span>':''}<span class="muted" style="font-size:11px">${esc(MODELOS[r.k].problema)}</span></div>
+      <div class="mdl-barwrap"><div class="mdl-bar"><div class="mdl-fill" style="width:${r.score}%"></div></div><span class="mdl-score">${r.score}</span></div></div>`;};
+  const aptosH=e.rec.aptos.map(mdlRow).join('');
+  const porque=(chosen&&chosen.fatores&&chosen.fatores.length)?`<div class="pill-note" style="margin-top:10px"><b>Por que ${ML}:</b> ${chosen.fatores.slice(0,4).map(f=>esc(f.txt)).join(' · ')}.</div>`:'';
+  const bloqH=e.rec.bloqueados.length?`<div style="margin-top:10px"><div class="muted" style="font-size:11px;margin-bottom:5px">Bloqueados por pré-requisito:</div>${e.rec.bloqueados.map(r=>`<div class="mdl-why">⛔ <b>${MODELOS[r.k].label}</b> — ${esc(r.gate)}</div>`).join('')}</div>`:'';
+  // jornada de conteúdo
+  const faseRows=e.jornada.fases.map(f=>`<div class="line"><span><b>${esc(f.f)}</b> <span class="muted" style="font-weight:400">${esc(f.janela)}</span><br><span class="muted" style="font-size:11.5px">${esc(f.obj)} · foco: ${esc(f.foco)}</span></span><span style="white-space:nowrap;align-self:flex-start;font-size:11px" class="muted">meta: ${esc(f.meta)}</span></div>`).join('');
+  const bprefix=/CPL/i.test(e.jornada.blocos.tipo)?'CPL ':'Etapa ';
+  const blocoCards=e.jornada.blocos.items.map(c=>`<div class="cpl-card"><div class="cpl-h"><span class="cpl-n">${bprefix}${c.n}</span><b>${esc(c.nome)}</b></div>
      <div class="cpl-b"><div><span class="k">Objetivo</span>${esc(c.obj)}</div>
      <div><span class="k">Tema / ângulo</span>${esc(c.tema)}</div>
-     <div class="cpl-meta"><span class="chip neutral">${esc(c.gatilho)}</span><span class="chip neutral">alvo: ${esc(c.alvo)}</span></div></div></div>`).join('');
-  const adRows=e.ads.map(a=>`<tr><td><b>${esc(a.t)}</b></td><td style="font-family:var(--fmono)">${brl(a.verba)}</td><td>${esc(a.obj)}</td><td>${esc(a.publico)}</td><td>${esc(a.criativo)}</td></tr>`).join('');
-  const planRows=e.oferta.planos.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m · mix ${num(p.mix)}%${e.oferta.ancora===p?' <span class="chip good">âncora</span>':''}</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('');
+     <div class="cpl-meta"><span class="chip neutral">${esc(c.gatilho)}</span>${(c.alvo&&c.alvo!=='—')?`<span class="chip neutral">alvo: ${esc(c.alvo)}</span>`:''}</div></div></div>`).join('');
+  // ads
+  const adRows=e.ads.camadas.map(a=>`<tr><td><b>${esc(a.t)}</b></td><td style="font-family:var(--fmono)">${brl(a.verba)}</td><td>${esc(a.obj)}</td><td>${esc(a.pub)}</td><td>${esc(a.cri)}</td></tr>`).join('');
+  // compra
+  const planRows=e.compra.planos.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m · mix ${num(p.mix)}%${e.compra.ancora===p?' <span class="chip good">âncora</span>':''}</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('');
+  const passosH=e.compra.passos.map(s=>`<div class="step"><b>${esc(s.t)}:</b> ${esc(s.d)}</div>`).join('');
+  // otimizações
+  const otimH=e.otim.map(x=>`<div class="opt-row"><div class="opt-h"><span class="chip neutral">${esc(x.area)}</span>${mk(x.mk)}</div><div class="opt-b"><b>Leitura:</b> ${esc(x.leitura)}<br><b>Otimização:</b> ${esc(x.acao)}</div></div>`).join('');
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
   return `
@@ -1606,35 +1803,45 @@ function renderEstrategiaInner(o){
     <div class="verdict ${e.promessaRisco?'warn':'good'}"><b>Promessa-núcleo (educacional): </b>${esc(e.dor.promessa)}.<br>
       <span style="font-size:12.5px">Nível de consciência: <b>${esc(e.nc.rot)}</b> — ${esc(e.nc.ent)}</span></div>
     <div class="statbar" style="margin-top:10px">
+      <div class="s"><b>${esc(ML)}</b><span>modelo ${e.modeloAuto?'(recomendado)':'(fixado)'}</span></div>
       <div class="s"><b>${esc(o.canalPrincipal||'—')}</b><span>canal principal</span></div>
       <div class="s"><b>${e.rv?'sim':'não'}</b><span>renda variável</span></div>
-      <div class="s"><b>${e.oferta.nOk?e.oferta.planos.length+' formatos':'ajustar'}</b><span>arquitetura de oferta</span></div>
-      <div class="s"><b>${e.oferta.tkOk?'na faixa':'fora'}</b><span>ticket vs. base R$76–148</span></div></div>
+      <div class="s"><b>${e.compra.tkOk?'na faixa':'fora'}</b><span>ticket vs. base R$76–148</span></div></div>
   </div>
 
-  <div class="card"><h2>1 · Jornada de conteúdo ${mk('L')}${mk('A')}<span class="tag">4 fases + 3 CPLs</span></h2>
-    <p class="hint">Estrutura Walker (MET-001); ângulo de cada CPL pelo nível de consciência (Schwartz [L]) e gatilho de Cialdini [L]; tom calibrado pela dor real da base (SRC-035/036 [A]).</p>
+  <div class="card"><h2>Modelo de lançamento ${mk('B')}${mk('C')}<span class="tag">scoring dos vetores — E4</span></h2>
+    <p class="hint">O algoritmo pontua os 5 modelos-núcleo contra os vetores do caso (produto validado, audiência, verba, objetivo, autoridade, janela) e aplica os portões de dependência da matriz (03). ${e.modeloAuto?'Usando a <b>recomendação automática</b> — todo o plano abaixo se adapta a ela.':'Você <b>fixou</b> um modelo — o plano abaixo segue sua escolha.'}</p>
+    <div class="mdl-list">${aptosH}</div>
+    ${porque}${bloqH}
+    <div class="pill-note" style="margin-top:8px">O tipo define esforço/verba/alcance, <b>não teto de faturamento</b> (SRC-001; HYP-001). É proposta, não lei — você decide.</div>
+  </div>
+
+  <div class="card"><h2>1 · Jornada de conteúdo — ${esc(ML)} ${mk('L')}${mk('A')}<span class="tag">sob medida para o modelo</span></h2>
+    <p class="hint"><b>Estrutura:</b> ${esc(e.jornada.estrutura)}. Ângulo pelo nível de consciência (Schwartz [L]) e gatilho de Cialdini [L]; tom calibrado pela dor real (SRC-035/036 [A]).</p>
     <div class="casc">${faseRows}</div>
-    <div class="cpl-grid">${cplCards}</div>
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">${esc(e.jornada.blocos.tipo)}</h4>
+    <div class="cpl-grid">${blocoCards}</div>
+    <div class="pill-note" style="margin-top:10px">${esc(e.jornada.nota)}</div>
   </div>
 
-  <div class="card"><h2>2 · Trilha de ads ${mk('A')}${mk('C')}<span class="tag">temperatura × canal</span></h2>
-    <p class="hint">Canais e criativo ancorados no FInfluence (SRC-037): didático engaja +158%; análise técnica/previsão/"ficar rico" engajam menos. Divisão de verba é heurística <span class="mark mC">C</span> editável, não benchmark.</p>
+  <div class="card"><h2>2 · Trilha de ads — ${esc(ML)} ${mk('A')}${mk('C')}<span class="tag">temperatura × canal</span></h2>
+    <p class="hint">Canais e criativo ancorados no FInfluence (SRC-037): didático engaja +158%; análise técnica/previsão/"ficar rico" engajam menos. Divisão de verba é heurística <span class="mark mC">C</span>, não benchmark.</p>
     <div style="overflow:auto"><table><thead><tr><th>Camada</th><th>Verba</th><th>Objetivo</th><th>Público</th><th>Criativo</th></tr></thead><tbody>${adRows}</tbody></table></div>
-    <div class="pill-note" style="margin-top:10px"><b>Segmentação (demografia do nicho — B3 SRC-039 [A]):</b> ${esc(e.demo.genero)} · ${esc(e.demo.idade)} · ${esc(e.demo.regiao)}. <i>${esc(e.demo.nota)}</i></div>
+    <div class="pill-note" style="margin-top:10px">${esc(e.ads.nota)}</div>
+    <div class="pill-note" style="margin-top:8px"><b>Segmentação (demografia do nicho — B3 SRC-039 [A]):</b> ${esc(e.demo.genero)} · ${esc(e.demo.idade)} · ${esc(e.demo.regiao)}. <i>${esc(e.demo.nota)}</i></div>
   </div>
 
-  <div class="card"><h2>3 · Jornada de compra ${mk('L')}<span class="tag">oferta → carrinho → pós</span></h2>
-    <p class="hint">Arquitetura good-better-best (Ramanujam/Kahneman [L]): 3 níveis, ancoragem pelo mais longo, ≤4 opções.</p>
+  <div class="card"><h2>3 · Jornada de compra — ${esc(ML)} ${mk('L')}<span class="tag">oferta → carrinho → pós</span></h2>
+    <p class="hint">Arquitetura good-better-best (Ramanujam/Kahneman [L]): 2–4 níveis, ancoragem pelo mais longo.</p>
     <div class="casc">${planRows}</div>
-    ${e.oferta.nOk?'':'<div class="alertbox">Arquitetura de oferta fora do ideal: use 2 a 4 formatos (good-better-best). Hoje há '+e.oferta.planos.length+'.</div>'}
-    ${e.oferta.tkOk?'':'<div class="alertbox">Ticket médio ('+brl(e.oferta.tkBlend)+'/mês) fora da faixa real da base (R$76–148 — SRC-036). Justifique o preço ou revise.</div>'}
-    <div class="steps">
-      <div class="step"><b>Abertura</b> após o CPL 3. Oferta com <b>escassez honesta</b>: data real de fechamento, vagas ou bônus que de fato expira — nunca falsa (SRC-001 + compliance).</div>
-      <div class="step"><b>Estrutura:</b> oferta principal + order bump + downsell para quem não leva o plano-alvo. Âncora: <b>${esc(e.oferta.ancora?e.oferta.ancora.nome:'formato mais longo')}</b>.</div>
-      <div class="step"><b>Sequência</b> de e-mail/WhatsApp (escorregador/PAS [L]): abertura → conteúdo/objeção → prova → últimas 24h → última chamada. Maioria das vendas nas últimas 24h.</div>
-      <div class="step"><b>Pós:</b> onboarding rápido na 1ª semana (janela de cancelamento ${o.cancel7Pct||0}%), retenção contra churn e programa de indicação (STEPPS [L]).</div>
-    </div>
+    ${e.compra.nOk?'':'<div class="alertbox">Arquitetura de oferta fora do ideal: use 2 a 4 formatos (good-better-best). Hoje há '+e.compra.planos.length+'.</div>'}
+    ${e.compra.tkOk?'':'<div class="alertbox">Ticket médio ('+brl(e.compra.tkBlend)+'/mês) fora da faixa real da base (R$76–148 — SRC-036). Justifique o preço ou revise.</div>'}
+    <div class="steps">${passosH}</div>
+  </div>
+
+  <div class="card"><h2>Otimizações personalizadas <span class="tag">cruzando os dados deste caso</span></h2>
+    <p class="hint">Vetores lidos dos números da oportunidade — cada um com leitura e ação específica.</p>
+    <div class="opt-list">${otimH}</div>
   </div>
 
   <div class="card"><h2>Portão de compliance <span class="tag">bloqueio, não detalhe</span></h2>
@@ -1646,8 +1853,10 @@ function renderEstrategiaInner(o){
 let estrOpp=null;
 function ensureEstrOpp(){
   if(!estrOpp) estrOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
-  const o=estrOpp;
-  o.nichoB3=o.nichoB3||'futuros';o.canalPrincipal=o.canalPrincipal||'youtube';o.dorPrimaria=o.dorPrimaria||NELOGICA_REF.dorPrimarias[0];o.angulo=o.angulo||'educacao';o.intencao=o.intencao||'baixa';
+  const o=estrOpp, d=blankOpp();
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp']
+    .forEach(k=>{if(o[k]==null||o[k]==='') o[k]=d[k];});
+  if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
   return o;
 }
@@ -1655,15 +1864,37 @@ function viewEstrategia(){
   setActive('estrategia');
   const o=ensureEstrOpp();
   const oppOptions=opps.map(x=>`<option value="${x.id}" ${estrOpp&&estrOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  const sel=(key,label,opts,hint)=>`<div><label>${label}${hint?` <span class="q">${hint}</span>`:''}</label><select data-ek="${key}">${opts.map(([v,t])=>`<option value="${v}" ${String(o[key])===String(v)?'selected':''}>${esc(t)}</option>`).join('')}</select></div>`;
+  const chk=(key,label)=>`<div><label>${label}</label><label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer"><input type="checkbox" data-ek="${key}" ${o[key]?'checked':''}/> sim</label></div>`;
+  const modeloSel=`<div><label>Modelo de lançamento</label><select data-ek="modeloEscolhido"><option value="">— automático (recomendado) —</option>${Object.keys(MODELOS).map(k=>`<option value="${k}" ${o.modeloEscolhido===k?'selected':''}>${MODELOS[k].label}</option>`).join('')}</select></div>`;
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div><h1>Estrategista de Lançamento</h1><p class="sub">O algoritmo lê a oportunidade e <b>sugere</b> a jornada de conteúdo, a trilha de ads e a jornada de compra — cruzando os campos com o conhecimento da base. Ele <b>propõe; você decide</b>. Nada aqui é garantia.</p></div>
+    <div><h1>Estrategista de Lançamento</h1><p class="sub">Recebe as premissas, entende o produto, <b>escolhe o melhor modelo</b> e monta jornada de conteúdo, trilha de ads e jornada de compra <b>sob medida</b> — cruzando os dados do caso com o conhecimento da base. Ele <b>propõe; você decide</b>. Nada é garantia.</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="estrLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
       <button class="btn sm" id="estrPrint">Plano imprimível</button>
     </div>
   </div>
+  <div class="card"><h2>Premissas da campanha <span class="tag">o que o algoritmo avalia</span></h2>
+    <p class="hint">Ajuste os vetores — o modelo recomendado, a jornada, os ads e a compra se recalculam na hora. Premissas financeiras (verba, ticket, conversão) vêm do Decisor.</p>
+    <div class="grid">
+      ${sel('produtoValidado','Produto validado?',[['nao','Não'],['parcial','Parcialmente'],['sim','Sim, convertendo']])}
+      ${sel('jaVendeBase','Já vende na base?',[['nao','Não / pouco'],['sim','Sim, com consistência']])}
+      ${sel('audienciaTemp','Audiência disponível',[['nenhuma','Nenhuma'],['fria','Fria'],['quente','Quente / relacionada']])}
+      ${sel('expertAutoridade','Autoridade do expert',[['baixa','Baixa'],['media','Média'],['alta','Alta']])}
+      ${sel('objetivoCampanha','Objetivo principal',[['validar','Validar a oferta'],['faturar_base','Faturar na base'],['escalar','Escalar alcance'],['recorrencia','Previsibilidade/recorrência'],['caixa_rapido','Caixa rápido']])}
+      ${sel('janelaCampanha','Janela',[['curta','Curta (urgência)'],['normal','Normal (~30d)'],['continuo','Contínua']])}
+      ${sel('nichoB3','Nicho (teto B3)',NICHOS_B3.map(n=>[n.k,n.label]))}
+      ${sel('canalPrincipal','Canal principal',[['youtube','YouTube'],['instagram','Instagram'],['x','X'],['outro','Outro']])}
+      ${sel('dorPrimaria','Dor primária',NELOGICA_REF.dorPrimarias.map(x=>[x,x]))}
+      ${sel('angulo','Ângulo',[['educacao','Educação/disciplina'],['hibrido','Híbrido'],['promessa','Promessa de ganho']])}
+      ${chk('temParceiros','Tem parceiros/afiliados?')}
+      ${chk('rendaVariavel','Toca renda variável?')}
+      ${modeloSel}
+    </div>
+  </div>
   <div id="estrOut">${renderEstrategiaInner(o)}</div>`;
+  main.querySelectorAll('[data-ek]').forEach(el=>el.addEventListener('input',()=>{const k=el.dataset.ek;o[k]= el.type==='checkbox'?el.checked:el.value; const out=document.getElementById('estrOut'); if(out) out.innerHTML=renderEstrategiaInner(o);}));
   document.getElementById('estrLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){estrOpp=JSON.parse(JSON.stringify(src));viewEstrategia();}}});
   document.getElementById('estrPrint').onclick=()=>openReport(renderEstrategiaInner(o),'Plano de Lançamento — '+(esc(o.nome)||o.produtoNome||''));
 }
