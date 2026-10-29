@@ -110,3 +110,20 @@ Russell Brunson (ClickFunnels, *DotComSecrets*/*Expert Secrets*) é **a mesma li
 - Ler o **texto primário** do Brunson (não o resumo Bookey) → promove `[A-resumo]` para `[A]`.
 - Nada aqui vira **regra dura** sem teste em lançamento real (os frameworks de conversão são `[L]`/`[C]`; a conversão segue `[D]` — GAP-002).
 - **Validação jurídica** da tradução compliance-safe para RV (GAP-003) antes de qualquer copy ir ao ar.
+
+---
+
+## 7. Companheiro — *DotCom Secrets* (Russell Brunson) · SRC-042
+
+> **Fonte lida:** resumo da Bookey (EPUB, PT), lido integralmente. `[A-resumo]`/`[L]`. **Mesma linhagem** (Brunson) — eco de 16/SRC-041, reforça DEC-006. Adiciona **arquitetura de funil/tráfego** (onde *Expert Secrets* dá a mensagem, *DotCom Secrets* dá o encanamento).
+
+**Frameworks que agregam:**
+- **A Fórmula Secreta (4 perguntas):** quem é o **Cliente dos Sonhos** · onde encontrá-lo (congregações) · que **isca** usar · qual **resultado/transformação** entregar. → roteiro do E1/E2/E3 (diagnóstico de público + oferta).
+- **Escada de Valor (Value Ladder):** ofertas em camadas (isca → frontend → core → backend/high-ticket), valor e preço crescentes; maximiza LTV. → casa com nossos **formatos (good-better-best)** e com o backend high-ticket.
+- **3 tipos de tráfego:** (1) que você **controla** (ads pagos), (2) que **não controla** (orgânico/referência), (3) que você **possui** (lista/assinantes — o mais valioso). Objetivo: converter 1 e 2 em 3. → organiza a **trilha de ads** e a captação do Estrategista; reforça "lista própria > seguidor".
+- **Funil de comunicação:** Personagem Atraente + **Sequência da Novela (Soap Opera)** + **Sequência Diária (Seinfeld)** → estrutura de e-mail (relacionamento + oferta contínua).
+- **Funelologia:** 7 fases do funil, 23 blocos de construção, frontend × backend, melhor isca; **taxonomia de funis** (grátis+frete, oferta autoliquidadora, continuidade, Webinar Perfeito, webinar invisível, **lançamento de produto**, aplicação high-ticket 3 passos). → repertório de funis por etapa da escada.
+
+**Tradução ao nosso caso:** "tráfego que você possui" = a **base de leads Nelogica** e a lista do expert (ativo central do modelo); Escada de Valor = caminho do ticket de entrada ao high-ticket (coerente com DEC do split e com o backend); funil de **lançamento de produto** = o mesmo Product Launch Funnel de 4 vídeos de *Expert Secrets*. **Compliance idêntico:** isca e escada não podem prometer retorno em RV.
+
+**Catálogo:** SRC-042 em `01`. Decisão: DEC-029 em `10`.
