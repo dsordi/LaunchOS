@@ -1735,6 +1735,24 @@ function otimizacoes(o){
   if(!out.length) push('Geral','Sem alertas críticos nos vetores avaliados.','Mantenha as premissas sob revisão e valide a conversão com um piloto.','C');
   return out;
 }
+// Playbook aplicado — consolida as teses da base (biblioteca/20) em recomendação direta por caso
+function playbookAplicado(o){
+  const dor=DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
+  const nk=o.nichoB3||'futuros';
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(nk);
+  const angulo='Educação / disciplina / gestão de risco — NUNCA promessa de ganho. Triangulado por 3 origens independentes: dor interna Nelogica (SRC-035/036), ANBIMA+Housel (SRC-037/043) e o cânone do trading (SRC-047/048). [B] forte.';
+  const cpl=[
+    {t:'CPL 1 · Quebra de crença',d:dor.crenca+' O problema não é achar o setup perfeito — é execução e gestão emocional (Douglas: "você não precisa prever"; Livermore: o inimigo é interno).'},
+    {t:'CPL 2 · Prova',d:'Mostre o PROCESSO e a consistência (disciplina, cortar prejuízo, os 4 medos). '+(rv?'NUNCA retorno garantido — prova de competência, não de lucro.':'Casos e demonstração do método.')},
+    {t:'CPL 3 · Ponte',d:'O aluno se vê operando com método/processo; transição natural para a oferta. Abre o carrinho ao final.'}
+  ];
+  const use=['Especificidade (número verificável)','Honestidade / credibilidade','Autoridade com credencial real','Curiosidade','Storytelling','Simplicidade (3ª série)','Vender a cura (dor presente)'];
+  const evite=rv?['Ganância / apelo a lucro','Esperança como promessa de ganho','Medo/urgência de "perder a alta"','Paralelo "é como apostar e você ganha"']:['Promessa vaga sem lastro','Urgência falsa'];
+  const retencao='Ative na 1ª semana (janela de cancelamento '+(o.cancel7Pct||0)+'%). Crie hábito de ESTUDO/prática (diário de operações, checklist, aula curta) — nunca hábito de operar (Hooked SRC-044; evita frame aposta SRC-038).';
+  const compliance=rv?'Promessa sobre competência/processo, específica e verificável; disclaimer de risco; escassez só se verdadeira. Sem claim de retorno, em nenhuma forma (GAP-003 · SRC-038/048). Falta fonte jurídica/CVM — bloqueio para liberar copy.':'Nicho fora de RV: compliance padrão; mantenha promessa verificável.';
+  const transparencia='Mostre premissas, origem e grau de confiança — transparência converte (Sugarman SRC-046) e é o diferencial do LaunchOS frente a métricas infladas.';
+  return {rv,angulo,cpl,use,evite,retencao,compliance,transparencia};
+}
 function estrategia(o){
   const dor = DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
   const canal = CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro;
@@ -1796,6 +1814,10 @@ function renderEstrategiaInner(o){
   const passosH=e.compra.passos.map(s=>`<div class="step"><b>${esc(s.t)}:</b> ${esc(s.d)}</div>`).join('');
   // otimizações
   const otimH=e.otim.map(x=>`<div class="opt-row"><div class="opt-h"><span class="chip neutral">${esc(x.area)}</span>${mk(x.mk)}</div><div class="opt-b"><b>Leitura:</b> ${esc(x.leitura)}<br><b>Otimização:</b> ${esc(x.acao)}</div></div>`).join('');
+  // Playbook aplicado (consolidação da base — biblioteca/20)
+  const pb=playbookAplicado(o);
+  const pbCpl=pb.cpl.map(c=>`<div class="step"><b>${esc(c.t)}:</b> ${esc(c.d)}</div>`).join('');
+  const chips=(arr,cls)=>arr.map(x=>`<span class="chip ${cls}">${esc(x)}</span>`).join(' ');
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
   return `
@@ -1842,6 +1864,20 @@ function renderEstrategiaInner(o){
   <div class="card"><h2>Otimizações personalizadas <span class="tag">cruzando os dados deste caso</span></h2>
     <p class="hint">Vetores lidos dos números da oportunidade — cada um com leitura e ação específica.</p>
     <div class="opt-list">${otimH}</div>
+  </div>
+
+  <div class="card"><h2>Playbook aplicado da base ${mk('B')}<span class="tag">recomendação direta — biblioteca/20</span></h2>
+    <p class="hint">O que a base inteira, cruzada, sugere para ESTE caso — direto ao ponto.</p>
+    <div class="verdict good"><b>Ângulo recomendado:</b> ${esc(pb.angulo)}</div>
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">Temas de CPL (compliance-safe)</h4>
+    <div class="steps">${pbCpl}</div>
+    <div class="gtm-split" style="margin-top:12px">
+      <div><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--good);margin:0 0 6px">Use na copy</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${chips(pb.use,'good')}</div></div>
+      <div><h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--bad);margin:0 0 6px">Evite (bloqueado)</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${chips(pb.evite,'bad')}</div></div>
+    </div>
+    <div class="pill-note" style="margin-top:12px"><b>Retenção:</b> ${esc(pb.retencao)}</div>
+    <div class="pill-note" style="margin-top:8px"><b>Compliance:</b> ${esc(pb.compliance)}</div>
+    <div class="pill-note" style="margin-top:8px"><b>Transparência:</b> ${esc(pb.transparencia)}</div>
   </div>
 
   <div class="card"><h2>Portão de compliance <span class="tag">bloqueio, não detalhe</span></h2>
