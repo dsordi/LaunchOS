@@ -6,7 +6,7 @@
 <title>LaunchOS — Inteligência para seu Lançamento Digital</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#001A33; --card:#00264D; --ink:#F0F2F5; --muted:#8ba3bd; --line:rgba(0,255,255,.14);
@@ -123,6 +123,59 @@
   .pitch .alertbox{background:#fef3c7;border:1px solid #fcd34d;color:#713f12}
   @media print{ body>.app{display:none!important} .glow{display:none!important} .modal-overlay{position:static;background:none;padding:0;display:block;overflow:visible} .modal{box-shadow:none;max-width:none} .modal .modal-actions{display:none!important} }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style id="reskin">
+  /* ===== Reskin v1.3 — shell premium (base: dashboard Gemini), engine intacta ===== */
+  :root{ --bg:#001326; --panel:#001A33; --fmono:'JetBrains Mono',ui-monospace,monospace; }
+  body{background:var(--bg)}
+  .glow{display:none!important}
+  .app{display:flex;min-height:100vh;height:100vh;overflow:hidden;position:relative;z-index:1}
+  /* sidebar */
+  aside{width:258px;background:var(--panel);border-right:1px solid rgba(255,255,255,.08);padding:0;height:100vh;position:sticky;top:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+  aside .brand{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin:0;gap:10px}
+  aside .brand .rk{box-shadow:none;width:36px;height:36px}
+  aside .brand .nm{font-size:17px}
+  nav#nav{padding:10px 10px;overflow:auto;flex:1}
+  nav .sec{font-size:9.5px;letter-spacing:.11em;color:#5d7389;padding:14px 10px 6px}
+  nav a{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;color:#8A99AD;font-size:12.5px;font-weight:500;border-left:2px solid transparent;margin-bottom:2px;transition:all .14s;cursor:pointer}
+  nav a:hover{background:rgba(255,255,255,.045);color:#fff}
+  nav a.active{background:#00264D;color:#fff;border-left-color:#FF8C00;font-weight:600}
+  aside .foot{padding:12px 14px;border-top:1px solid rgba(255,255,255,.08);margin:0;font-size:10.5px;color:#8A99AD;line-height:1.55}
+  aside .foot .mark{margin-right:2px}
+  /* content + topbar */
+  .content{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg)}
+  .topbar{height:56px;flex:0 0 56px;border-bottom:1px solid rgba(255,255,255,.08);background:var(--panel);display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+  .topbar .crumb{font-size:12px;color:#8A99AD} .topbar .crumb b{color:#fff;font-weight:600}
+  .topbar .status{display:flex;align-items:center;gap:7px;font-size:11px;color:#8A99AD;background:#00264D;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:5px 11px}
+  .topbar .dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399;animation:rsPulse 2.4s infinite}
+  @keyframes rsPulse{0%,100%{opacity:1}50%{opacity:.45}}
+  main#main{flex:1;overflow:auto;padding:22px 26px;max-width:none}
+  /* components upgraded (herdados por todas as views) */
+  .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:none;padding:18px 20px;transition:border-color .15s}
+  .card:hover{border-color:rgba(0,255,255,.16)}
+  .card h2{font-size:14px}
+  input,select,textarea{background:#001326;border:1px solid rgba(255,255,255,.1);border-radius:9px}
+  input:focus,select:focus,textarea:focus{border-color:#00FFFF;outline:none}
+  button{border-radius:9px}
+  .btn{box-shadow:none} .btn:hover{filter:brightness(1.07)}
+  .btn.ghost{background:#00264D;border:1px solid rgba(255,255,255,.1)}
+  table td,table th{border-color:rgba(255,255,255,.08)} table th{color:#8A99AD}
+  tr.clickable:hover td{background:rgba(0,255,255,.045)}
+  .statbar{background:#001326;border:1px solid rgba(255,255,255,.08);border-radius:12px}
+  .statbar .s b,.scen .big,.kpi .v{font-family:var(--fmono)}
+  .scen{background:#001326;border-radius:11px} .verdict{border-radius:11px} .mkbar{border-radius:8px}
+  .chip{font-family:var(--fmono)}
+  /* dashboard */
+  .kpigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:16px}
+  .kpi{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;transition:border-color .15s}
+  .kpi:hover{border-color:rgba(0,255,255,.16)}
+  .kpi .lab{font-size:11.5px;color:#8A99AD;font-weight:600}
+  .kpi .v{font-weight:700;font-size:26px;color:#fff;margin-top:9px;line-height:1}
+  .kpi .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .dashmain{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+  @media(max-width:980px){.dashmain{grid-template-columns:1fr}}
+  @media(max-width:820px){.app{flex-direction:column;height:auto;overflow:visible}aside{width:auto;height:auto;position:static}.content{height:auto;overflow:visible}main#main{height:auto}}
+</style>
 </head>
 <body>
 <div class="glow o"></div>
@@ -141,19 +194,33 @@
       <div><div class="nm">Launch<span class="os">OS</span></div><small>Inteligência p/ seu Lançamento Digital</small></div>
     </div>
     <nav id="nav">
-      <div class="sec">Operação</div>
-      <a data-view="list" class="active">📋 Oportunidades</a>
+      <div class="sec">Visão</div>
+      <a data-view="dashboard" class="active">📊 Dashboard</a>
+      <a data-view="list">📋 Oportunidades</a>
       <a data-view="new">➕ Nova oportunidade</a>
+      <div class="sec">Decisor</div>
       <a data-view="gtm">🧭 GTM Builder</a>
       <a data-view="gerador">🚀 Estrutura de lançamento</a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio">📚 Princípios da base</a>
     </nav>
     <div class="foot">
-      Modelo: assinatura recorrente · sem reembolso integral.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br><br>v1.2 · 2026-10-28
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
+        <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
+      </div>
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.3 · 2026-10-29
     </div>
   </aside>
-  <main id="main"></main>
+  <section class="content">
+    <header class="topbar">
+      <div class="crumb">LaunchOS <span style="color:#5d7389">/</span> <b id="crumb">Dashboard</b></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="status"><span class="dot"></span> Motor determinístico · <b style="color:#34d399">auditado</b></span>
+        <button class="btn" id="topNew" style="padding:8px 14px;font-size:12px">➕ Nova oportunidade</button>
+      </div>
+    </header>
+    <main id="main"></main>
+  </section>
 </div>
 
 <script>
@@ -362,7 +429,8 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const setActive=(v)=>document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',gerador:'Estrutura de lançamento',biblio:'Princípios da base'};
+const setActive=(v)=>{document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));const c=document.getElementById('crumb');if(c)c.textContent=CRUMB[v]||(v===''?'Oportunidade':c.textContent);};
 
 function viewList(){
   setActive('list');
@@ -1281,14 +1349,65 @@ function viewGTM(){
   recomputeGTM(o);
 }
 
+/* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
+let dashChart=null;
+function dashAgg(){
+  let viaveis=0,teste=0,nogo=0,rv=0; const tks=[];
+  opps.forEach(o=>{ if(o.nome||o.ticketMensal){const a=analyze(o); if(a.vclass==='good')viaveis++; else if(a.vclass==='warn')teste++; else nogo++;} if(o.rendaVariavel)rv++; tks.push(ticketMedio(o)); });
+  return {total:opps.length,viaveis,teste,nogo,rv,tkAvg:tks.length?tks.reduce((a,b)=>a+b,0)/tks.length:0};
+}
+function viewDashboard(){
+  setActive('dashboard');
+  if(dashChart){try{dashChart.destroy()}catch(e){}dashChart=null;}
+  const ag=dashAgg();
+  const sel = current || opps[0] || null;
+  const selA = sel?analyze(sel):null, selS=selA?selA.b:null, rt = sel?recoveryTimeline(sel,selS):null;
+  const kpi=(lab,v,ic,col)=>`<div class="kpi"><div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="lab">${lab}</span><span class="ic" style="background:${col}22;color:${col}">${ic}</span></div><div class="v">${v}</div></div>`;
+  const rows = opps.length? opps.map(o=>{let v='—',cls='neutral';if(o.nome||o.ticketMensal){const a=analyze(o);v=a.verdict;cls=a.vclass;}
+    return `<tr class="clickable" data-open="${o.id}"><td><b>${esc(o.nome)||'<span class=muted>sem nome</span>'}</b><br><span class="muted" style="font-size:11px">${esc(o.nicho)}</span></td><td>${esc(o.produtoNome)||'—'}</td><td style="font-family:var(--fmono)">${brl(ticketMedio(o))}</td><td><span class="chip ${cls}">${v}</span></td></tr>`;}).join('')
+    : `<tr><td colspan="4" class="muted" style="padding:20px">Nenhuma oportunidade ainda. Clique em “Nova oportunidade”.</td></tr>`;
+  main.innerHTML=`
+   <div style="margin-bottom:16px"><h1>Dashboard</h1><p class="sub" style="margin:2px 0 0">Visão da carteira — números reais dos seus dados; projeções são premissas <span class="mark mD">D</span>, recalculáveis.</p></div>
+   <div class="kpigrid">
+     ${kpi('Oportunidades', ag.total, '📁', '#00FFFF')}
+     ${kpi('Viáveis (conservador)', ag.viaveis, '✓', '#34d399')}
+     ${kpi('Em teste / no-go', ag.teste+' / '+ag.nogo, '◐', '#FFD700')}
+     ${kpi('Tocam renda variável', ag.rv, '⚑', '#FF8C00')}
+   </div>
+   <div class="dashmain">
+     <div class="card">
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+         <div><h2 style="margin:0">Recuperação do investimento em caixa</h2><p class="hint" style="margin:2px 0 0">${sel?('Oportunidade: <b style="color:#fff">'+(esc(sel.nome)||'—')+'</b> · aporte '+brl(rt.invest)):'—'}</p></div>
+         ${sel?`<span class="chip ${selA.vclass}">${selA.verdict}</span>`:''}
+       </div>
+       <div style="height:258px">${sel?'<canvas id="dashChart"></canvas>':'<div class="muted" style="padding:40px;text-align:center">Crie uma oportunidade para ver a curva de caixa.</div>'}</div>
+       ${sel?`<p class="muted" style="font-size:11px;margin-top:8px">Caixa líquido acumulado vs. aporte (${brl(rt.invest)}). PIX à vista / cartão ${rt.parcelas}x. Premissa [D] — recupera em ${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera no horizonte')}. A Nelogica recupera antes do split.</p>`:''}
+     </div>
+     <div class="card">
+       <h2 style="margin:0 0 3px">Carteira</h2>
+       <p class="hint" style="margin:0 0 8px">Clique para abrir o decisor.</p>
+       <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket</th><th>Veredito</th></tr></thead><tbody>${rows}</tbody></table>
+     </div>
+   </div>`;
+  if(sel && window.Chart){
+    const el=document.getElementById('dashChart');
+    if(el){const labels=rt.rows.map(r=>'M'+r.m), cum=rt.rows.map(r=>Math.round(r.cum)), inv=rt.rows.map(()=>Math.round(rt.invest));
+    dashChart=new Chart(el,{type:'line',data:{labels,datasets:[
+      {label:'Caixa acumulado',data:cum,borderColor:'#00FFFF',backgroundColor:'rgba(0,255,255,.08)',fill:true,tension:.3,borderWidth:2,pointRadius:2},
+      {label:'Aporte da Nelogica',data:inv,borderColor:'#FF8C00',borderDash:[5,5],fill:false,borderWidth:2,pointRadius:0}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8A99AD',font:{size:11},boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}});}
+  }
+}
+
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='gerador')viewGerador();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
 if(opps.length===0){
@@ -1307,7 +1426,7 @@ if(opps.length===0){
   ex.status='exemplo';
   opps=[ex];save(opps);
 }
-viewList();
+viewDashboard();
 </script>
 </body>
 </html>
