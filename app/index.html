@@ -1019,6 +1019,21 @@ function renderScenDetail(o,r){
     </tbody></table></div>
     <div class="pill-note" style="margin-top:8px">Cenários flexionam a <b>conversão</b> (−${o.hairConserv}% / base / +${o.hairOtim}%) — a premissa de maior incerteza. Demais premissas constantes. Tudo [D], recalculável.</div>`;
 }
+// resumo dos 3 cenários — as 5 linhas que importam (menos que o detalhado)
+function renderScenResumo(o,r){
+  const cols=[['Conservador',r.cons,r.dC],['Base',r.b,r.dB],['Otimista',r.otim,r.dO]];
+  const rt=cols.map(([n,s])=>recoveryTimeline(o,s));
+  const row=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,s,d])=>`<td style="text-align:right;font-family:var(--fmono)">${fn(s,d)}</td>`).join('')}</tr>`;
+  return `<div style="overflow:auto;margin-top:10px"><table>
+    <thead><tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr></thead><tbody>
+    ${row('Conversão efetiva', s=>pct(s.conv))}
+    ${row('Receita contratada', s=>brl(s.bruto))}
+    ${row('<b>Lucro operacional</b>', s=>'<b>'+brl(s.lucro)+'</b>')}
+    ${row('<b>Resultado — '+esc(opName(o))+'</b>', (s,d)=>`<b style="color:${d.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(d.operadorNet)}</b>`)}
+    <tr><td>Recupera o aporte em (meses)</td>${rt.map(x=>`<td style="text-align:right;font-family:var(--fmono)">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <div class="pill-note" style="margin-top:8px">Resumo dos 3 cenários (flexão da conversão −${o.hairConserv}% / base / +${o.hairOtim}%). Para a cascata completa, use "Ver detalhado". Tudo [D].</div>`;
+}
 function renderRecovery(o,s){
   const rt=recoveryTimeline(o,s);
   const recTxt = rt.invest<=0 ? 'sem aporte a recuperar'
@@ -1077,7 +1092,11 @@ function recompute(o){
     <div class="scen"><h4>Base</h4><div class="big" style="color:${r.dB.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dB.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.b.lucro)}</div></div>
     <div class="scen"><h4>Otimista (+${o.hairOtim}%)</h4><div class="big" style="color:${r.dO.operadorNet<0?'var(--bad)':'var(--good)'}">${brl(r.dO.operadorNet)}</div><div class="muted">operador · lucro ${brl(r.otim.lucro)}</div></div>
   </div>
-  <div style="margin-top:8px"><button class="btn ghost sm" id="scenToggle">${o._scenOpen?'Ocultar detalhamento':'Ver detalhado dos 3 cenários'}</button></div>
+  <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn ghost sm" id="scenResumoBtn">${o._scenResumo?'Ocultar resumo':'Ver resumido dos 3 cenários'}</button>
+    <button class="btn ghost sm" id="scenToggle">${o._scenOpen?'Ocultar detalhamento':'Ver detalhado dos 3 cenários'}</button>
+  </div>
+  <div id="scenResumo" style="${o._scenResumo?'':'display:none'}">${renderScenResumo(o,r)}</div>
   <div id="scenDetail" style="${o._scenOpen?'':'display:none'}">${renderScenDetail(o,r)}</div>
   <div class="statbar" style="margin-top:14px">
     <div class="s"><b>${brl(s.cac)}</b><span>CAC calculado (mídia+base ÷ clientes)</span></div>
@@ -1112,6 +1131,7 @@ function recompute(o){
   </div>`;
   const rb=document.getElementById('recoveryBody'); if(rb) rb.innerHTML=renderRecovery(o,s);
   const stg=document.getElementById('scenToggle'); if(stg) stg.onclick=()=>{o._scenOpen=!o._scenOpen;recompute(o);};
+  const srb=document.getElementById('scenResumoBtn'); if(srb) srb.onclick=()=>{o._scenResumo=!o._scenResumo;recompute(o);};
 }
 
 /* ---------------- Raio-X / Gerador de estrutura de lançamento ---------------- */
@@ -2096,6 +2116,91 @@ function normalizeOppDefaults(o){
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
   return o;
 }
+// Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
+function renderApresentacao(o){
+  const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
+  const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const e=estrategia(o), pb=playbookAplicado(o), m=mercadoGTM(o);
+  const seg=seguidoresTotais(o), alc=audienciaAlcancavel(o), eng=audienciaEngajada(o);
+  const niv=NIVEL[o.nivelPublico]||'—', fmt=FORMATO[o.formatoEntrega]||'—';
+  const cols=[['Conservador',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
+  const rtc=cols.map(([n,sc])=>recoveryTimeline(o,sc));
+  const cenRow=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,sc,d])=>`<td style="text-align:right">${fn(sc,d)}</td>`).join('')}</tr>`;
+  const H3='font-size:13px;margin:16px 0 6px;color:#0f172a';
+  const fasesH=e.jornada.fases.map(f=>`<tr><td><b>${esc(f.f)}</b> <span class="muted">${esc(f.janela)}</span></td><td>${esc(f.obj)}</td><td>${esc(f.meta)}</td></tr>`).join('');
+  const adsH=e.ads.camadas.map(c=>`<tr><td><b>${esc(c.t)}</b></td><td>${brl(c.verba)}</td><td>${esc(c.obj)}</td></tr>`).join('');
+  const compraH=e.compra.passos.map(p=>`<li><b>${esc(p.t)}:</b> ${esc(p.d)}</li>`).join('');
+  const crencasH=crencasFalsas(o).map(c=>`<li><b>${esc(c.t)}:</b> ${esc(c.obj)} → ${esc(c.ponte)}</li>`).join('');
+  const diagH=diagnosticoProduto(o).slice(0,6).map(x=>`<li><b>${esc(x.d)}:</b> ${esc(x.imp)} <span class="muted">(${esc(x.f)})</span></li>`).join('');
+  const gapsH=e.gaps.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('');
+  return `
+   <p class="lead">${esc(o.nome)||'Expert'}${o.nicho?' · '+esc(o.nicho):''} &nbsp;×&nbsp; ${esc(opName(o))}</p>
+
+   <h2>1 · Resumo executivo</h2>
+   <div class="verdict ${a.vclass}"><b>${a.verdict}.</b> ${a.vmsg}</div>
+   <table>
+     <tr><td>Produto · modalidade</td><td>${esc(o.produtoNome)||'—'} · ${esc((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label)}</td></tr>
+     <tr><td>Modelo recomendado</td><td><b>${MODELOS[modelo].label}</b>${modelo!==rec.top?' (fixado)':''}</td></tr>
+     <tr><td>Ângulo</td><td>Educação / disciplina — sem promessa de ganho</td></tr>
+     <tr><td>Ticket médio</td><td>${brl(ticketMensalBlend(o))}/mês</td></tr>
+     <tr><td>Aporte de ${esc(opName(o))}</td><td>${brl(rt.invest)} — recupera em ${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses de caixa':'não recupera no horizonte')}</td></tr>
+   </table>
+
+   <h2>2 · A oportunidade</h2>
+   <p>${esc(o.hipotese)||('Unir a audiência e a autoridade do expert à infraestrutura e ao método de '+opName(o)+', num modelo de parceria por divisão de receita — cada lado entra com o que tem de mais forte.')}</p>
+   <p><b>Dor central do público:</b> ${esc(o.dorPrimaria)}. <b>Promessa-núcleo:</b> ${esc(e.dor.promessa)}.</p>
+
+   <h2>3 · Quem — expert &amp; audiência</h2>
+   <table>
+     <tr><td>Seguidores (bruto)</td><td>${num(seg)}</td></tr>
+     <tr><td>Audiência alcançável (${o.alcancePct||0}%)</td><td>${num(alc)}</td></tr>
+     <tr><td>Audiência engajada</td><td>${num(eng)}</td></tr>
+     <tr><td>Intenção de compra</td><td>${esc(o.intencao||'—')}</td></tr>
+     <tr><td>Nível do público · formato</td><td>${esc(niv)} · ${esc(fmt)}</td></tr>
+   </table>
+
+   <h2>4 · Mercado endereçável <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— bottom-up, com teto real da B3</span></h2>
+   <table>
+     <tr><td>Clientes potenciais (limitado pelo teto)</td><td>${num(m.clientesCap,0)}</td></tr>
+     <tr><td>Teto do nicho</td><td>${m.teto!=null?num(m.teto)+' CPFs ('+esc(nichoInfo(o).fonte)+')':'sem teto de bolsa'}</td></tr>
+     <tr><td>Valor de contrato potencial (topo)</td><td>${brl(m.receitaPot)}</td></tr>
+   </table>
+   <p class="muted" style="font-size:11px">Não é TAM; é receita contratada potencial (não caixa nem lucro). GAP-002.</p>
+
+   <h2>5 · Diagnóstico do produto</h2>
+   <ul>${diagH}</ul>
+
+   <h2>6 · Estratégia</h2>
+   <p><b>Modelo: ${MODELOS[modelo].label}</b> — ${esc(MODELOS[modelo].problema)}. <b>Estrutura:</b> ${esc(e.jornada.estrutura)}.</p>
+   <h3 style="${H3}">Jornada de conteúdo</h3>
+   <table><tr><th>Fase</th><th>Objetivo</th><th>Meta</th></tr>${fasesH}</table>
+   <h3 style="${H3}">Trilha de ads</h3>
+   <table><tr><th>Camada</th><th>Verba</th><th>Objetivo</th></tr>${adsH}</table>
+   <p class="muted" style="font-size:11px">${esc(e.ads.nota)}</p>
+   <h3 style="${H3}">Jornada de compra</h3>
+   <ul>${compraH}</ul>
+
+   <h2>7 · Mensagem &amp; copy</h2>
+   ${pb.bigDomino?`<p><b>Big Domino:</b> ${esc(pb.bigDomino)}</p>`:'<p class="muted">Preencha o Essencial da oferta (promessa + mecanismo) para o Big Domino específico.</p>'}
+   <p><b>Objeções a quebrar (3 crenças):</b></p><ul>${crencasH}</ul>
+
+   <h2>8 · Viabilidade financeira <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— 3 cenários (flexão da conversão)</span></h2>
+   <table>
+     <tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr>
+     ${cenRow('Conversão efetiva', sc=>pct(sc.conv))}
+     ${cenRow('Receita contratada', sc=>brl(sc.bruto))}
+     ${cenRow('Lucro operacional', sc=>brl(sc.lucro))}
+     ${cenRow('Resultado — '+esc(opName(o)), (sc,d)=>brl(d.operadorNet))}
+     <tr><td>Recupera o aporte em (meses)</td>${rtc.map(x=>`<td style="text-align:right">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
+   </table>
+   <p><b>Go/No-Go:</b> ${a.verdict}. Break-even da conversão: ${a.be!=null?pct(a.be/100):'—'}. ${esc(opName(o))} recupera o aporte antes do split; no prejuízo assume a perda (o parceiro não fica negativo).</p>
+
+   <h2>9 · Próximos passos &amp; transparência</h2>
+   <p><b>O que ainda falta saber:</b></p><ul>${gapsH}</ul>
+   <p><b>Compliance:</b> ${esc(pb.compliance)}</p>
+   <div class="disc"><b>Transparência:</b> a projeção é <b>estrutura reproduzível, não previsão</b>. Conversão e churn são premissas <b>[D]</b> — só um lançamento piloto as valida. Nenhum número de mercado foi inventado (bottom-up com teto da B3). Não é promessa de resultado.</div>
+  `;
+}
 function viewCompilador(){
   setActive('compilador');
   if(!compOpp) compOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
@@ -2137,7 +2242,10 @@ function viewCompilador(){
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
     <div><h1>Compilador de Lançamento</h1><p class="sub">Uma oportunidade, as 3 features num só painel: <b>diagnóstico → estratégia → estrutura</b>. Por etapas, clean, replicável.</p></div>
-    <select id="compLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="compLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn sm" id="compApres">Apresentação completa</button>
+    </div>
   </div>
   <div class="tabs" id="compTabs">
     <button class="tab active" data-tab="resumo">Resumo</button>
@@ -2153,6 +2261,7 @@ function viewCompilador(){
     main.querySelectorAll('#compTabs .tab').forEach(x=>x.classList.toggle('active',x===b));
     main.querySelectorAll('.tabpane').forEach(p=>p.style.display=(p.dataset.pane===t)?'':'none');});
   document.getElementById('compLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){compOpp=JSON.parse(JSON.stringify(src));viewCompilador();}}});
+  const ca=document.getElementById('compApres'); if(ca) ca.onclick=()=>openReport(renderApresentacao(o),'Apresentação de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const g=b.dataset.goto, clone=JSON.parse(JSON.stringify(o));
     if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
     else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);}});
