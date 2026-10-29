@@ -423,6 +423,7 @@ function blankOpp(){
     // Estrategista — vetores de decisão de modelo + personalização
     produtoValidado:'parcial', jaVendeBase:'nao', temParceiros:false,
     objetivoCampanha:'faturar_base', janelaCampanha:'normal', audienciaTemp:'fria', modeloEscolhido:'',
+    modalidadeProduto:'operacao', // operacao | copy | educacional | ferramenta | outro — NÃO assumir day-trade para todo produto
     status:'rascunho'
   };
 }
@@ -1549,6 +1550,35 @@ const CANAL_FMT={
   x:{cpl:'threads e Spaces no X para aquecer, mas leve a conversão para vídeo (YouTube/IG)',topo:'threads de volume no X; conversão sempre no vídeo'},
   outro:{cpl:'vídeo longo no canal onde o expert tiver mais engajamento real',topo:'conteúdo educativo no canal principal do expert'}
 };
+// Modalidade do produto — NEM TODO produto é operação ativa (day-trade). CopyInvest/carteira = seguir, não operar.
+const MODALIDADE={
+  operacao:{label:'Operação ativa (day/swing — a pessoa opera)',
+    crenca:'A crença a quebrar: "meu problema é achar o setup/indicador certo". Na real, o buraco é execução e gestão emocional (Douglas: você não precisa prever; Livermore: o inimigo é interno).',
+    prova:'Mostre o PROCESSO e a consistência de quem opera com método — disciplina, cortar prejuízo, os 4 medos.',
+    ponte:'O aluno se vê operando com método/processo próprio.',
+    habito:'hábito de ESTUDO/prática (diário de operações, checklist, aula curta) — nunca hábito de operar por impulso'},
+  copy:{label:'Copy / carteira (a pessoa SEGUE uma estratégia, não opera)',
+    crenca:'A crença a quebrar: "eu faço melhor sozinho" ou "não aguento ver cair sem mexer". Na real, o erro é interferir/abandonar a estratégia na hora errada — disciplina aqui é NÃO operar por impulso.',
+    prova:'Mostre a consistência da estratégia ao longo do tempo e o custo de interferir — sem prometer retorno.',
+    ponte:'O investidor se vê seguindo a estratégia com tranquilidade, sem precisar operar.',
+    habito:'hábito de ACOMPANHAR/entender a estratégia (relatório, aula) — explicitamente NÃO interferir/operar por emoção'},
+  educacional:{label:'Educacional (curso / formação)',
+    crenca:'A crença a quebrar: "é complicado demais / preciso de um dom". Na real, é método aprendível, passo a passo.',
+    prova:'Mostre a evolução de alunos no PROCESSO de aprendizado (competência), não ganho financeiro.',
+    ponte:'O aluno se vê dominando o método, do zero.',
+    habito:'hábito de ESTUDO/prática (aula curta diária, exercícios)'},
+  ferramenta:{label:'Ferramenta / plataforma / dados / robô',
+    crenca:'A crença a quebrar: "a ferramenta que uso já resolve" ou "é só mais um gráfico". Na real, a decisão melhora com a ferramenta/dado certo na rotina.',
+    prova:'Demonstre o ganho de eficiência/decisão no uso real — sem prometer resultado financeiro.',
+    ponte:'O usuário se vê usando a ferramenta na rotina de decisão.',
+    habito:'hábito de USO da ferramenta na rotina (checklist/alertas de uso)'},
+  outro:{label:'Outro infoproduto',
+    crenca:'A crença a quebrar depende da promessa central — nomeie a dor real do público, não o "produto".',
+    prova:'Mostre o processo/transformação real de quem já usou — sem claim de resultado financeiro em RV.',
+    ponte:'O prospect se vê alcançando a transformação com o método.',
+    habito:'hábito de uso/estudo adequado ao produto'}
+};
+function crencaNucleo(o){return MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao;}
 function nivelConsciencia(o){
   const quente = o.intencao==='alta' || (o.intencao==='media' && o.expertAutoridade==='alta');
   const frio = o.intencao==='baixa';
@@ -1616,11 +1646,11 @@ function recomendarModelo(o){
 }
 // Jornada de conteúdo ADAPTADA ao modelo
 function jornadaConteudo(o,modelo,ctx){
-  const {dor,canal,nc,rv}=ctx;
+  const {dor,canal,nc,rv}=ctx; const mod=crencaNucleo(o);
   const cplBase=[
-    {n:1,nome:'Oportunidade — quebra de crença',obj:'Mostrar que existe um caminho melhor e destruir a crença que trava.',gatilho:'Autoridade + Reciprocidade [L]',tema:dor.crenca,alvo:nc.rot},
-    {n:2,nome:'Transformação — prova',obj:'Provar que o método funciona: demonstração, bastidores, antes/depois de PROCESSO.',gatilho:'Prova social [L]',tema:rv?'Prove competência/consistência — NUNCA retorno garantido (compliance). Processo, não promessa de lucro.':'Casos e demonstração do método em ação.',alvo:'Consciente da solução'},
-    {n:3,nome:'Propriedade — ponte',obj:'Fazer o prospect se ver praticando; ponte para a oferta; abre o carrinho.',gatilho:'Compromisso/coerência + antecipação [L]',tema:'O prospect se projeta usando o método; transição natural para a oferta.',alvo:'Consciente do produto'}
+    {n:1,nome:'Oportunidade — quebra de crença',obj:'Mostrar que existe um caminho melhor e destruir a crença que trava.',gatilho:'Autoridade + Reciprocidade [L]',tema:mod.crenca,alvo:nc.rot},
+    {n:2,nome:'Transformação — prova',obj:'Provar que o método funciona: demonstração, bastidores, antes/depois de PROCESSO.',gatilho:'Prova social [L]',tema:mod.prova+(rv?' NUNCA retorno garantido (compliance).':''),alvo:'Consciente da solução'},
+    {n:3,nome:'Propriedade — ponte',obj:'Fazer o prospect se ver praticando; ponte para a oferta; abre o carrinho.',gatilho:'Compromisso/coerência + antecipação [L]',tema:mod.ponte+' Transição natural para a oferta.',alvo:'Consciente do produto'}
   ];
   if(modelo==='semente') return {estrutura:'Validação — o foco é descobrir a oferta, não escalar (sem os 3 CPLs formais)',fases:[
       {f:'F0 · Sondagem',janela:'~1–2 semanas',obj:'Pesquisar a audiência: dor real, linguagem, objeções, disposição a pagar.',meta:'nº de respostas / conversas',foco:canal.topo+' + enquetes/DMs/formulário'},
@@ -1628,7 +1658,7 @@ function jornadaConteudo(o,modelo,ctx){
       {f:'F2 · Oferta beta',janela:'janela curta e real',obj:'Vender a 1ª turma com vagas limitadas reais e preço de validação.',meta:'nº de vendas beta + feedback',foco:'oferta simples; preço de pioneiro; vagas de verdade'},
       {f:'F3 · Aprendizado',janela:'pós-beta',obj:'Coletar o que converteu → vira insumo do interno.',meta:'oferta e copy validadas',foco:'depoimentos e linguagem do cliente para o próximo lançamento'}
     ],blocos:{tipo:'Sondagem / validação',items:[
-      {n:1,nome:'Pesquisa de dor',obj:'Descobrir, nas palavras do público, a dor nº 1 e o que já tentaram.',gatilho:'Escuta > pitch',tema:dor.crenca,alvo:'Consciente do problema'},
+      {n:1,nome:'Pesquisa de dor',obj:'Descobrir, nas palavras do público, a dor nº 1 e o que já tentaram.',gatilho:'Escuta > pitch',tema:crencaNucleo(o).crenca,alvo:'Consciente do problema'},
       {n:2,nome:'Teste de ângulo',obj:'Publicar o ângulo educacional e medir reação real.',gatilho:'Reciprocidade [L]',tema:dor.promessa,alvo:'—'},
       {n:3,nome:'Convite beta',obj:'Abrir a 1ª turma para quem levantou a mão.',gatilho:'Escassez verdadeira [L]',tema:'Vagas reais limitadas; preço de pioneiro em troca de feedback.',alvo:'—'}
     ]},nota:'Semente não busca faturamento — busca descobrir a oferta e financiar a 1ª turma. Não trate o resultado como definitivo.'};
@@ -1741,14 +1771,15 @@ function playbookAplicado(o){
   const nk=o.nichoB3||'futuros';
   const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(nk);
   const angulo='Educação / disciplina / gestão de risco — NUNCA promessa de ganho. Triangulado por 3 origens independentes: dor interna Nelogica (SRC-035/036), ANBIMA+Housel (SRC-037/043) e o cânone do trading (SRC-047/048). [B] forte.';
+  const mod=crencaNucleo(o);
   const cpl=[
-    {t:'CPL 1 · Quebra de crença',d:dor.crenca+' O problema não é achar o setup perfeito — é execução e gestão emocional (Douglas: "você não precisa prever"; Livermore: o inimigo é interno).'},
-    {t:'CPL 2 · Prova',d:'Mostre o PROCESSO e a consistência (disciplina, cortar prejuízo, os 4 medos). '+(rv?'NUNCA retorno garantido — prova de competência, não de lucro.':'Casos e demonstração do método.')},
-    {t:'CPL 3 · Ponte',d:'O aluno se vê operando com método/processo; transição natural para a oferta. Abre o carrinho ao final.'}
+    {t:'CPL 1 · Quebra de crença',d:mod.crenca},
+    {t:'CPL 2 · Prova',d:mod.prova+(rv?' NUNCA retorno garantido — prova de competência/consistência, não de lucro.':'')},
+    {t:'CPL 3 · Ponte',d:mod.ponte+' Transição natural para a oferta; abre o carrinho ao final.'}
   ];
   const use=['Especificidade (número verificável)','Honestidade / credibilidade','Autoridade com credencial real','Curiosidade','Storytelling','Simplicidade (3ª série)','Vender a cura (dor presente)'];
   const evite=rv?['Ganância / apelo a lucro','Esperança como promessa de ganho','Medo/urgência de "perder a alta"','Paralelo "é como apostar e você ganha"']:['Promessa vaga sem lastro','Urgência falsa'];
-  const retencao='Ative na 1ª semana (janela de cancelamento '+(o.cancel7Pct||0)+'%). Crie hábito de ESTUDO/prática (diário de operações, checklist, aula curta) — nunca hábito de operar (Hooked SRC-044; evita frame aposta SRC-038).';
+  const retencao='Ative na 1ª semana (janela de cancelamento '+(o.cancel7Pct||0)+'%). Crie '+mod.habito+' (Hooked SRC-044; evita frame aposta SRC-038).';
   const compliance=rv?'Promessa sobre competência/processo, específica e verificável; disclaimer de risco; escassez só se verdadeira. Sem claim de retorno, em nenhuma forma (GAP-003 · SRC-038/048). Falta fonte jurídica/CVM — bloqueio para liberar copy.':'Nicho fora de RV: compliance padrão; mantenha promessa verificável.';
   const transparencia='Mostre premissas, origem e grau de confiança — transparência converte (Sugarman SRC-046) e é o diferencial do LaunchOS frente a métricas infladas.';
   return {rv,angulo,cpl,use,evite,retencao,compliance,transparencia};
@@ -1890,7 +1921,7 @@ let estrOpp=null;
 function ensureEstrOpp(){
   if(!estrOpp) estrOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
   const o=estrOpp, d=blankOpp();
-  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp']
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto']
     .forEach(k=>{if(o[k]==null||o[k]==='') o[k]=d[k];});
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
@@ -1914,6 +1945,7 @@ function viewEstrategia(){
   <div class="card"><h2>Premissas da campanha <span class="tag">o que o algoritmo avalia</span></h2>
     <p class="hint">Ajuste os vetores — o modelo recomendado, a jornada, os ads e a compra se recalculam na hora. Premissas financeiras (verba, ticket, conversão) vêm do Decisor.</p>
     <div class="grid">
+      ${sel('modalidadeProduto','Modalidade do produto',Object.keys(MODALIDADE).map(k=>[k,MODALIDADE[k].label]),'define a crença/ângulo')}
       ${sel('produtoValidado','Produto validado?',[['nao','Não'],['parcial','Parcialmente'],['sim','Sim, convertendo']])}
       ${sel('jaVendeBase','Já vende na base?',[['nao','Não / pouco'],['sim','Sim, com consistência']])}
       ${sel('audienciaTemp','Audiência disponível',[['nenhuma','Nenhuma'],['fria','Fria'],['quente','Quente / relacionada']])}

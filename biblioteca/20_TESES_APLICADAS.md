@@ -28,7 +28,13 @@
 
 **Faça (gatilhos permitidos):** especificidade, honestidade/credibilidade, autoridade **com credencial real**, curiosidade, storytelling, simplicidade (3ª série), "vender a cura" (dor presente). 
 **Evite (bloqueados em RV):** ganância, esperança-como-promessa-de-ganho, medo/urgência de "perder a alta". 
-**Conteúdo pronto de CPL (compliance-safe):** CPL1 quebra de crença = "o problema não é o setup, é execução/emoção"; CPL2 prova = processo/consistência (nunca lucro garantido); CPL3 ponte = o aluno se vê operando com método.
+**Conteúdo de CPL é por MODALIDADE do produto — nem todo produto é operação ativa (day-trade):**
+- **Operação ativa** (day/swing, a pessoa opera): CPL1 = "o problema não é o setup, é execução/emoção"; hábito = estudo, nunca operar por impulso.
+- **Copy / carteira** (CopyInvest — a pessoa SEGUE a estratégia, não opera): CPL1 = "eu faço melhor sozinho / não aguento ver cair sem mexer"; a disciplina é **NÃO interferir**; hábito = acompanhar a estratégia, nunca operar por emoção.
+- **Educacional** (curso): CPL1 = "é complicado demais / preciso de um dom"; hábito = estudo/prática.
+- **Ferramenta/dados/robô**: CPL1 = "a ferramenta que uso já resolve"; hábito = uso na rotina.
+- **Outro**: nomear a dor real do público, não o produto.
+Em todos: CPL2 prova = processo/consistência (nunca retorno garantido em RV); CPL3 ponte = o prospect se vê alcançando a transformação. **Aplicado no app via `modalidadeProduto` (DEC-033).**
 
 ## T4 — Retenção por hábito de ESTUDO reduz churn `[A] (princípio) / [D] (efeito no caso)`
 
