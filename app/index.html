@@ -411,7 +411,7 @@ function blankOpp(){
     impostoPct:10, impostoBase:'faturamento',
     hairConserv:30, hairOtim:20,
     // revenue share — Nelogica aporta e recupera o investido ANTES do split
-    splitBase:'lucro', recuperaInvest:true, investAuto:true, investRecuperar:0, parceirosNote:'',
+    splitBase:'lucro', recuperaInvest:true, investExtra:0, parceirosNote:'',
     // meios de pagamento / recuperação no tempo (caixa)
     pixPct:40, cartaoParcelas:12, cartaoAntecipa:false, taxaAntecipPct:2.5,
     partes:[{nome:'Nelogica',pct:100,operador:true}],
@@ -494,9 +494,11 @@ function computeScenario(o, convMult){
   return {conv,leadsAud,leadsPagos,leadsDB,leads,vendas,efetivos,recPorCliente,bruto,receita,taxaPlat,leadsDBCost,fixos,antesImp,imposto,lucro,custosTotais,custoAquisicao,cac,netMensal,paybackMeses,margemRate,ltvMargem,ltvCac,ltvMargemCac};
 }
 
-// investimento aportado pela Nelogica (caixa adiantado, antes de qualquer receita entrar)
+// investimento aportado pela Nelogica a recuperar antes do split (caixa adiantado):
+// PADRÃO = a verba de tráfego (mídia). Campo editável `investExtra` soma outros aportes
+// (produção, ferramentas, base de leads) quando a Nelogica também os banca. (DEC-034)
 function investidoOperador(o){
-  return (+o.verbaTrafego||0)+(+o.producao||0)+(+o.ferramentas||0)+(+o.outrosFixos||0)+((+o.qtdLeadsDB||0)*(+o.custoLeadDB||0));
+  return (+o.verbaTrafego||0)+(+o.investExtra||0);
 }
 // linha do tempo de recuperação do investimento em CAIXA: PIX à vista (mês 0) + cartão parcelado (D+30/parcela) ou antecipado.
 // O caixa líquido (após taxa de plataforma + imposto s/ receita) cobre o aporte; o split só começa depois.
@@ -522,23 +524,26 @@ function recoveryTimeline(o,s){
   return {invest,receita,pix:+o.pixPct||0,card:100-(+o.pixPct||0),parcelas:P,antecipa,netRate,rows,recMonth,recuperado:(invest<=0)||cum>=invest,horizonte:H,cumFinal:cum};
 }
 
+// Revenue share com recuperação do aporte (cascata correta — DEC-034):
+// 1) o split é sobre o LUCRO LÍQUIDO (receita − plataforma − impostos − tráfego/custos) — ambos os lados
+//    sentem plataforma e impostos; 2) a Nelogica recupera o aporte (tráfego + extras) do topo do caixa líquido;
+// 3) o que sobra é dividido pelos %; no PREJUÍZO o parceiro é protegido (fica em 0) e a Nelogica assume a perda.
+// Obs.: o aporte entra UMA única vez (já está nos custos do lucro); recuperar + dividir o resto é, no lucro
+// positivo, idêntico a dividir o lucro líquido — a recuperação define a proteção no prejuízo e o timing de caixa.
 function distribute(o,s){
   const partes=o.partes; const opIdx=Math.max(0,partes.findIndex(p=>p.operador));
-  // normaliza os % pela soma real: garante conservação (Σ repasses == valor a distribuir) mesmo se não somarem 100
   const pctSum=partes.reduce((a,p)=>a+(+p.pct||0),0); const totPct=pctSum||100;
-  const base = o.splitBase==='receita'? s.receita : s.lucro;
-  let recovered=0;
-  if(o.recuperaInvest){ const alvo = (o.investAuto!==false) ? investidoOperador(o) : (+o.investRecuperar||0); recovered=Math.min(alvo, Math.max(0,base)); }
-  const distributable = base - recovered;
-  const nets=partes.map((p,i)=>{
-    let v=distributable*((+p.pct||0)/totPct);
-    if(i===opIdx){ v+=recovered; if(o.splitBase==='receita') v-=s.custosTotais; }
-    return v;
-  });
-  const operadorNet=nets[opIdx]||0;
-  const repasseParceiros=partes.reduce((a,p,i)=> i===opIdx?a:a+distributable*((+p.pct||0)/totPct),0);
-  const estouro=(o.splitBase==='receita' && operadorNet<0 && s.lucro>=0);
-  return {nets,operadorNet,opIdx,recovered,repasseParceiros,estouro,pctSum};
+  const L=s.lucro;                                              // lucro líquido (já deduz plataforma, impostos, tráfego e demais custos)
+  const invest=o.recuperaInvest?investidoOperador(o):0;        // aporte a recuperar (tráfego + extras)
+  const netRevenue=s.receita-s.taxaPlat-s.imposto;             // caixa líquido antes de abater o aporte
+  const recovered=Math.max(0,Math.min(invest,Math.max(0,netRevenue))); // quanto a Nelogica tira do topo (não mais que o caixa gerado)
+  const distributable = o.recuperaInvest ? Math.max(0,L) : L;  // com recuperação: parceiro não divide prejuízo (Nelogica assume o risco)
+  const nets=partes.map((p,i)=> i===opIdx?0:distributable*((+p.pct||0)/totPct));
+  const repasseParceiros=nets.reduce((a,v,i)=> i===opIdx?a:a+v,0);
+  const operadorNet=L-repasseParceiros;                        // operador fica com o residual do lucro (recupera o aporte + sua fatia; absorve perdas)
+  nets[opIdx]=operadorNet;
+  const estouro=operadorNet<0;                                 // operador no vermelho = não recuperou o aporte
+  return {nets,operadorNet,opIdx,recovered,repasseParceiros,estouro,pctSum,invest,distributable};
 }
 
 function breakEvenConv(o){
@@ -772,7 +777,7 @@ function renderPitchHTML(o){
      <tr><td>Formatos do produto</td><td>${getPlanos(o).map(p=>esc(p.nome)+' — '+num(p.meses)+'m · '+brl(p.ticketMensal)+'/mês · '+num(p.mix)+'%').join('<br>')}</td></tr>
      <tr><td>Retenção</td><td>${o.cancel7Pct}% cancelam em 7 dias · multa ${o.multaPct}% · churn por formato (% do período)</td></tr>
      <tr><td>Conversão premissada</td><td>${o.convLista}% (lead → venda)</td></tr>
-     <tr><td>Divisão de receita</td><td>${o.partes.map(p=>esc(p.nome)+' '+p.pct+'%').join(' · ')} — sobre ${o.splitBase}</td></tr>
+     <tr><td>Divisão de receita</td><td>${o.partes.map(p=>esc(p.nome)+' '+p.pct+'%').join(' · ')} — sobre o lucro líquido, após a Nelogica recuperar o aporte</td></tr>
    </table>
    <h2>Potencial por cenário <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— projeção baseada nas premissas, não garantia</span></h2>
    <table>
@@ -879,17 +884,17 @@ function viewDetail(o){
       ${field(o,'Leads da base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
       ${field(o,'Custo por lead (base Nelogica)','custoLeadDB',{suffix:'R$/lead'})}
     </div>
-    <div class="pill-note">A <b>base de leads Nelogica</b> entra como custo (qtd × R$/lead) <b>e</b> como contribuição da Nelogica — você pode marcá-la como investimento a recuperar no split (bloco 4).</div>
+    <div class="pill-note">A <b>base de leads Nelogica</b> entra como custo (qtd × R$/lead). Se a Nelogica também banca esse valor, some-o aos <b>aportes a recuperar</b> no bloco 4 (botão abaixo).</div>
 
-    <h3 class="grp">4. Revenue share e parceiros <span class="muted" style="font-weight:400;font-size:11px">(1 a N partes)</span></h3>
+    <h3 class="grp">4. Revenue share e parceiros <span class="muted" style="font-weight:400;font-size:11px">(1 a N partes · split sobre o lucro líquido)</span></h3>
     <div class="grid" style="margin-bottom:10px">
-      ${field(o,'Base do split','splitBase',{type:'select',options:[['lucro','Sobre o lucro'],['receita','Sobre a receita']]})}
-      ${field(o,'Recuperar investimento antes do split?','recuperaInvest',{type:'check'})}
-      ${field(o,'Valor a recuperar','investRecuperar',{suffix:'R$'})}
+      ${field(o,'Recuperar aporte antes do split?','recuperaInvest',{type:'check'})}
+      ${field(o,'Outros aportes a recuperar (além do tráfego)','investExtra',{suffix:'R$'})}
     </div>
+    <div class="pill-note">A Nelogica recupera o <b>tráfego</b> (R$ ${num(+o.verbaTrafego||0)}) ${(+o.investExtra>0)?('+ extras (R$ '+num(+o.investExtra)+') '):''}do topo do caixa líquido; o <b>resto é dividido pelos %</b>. No prejuízo, o parceiro fica em 0 e a Nelogica assume a perda (assume o risco).</div>
     ${partesHtml}
     <button class="btn ghost sm" id="addParte">+ adicionar parte</button>
-    <button class="btn ghost sm" id="setRecLeads" style="margin-left:6px">usar custo da base Nelogica como valor a recuperar</button>
+    <button class="btn ghost sm" id="setRecLeads" style="margin-left:6px">somar custo da base de leads aos aportes</button>
     <div style="margin-top:12px">${field(o,'Parceiros envolvidos (notas)','parceirosNote',{type:'text',q:'quem faz o quê, acordos'})}</div>
     <div id="splitAlert"></div>
   </div>
@@ -955,7 +960,7 @@ function viewDetail(o){
     fn.innerHTML=`<div class="alertbox"><b>Busca automática indisponível neste ambiente.</b> Esta sessão não tem acesso à internet, e coletar seguidores de todas as redes exige APIs específicas (muitas pagas) — scraping viola os termos das plataformas. Por ora, informe os seguidores manualmente. Quando houver acesso + fontes de dados, ligo o enriquecimento automático aqui (Instagram, YouTube, TikTok, etc.).</div>`;
   };
   document.getElementById('addParte').onclick=()=>{o.partes.push({nome:'Nova parte',pct:0,operador:false});viewDetail(o);};
-  document.getElementById('setRecLeads').onclick=()=>{o.recuperaInvest=true;o.investRecuperar=(+o.qtdLeadsDB||0)*(+o.custoLeadDB||0);viewDetail(o);};
+  document.getElementById('setRecLeads').onclick=()=>{o.recuperaInvest=true;o.investExtra=(+o.investExtra||0)+(+o.qtdLeadsDB||0)*(+o.custoLeadDB||0);viewDetail(o);};
   document.getElementById('saveBtn').onclick=()=>{o.status='salvo';const i=opps.findIndex(x=>x.id===o.id);if(i>=0)opps[i]=o;else opps.push(o);save(opps);viewList();};
   recompute(o);
   bindPlano(o);
@@ -1018,7 +1023,7 @@ function renderRecovery(o,s){
       <span style="font-size:11px">${brl(r.cum)}</span></div>`;
   }).join('');
   return `<div class="statbar" style="margin-top:4px">
-     <div class="s"><b>${brl(rt.invest)}</b><span>aporte do operador (${esc(opName(o))}) · mídia+prod+ferr+leads</span></div>
+     <div class="s"><b>${brl(rt.invest)}</b><span>aporte do operador (${esc(opName(o))}) · tráfego${(+o.investExtra>0)?' + extras':''}</span></div>
      <div class="s"><b>${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera')}</b><span>recuperação em caixa</span></div>
      <div class="s"><b>${num(rt.pix)}% / ${num(rt.card)}%</b><span>PIX à vista / cartão ${rt.antecipa?'antecipado':rt.parcelas+'x'}</span></div>
    </div>
@@ -1085,7 +1090,7 @@ function recompute(o){
       ${line('Imposto (base '+o.impostoBase+')',s.imposto,true)}
       <div class="line total"><span>Lucro operacional</span><span>${brl(s.lucro)}</span></div>
     </div><div class="pill-note">Receita <b>contratada</b> ao longo do termo; o caixa entra mensalmente (GAP-008). Modelo de fluxo de caixa no tempo ainda não implementado.</div></div>
-    <div><h3 class="grp" style="margin-top:0">Distribuição (base: ${o.splitBase})</h3><div class="casc">
+    <div><h3 class="grp" style="margin-top:0">Distribuição <span class="muted" style="font-weight:400;font-size:11px">(lucro líquido, após recuperação do aporte)</span></h3><div class="casc">
       ${o.recuperaInvest?`<div class="line"><span>Recuperação de investimento</span><span>${brl(d.recovered)}</span></div>`:''}
       ${partesOut}</div>
       <h3 class="grp">Sensibilidade</h3><div class="casc">

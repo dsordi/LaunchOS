@@ -42,12 +42,15 @@ LTV:CAC = margem de contribuição/cliente ÷ CAC        ← MARGEM, não receit
 payback (meses) = CAC ÷ margem mensal por cliente
 ```
 
-**Split / revenue share (1..N partes):**
+**Split / revenue share (1..N partes) — cascata corrigida (DEC-034):**
 ```
-base = lucro (ou receita, se escolhido)
-repasse de cada parte = (base − recuperação) × (pct da parte ÷ Σ pct)   ← normalizado: conserva o total
-operador recebe o residual (+ recuperação de investimento; − custos, se split sobre receita)
+split SEMPRE sobre o LUCRO LÍQUIDO (receita − plataforma − impostos − tráfego/custos) — ambos os lados sentem plataforma e impostos
+aporte a recuperar = tráfego (padrão) + extras editáveis (investExtra)   ← UMA vez (já está nos custos do lucro)
+distribuível = max(0, lucro)            ← no prejuízo o parceiro é protegido (fica em 0)
+repasse de cada parte (não-operador) = distribuível × (pct ÷ Σ pct)
+operador (Nelogica) = lucro − Σ repasses   ← recebe o residual: recupera o aporte + sua fatia; ABSORVE a perda (assume o risco)
 ```
+→ **Correção do double-count:** o aporte já está deduzido no lucro; a versão anterior o subtraía de novo na distribuição, lesando o parceiro em `pct_parceiro × aporte`. Agora: no lucro positivo, "recuperar + dividir o resto" = dividir o lucro líquido (parceiro = pct × lucro); a recuperação define a **proteção no prejuízo** e o **timing de caixa**, não um segundo desconto. Verificado em `audit4` (lucro+, prejuízo, ON/OFF, aporte extra).
 
 **Mercado endereçável (bottom-up — E2):**
 ```
@@ -56,9 +59,9 @@ valor de contrato potencial = clientes potenciais × receita/cliente       ← t
 ```
 Tetos (B3, 2T2026 — SRC-039): day-trade/futuros ~235,8 mil CPFs · ações ~4,3 mi · RV total ~5,7 mi · FIIs ~3,4 mi.
 
-**Recuperação do investimento em caixa (DEC-027):**
+**Recuperação do investimento em caixa (DEC-027, aporte revisado em DEC-034):**
 ```
-aporte Nelogica = mídia + produção + ferramentas + outros + custo da base de leads   (caixa adiantado)
+aporte Nelogica = TRÁFEGO (padrão) + extras editáveis (investExtra)   (caixa adiantado; antes = mídia+prod+ferr+outros+leads)
 caixa do mês m = receitas que entram no mês m × (1 − taxa plataforma% − imposto s/ receita%)
   · PIX     → valor integral do período no mês 0 (≈ D+1)
   · cartão  → parcela k no mês k (D+30 × k), ou antecipado no mês 0 (− taxa de antecipação)
