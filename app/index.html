@@ -359,7 +359,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.8 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.9 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -877,7 +877,12 @@ function viewDetail(o){
     <h3 class="grp">1. Produto — assinatura</h3>
     <div class="grid">
       ${field(o,'Produto a vender','produtoNome',{type:'text',q:'linha/produto (expert ou operador)'})}
+      ${field(o,'Tipo de produto (modalidade)','modalidadeProduto',{type:'select',options:Object.keys(MODALIDADE).map(k=>[k,MODALIDADE[k].label]),q:'define crença, ângulo e retenção em todo o sistema'})}
+      ${field(o,'Nível do público','nivelPublico',{type:'select',options:Object.keys(NIVEL).map(k=>[k,NIVEL[k]])})}
+      ${field(o,'Formato de entrega','formatoEntrega',{type:'select',options:Object.keys(FORMATO).map(k=>[k,FORMATO[k]])})}
+      ${field(o,'Toca renda variável?','rendaVariavel',{type:'check'})}
     </div>
+    <div class="pill-note">A <b>modalidade</b>, o <b>nível</b> e o <b>formato</b> definidos aqui alimentam o Estrategista, a Produtização, a Recomendação e a apresentação — é a classificação central do produto.</div>
     <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Formatos de comercialização <span class="muted" style="font-weight:400">— 1 produto, vários planos (ex.: mensal, semestral, anual, bianual)</span></h4>
     <div style="display:grid;grid-template-columns:1fr 70px 100px 60px 80px auto;gap:8px;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px"><span>Formato</span><span>Meses</span><span>R$/mês</span><span>Mix %</span><span>Churn % período</span><span></span></div>
     ${planosHtml}
@@ -887,7 +892,6 @@ function viewDetail(o){
     <div class="grid">
       ${field(o,'Cancelam em 7 dias','cancel7Pct',{suffix:'% (saem sem custo)'})}
       ${field(o,'Multa pós-7 dias','multaPct',{suffix:'% do valor restante'})}
-      ${field(o,'Toca renda variável?','rendaVariavel',{type:'check'})}
     </div>
     <div id="recNote" class="pill-note"></div>
     <div id="compAlert"></div>
@@ -1176,7 +1180,8 @@ const blankProduto=()=>({nome:'',oqueeh:'',paraque:'',publico:'',categoria:'prof
 function oppToProduto(o){
   const seg=seguidoresTotais(o); let aud='nenhuma'; if(seg>0) aud=(o.intencao==='baixa'?'fria':'quente');
   const v=+o.verbaTrafego||0; const verba=v>50000?'alta':(v>=10000?'media':'baixa');
-  return {nome:o.nome||'',oqueeh:o.produtoNome||'',paraque:o.hipotese||'',publico:o.nicho||'',categoria:'outro',cvp:'novo',validado:o.produtoPronto==='sim'?'sim':'nao',jaVende:o.intencao==='alta'?'sim':'nao',audiencia:aud,verba,rendaVariavel:!!o.rendaVariavel,baseAlvo:Math.round(audienciaAlcancavel(o)),adesaoPct:+o.convLista||5,ticketRef:Math.round(ticketMensalBlend(o))};
+  const categoria=o.modalidadeProduto==='educacional'?'educacional':(o.modalidadeProduto==='ferramenta'?'profit_addon':'outro');
+  return {nome:o.nome||'',oqueeh:o.produtoNome||'',paraque:o.hipotese||'',publico:o.nicho||'',categoria,modalidade:o.modalidadeProduto||'operacao',modalidadeLabel:(MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label,cvp:'novo',validado:(o.produtoValidado==='sim')?'sim':'nao',jaVende:(o.jaVendeBase==='sim'||o.intencao==='alta')?'sim':'nao',audiencia:aud,verba,rendaVariavel:!!o.rendaVariavel,baseAlvo:Math.round(audienciaAlcancavel(o)),adesaoPct:+o.convLista||5,ticketRef:Math.round(ticketMensalBlend(o))};
 }
 function gfield(p,label,key,opts={}){
   const t=opts.type||'text';
@@ -1196,7 +1201,7 @@ function gerarEstrutura(p){
   const publico=esc(p.publico||cat.publico), beneficio=esc(p.paraque||'[benefício central]'), produto=esc(p.oqueeh||p.nome||'[produto]');
   // 1. RAIO-X
   const raiox=[];
-  raiox.push({t:'info',txt:`Categoria: <b>${cat.label}</b>. Mercado endereçável = <b>${cat.mercado}</b> — dimensionado de baixo para cima, nunca TAM de cima (regra do projeto; GAP-002).`});
+  raiox.push({t:'info',txt:`Tipo de produto: <b>${p.modalidadeLabel||cat.label}</b>. Mercado endereçável = <b>${cat.mercado}</b> — dimensionado de baixo para cima, nunca TAM de cima (regra do projeto; GAP-002).`});
   raiox.push(validado?{t:'ok',txt:'Produto validado — pode vender para a base.'}:{t:'alerta',txt:'Produto não validado — risco de vender algo que o mercado não quer. Validar antes de escalar.'});
   if(aud==='nenhuma') raiox.push({t:'bloqueio',txt:'Sem audiência própria: construir ou emprestar lista antes de qualquer carrinho (captação é pré-requisito).'});
   else if(aud==='fria') raiox.push({t:'alerta',txt:'Audiência fria: aquecer e gerar sinal de intenção antes de ofertar — seguidores ≠ influência (Pissarra, SRC-034).'});
