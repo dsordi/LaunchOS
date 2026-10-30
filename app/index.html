@@ -357,7 +357,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.6 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.7 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -438,6 +438,8 @@ function blankOpp(){
     nivelPublico:'iniciante', formatoEntrega:'gravado',
     // Essencial da oferta — alimenta copy específica (Big Domino, headlines, stack) no Playbook
     ofertaPromessa:'', ofertaMecanismo:'', ofertaProva:'', ofertaBonus:'',
+    // contexto de produto (Produtização / arquiteto de produto)
+    tipoOferta:'nova', resultadoSonho:'', estadoAtual:'', estadoDesejado:'', tempoResultado:'medio', esforcoCliente:'medio', porqueUnico:'', garantia:'', gatilhoHabito:'',
     status:'rascunho'
   };
 }
@@ -2205,7 +2207,7 @@ function viewEstrategia(){
 let compOpp=null;
 function normalizeOppDefaults(o){
   const d=blankOpp();
-  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','nivelPublico','formatoEntrega','splitBase'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
+  ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','nivelPublico','formatoEntrega','splitBase','tipoOferta','tempoResultado','esforcoCliente'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(o.adesaoMercado==null)o.adesaoMercado=5;
   if(o.optinBaseDB==null)o.optinBaseDB=d.optinBaseDB;
@@ -2401,11 +2403,7 @@ function renderApresentacao(o){
 
    <h2>7 · Mensagem, pitch &amp; produtização</h2>
    <p><b>Pitch (uma linha):</b> ${esc(P.pitch.umaLinha)}</p>
-   <table>
-     <tr><td style="width:150px">Porquê (Why)</td><td>${esc(P.golden.why)}</td></tr>
-     <tr><td>Como (How)</td><td>${esc(P.golden.how)}</td></tr>
-     <tr><td>O quê (What)</td><td>${esc(P.golden.what)}</td></tr>
-   </table>
+   <p><b>Natureza da oferta:</b> ${esc(P.natureza.tipo)}. &nbsp; <b>Prontidão para investir:</b> ${esc(P.prontidao.verdict)} — ${esc(P.prontidao.resumo)}</p>
    <p style="margin-top:8px"><b>SWOT (resumo):</b></p>
    <table>
      <tr><th>Forças</th><th>Fraquezas</th><th>Oportunidades</th><th>Ameaças</th></tr>
@@ -2604,7 +2602,7 @@ function viewRecomendacao(){
     else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);} else if(g==='compilador'){compOpp=clone;viewCompilador();}});
 }
 
-/* ---------------- Produtização (Golden Circle + SWOT + pitch + coerência) ---------------- */
+/* ---------------- Produtização (arquiteto de produto: frameworks práticos do corpus + prontidão para investir) ---------------- */
 // Frameworks determinísticos que ORGANIZAM o raciocínio. A SWOT é pré-preenchida com sinais que o app já
 // calcula; o Golden Circle, da oferta/dor. O subjetivo fica marcado [você preenche] — não invento conteúdo.
 // Fontes: SWOT via Kotler (SRC-033) [A] + sinais do app · Golden Circle = Sinek, boa prática [L] (não auditado)
@@ -2678,71 +2676,161 @@ function produtizacao(o){
   if(!promessa) flag(true,'Promessa central vazia: sem ela o Golden Circle (Why) e o pitch ficam genéricos.');
   if(!mecanismo) flag(true,'Mecanismo único vazio: sem ele não há diferenciação — o pitch vira commodity.');
   if(!coer.some(c=>c.t==='alerta'||c.t==='bloqueio')) coer.push({t:'ok',txt:'Sem incoerências críticas entre produto, público, formato, preço e modelo.'});
-  const fontes=[
-    'Golden Circle (Why-How-What): Simon Sinek, Start With Why — boa prática [L], não auditada (fora do corpus).',
-    'SWOT: análise estratégica clássica, via Kotler &amp; Keller (SRC-033) [A] + sinais calculados pelo app.',
-    'Pitch / posicionamento de uma linha: StoryBrand (SRC-031) [A] + Moore/Dunford [L].',
-    'Big Domino: Brunson, Expert Secrets (SRC-041) [A-resumo].'
+  // ======== Arquiteto de produto — frameworks PRÁTICOS do corpus ========
+  const porque=(o.porqueUnico||'').trim(), sonho=(o.resultadoSonho||'').trim(), antes=(o.estadoAtual||'').trim(), depois=(o.estadoDesejado||'').trim(), garantia=(o.garantia||'').trim(), gatilho=(o.gatilhoHabito||'').trim();
+  const tempo=o.tempoResultado||'medio', esforco=o.esforcoCliente||'medio', tipoOf=o.tipoOferta||'nova';
+  const planos=getPlanos(o);
+  // 1. Natureza da oferta: Nova Oportunidade × Melhoria (Brunson, Expert Secrets SRC-041)
+  const natureza = tipoOf==='nova'
+    ? {tipo:'Nova Oportunidade', status:'ok',
+       leitura:'Posicionada como NOVA OPORTUNIDADE — o enquadramento que mais converte (Brunson): um novo veículo que não depende das tentativas que já falharam.',
+       acao:porque?`Sustente a novidade no mecanismo: ${porque}.`:'Explique POR QUE o mecanismo é novo (campo "porquê é único") — sem isso soa como mais uma promessa.'}
+    : {tipo:'Melhoria', status:'ajuste',
+       leitura:'Está posicionada como MELHORIA do que a pessoa já faz. Brunson: oferta de melhoria luta contra o fracasso passado e a força de vontade do cliente — converte menos.',
+       acao:`Reposicione como nova oportunidade: em vez de "fazer melhor o que já faz", ofereça um NOVO caminho (${mecanismo||'seu mecanismo'}) que torna as tentativas anteriores irrelevantes.`};
+  // 2. A oferta em camadas de valor (Brunson + Sugarman SRC-046 + Kahneman SRC-055)
+  const lever=(nome,ok,leitura,acao,fonte)=>({nome,status:ok?'ok':'ajuste',leitura,acao,fonte});
+  const valorLevers=[
+    lever('Resultado dos sonhos', !!sonho, sonho?('Claro: '+sonho):'Não definido — o desejo é o maior motor de valor (Brunson).', sonho?'Mantenha específico e concreto na copy.':'Descreva o resultado dos sonhos do cliente em uma frase concreta.', 'Brunson'),
+    lever('Credibilidade / prova', !!prova, prova?('Tem prova: '+prova):'Sem prova — a probabilidade percebida de sucesso cai (Sugarman).', prova?'Use a prova no CPL 2 e na página de vendas.':'Inclua caso/depoimento/dado verificável — é o que torna a promessa crível.', 'Sugarman/Brunson'),
+    lever('Velocidade até o 1º resultado', tempo==='rapido', 'Tempo até o 1º resultado: '+({rapido:'rápido (semanas)',medio:'médio (1–3 meses)',longo:'longo (>3 meses)'}[tempo]||'—')+'.', tempo==='rapido'?'Ótimo — destaque o "quick win" logo no início.':'Crie um "quick win" na 1ª semana (bônus/aula) que entregue um resultado pequeno e rápido — acelera a percepção de valor (Brunson).', 'Brunson/Kahneman'),
+    lever('Esforço / simplicidade', esforco==='baixo', 'Esforço exigido do cliente: '+esforco+'.', esforco==='baixo'?'Bom — mantenha o caminho simples (slippery slide, Sugarman).':'Reduza o esforço percebido: passo a passo, modelos prontos, "feito-para-você" onde der — menos esforço converte mais.', 'Sugarman/Kahneman')
   ];
-  return {golden,F,W,O,T,tows,pitch,coer,fontes,rv};
+  const valorFraco=valorLevers.filter(l=>l.status==='ajuste');
+  // 3. Escada de valor (Value Ladder — Brunson, DotCom Secrets SRC-042)
+  const ticketsOrd=planos.slice().sort((x,y)=>(x.ticketMensal*x.meses)-(y.ticketMensal*y.meses));
+  const temEntrada=planos.length>=2;
+  const temAscensao=planos.length>=3 || o.formatoEntrega==='aovivo';
+  const ladderFalt=[];
+  if(!temEntrada) ladderFalt.push('ENTRADA (produto barato de porta de entrada / tripwire)');
+  if(!temAscensao) ladderFalt.push('ASCENSÃO (high-ticket: mentoria, comunidade premium ou 1:1)');
+  const ladder={degraus:[
+      {nome:'Isca (grátis)', desc:'aula/isca que captura o lead — topo do funil'},
+      {nome:'Entrada', desc:temEntrada?('formato mais barato: '+ticketsOrd[0].nome):'[faltando: crie um produto de entrada barato]'},
+      {nome:'Núcleo', desc:(prod!=='[seu produto]'?prod:'o produto')+' — a oferta principal'},
+      {nome:'Ascensão', desc:temAscensao?'mentoria/comunidade/1:1 (maior valor)':'[faltando: crie um degrau de ascensão high-ticket]'}
+    ],faltando:ladderFalt,
+    leitura:ladderFalt.length?('Escada com buracos: falta '+ladderFalt.join(' e ')+'. Brunson: sem escada você deixa dinheiro na mesa e não monetiza quem quer mais.'):'Escada de valor completa (isca → entrada → núcleo → ascensão).'};
+  // 4. As 3 crenças + Epiphany Bridge (Brunson SRC-041 / Douglas SRC-048)
+  const cf=crencasFalsas(o);
+  const crencasBridge=cf.map((c,i)=>({t:c.t,crenca:c.obj,ponte:c.ponte,
+    bridge:i===0?('História de origem: você também achava isso até descobrir '+((mecanismo||'o mecanismo').toLowerCase())+'.')
+      :i===1?'Mostre alguém comum (não um gênio) vencendo a objeção interna com o método.'
+      :'Derrube a objeção externa (tempo/dinheiro/risco) com prova + a estrutura da oferta (bônus/garantia).'}));
+  // 5. Loop de retenção (Hooked, Nir Eyal SRC-044)
+  const retencao={
+    gatilho: gatilho || 'rotina do mercado (abertura do pregão / relatório diário) + lembrete no app/WhatsApp',
+    acao: o.modalidadeProduto==='copy'?'abrir o relatório da estratégia (1 clique)':(o.modalidadeProduto==='ferramenta'?'abrir a ferramenta e ver o sinal/alerta':'assistir à aula curta do dia / revisar o checklist'),
+    recompensa: rv?'recompensa variável ÉTICA — aprendizado novo, leitura de contexto, progresso; NUNCA a emoção de operar/ganhar (vira frame de aposta, bloqueado).':'recompensa variável — novidade/conteúdo, progresso visível, reconhecimento da comunidade.',
+    investimento: 'o cliente investe '+(o.modalidadeProduto==='operacao'?'diário de operações/checklist':'configuração de carteira, metas, histórico')+' — quanto mais alimenta, mais difícil sair.',
+    nota:'Desenhar esse loop ataca direto o cancelamento da 1ª semana ('+(o.cancel7Pct||0)+'%). Hooked: gatilho → ação → recompensa variável → investimento.'};
+  // 6. Precificação & ancoragem (Kahneman/Ariely [L] + good-better-best)
+  const nOkP=planos.length>=2&&planos.length<=4;
+  const ancP=ticketsOrd.length?ticketsOrd[ticketsOrd.length-1]:null;
+  const preco={nOk:nOkP, ancora:ancP?ancP.nome:'—',
+    leitura:(nOkP?'Arquitetura de 2–4 níveis — ok. ':'Hoje há '+planos.length+' formato(s). ')+(ancP?('Âncora natural: '+ancP.nome+' (o mais caro/longo ancora os demais).'):''),
+    acao:nOkP?'Deixe a âncora visível primeiro e use um "chamariz" (decoy) que faça o plano-alvo parecer óbvio. Enquadre a fidelidade pela aversão à perda (o que se perde ao sair), nunca como punição.':'Ajuste para 2–4 níveis (good-better-best): entrada, alvo (destaque) e premium. O mais caro ancora.'};
+  // 7. Prontidão para investir (checklist estrutural)
+  const crit=(nome,status,leitura,acao,fonte)=>({nome,status,leitura,acao,fonte});
+  const stMec=(mecanismo&&porque)?'ok':(mecanismo?'ajuste':'bloqueio');
+  const stProva=prova?'ok':(rv?'bloqueio':'ajuste');
+  const stVal=o.produtoValidado==='sim'?'ok':(o.produtoValidado==='parcial'?'ajuste':'bloqueio');
+  const stComp=!rv?'ok':((o.angulo!=='promessa' && !(promessa&&/ganh|lucro|rentab|retorno|% ao/i.test(promessa)))?'ajuste':'bloqueio');
+  const criterios=[
+    crit('Oferta é nova oportunidade', natureza.status, natureza.leitura, natureza.acao, 'Brunson'),
+    crit('Mecanismo único claro e novo', stMec, stMec==='ok'?'Mecanismo + porquê da novidade preenchidos.':(mecanismo?'Mecanismo existe, mas falta o PORQUÊ ele é novo.':'Sem mecanismo único não há diferenciação.'), 'Preencha mecanismo + porquê é único.', 'Brunson/Sugarman'),
+    crit('Prova real', stProva, prova?'Tem prova verificável.':'Sem prova verificável.', 'Inclua caso/depoimento/dado — em RV, de PROCESSO, nunca de retorno.', 'Sugarman'),
+    crit('Transformação definida (antes→depois→sonho)', (antes&&depois&&sonho)?'ok':'ajuste', (antes&&depois&&sonho)?'Transformação clara.':'Transformação incompleta.', 'Defina estado atual, desejado e o resultado dos sonhos.', 'StoryBrand'),
+    crit('Escada de valor completa', ladder.faltando.length?'ajuste':'ok', ladder.leitura, ladder.faltando.length?('Crie: '+ladder.faltando.join('; ')):'Mantenha a escada.', 'Brunson'),
+    crit('Retenção desenhada (loop de hábito)', gatilho?'ok':'ajuste', gatilho?'Gatilho de hábito definido.':'Loop de retenção não desenhado — risco de churn.', 'Defina gatilho → ação → recompensa variável → investimento.', 'Hooked'),
+    crit('Produto validado', stVal, o.produtoValidado==='sim'?'Validado e convertendo.':(o.produtoValidado==='parcial'?'Validação parcial.':'Não validado.'), stVal==='ok'?'Mantenha medindo.':'Rode uma semente/piloto antes de escalar verba.', 'método/semente'),
+    crit('Mercado endereçável real', info.teto?'ok':'ajuste', info.teto?('~'+num(info.teto)+' CPFs no nicho ('+info.fonte+').'):'Sem teto de bolsa — dimensione pela audiência alcançável.', 'Dimensione bottom-up com a base real.', 'B3'),
+    crit('Compliance (renda variável)', stComp, rv?'Renda variável: depende do jurídico — nunca 100% liberado aqui.':'Fora de RV — regra padrão.', rv?'Ângulo em competência/processo; copy só vai ao ar com aval jurídico.':'Mantenha a promessa verificável.', 'ANBIMA/GAP-003'),
+    crit('Arquitetura de preço (2–4 níveis)', nOkP?'ok':'ajuste', preco.leitura, preco.acao, 'Kahneman/Ariely')
+  ];
+  const temBloqueio=criterios.some(c=>c.status==='bloqueio'), temAjuste=criterios.some(c=>c.status==='ajuste');
+  const prontidao={
+    verdict: temBloqueio?'NÃO INVESTIR AINDA':(temAjuste?'AJUSTAR ANTES DE INVESTIR':'PRONTO (condicional ao piloto)'),
+    vclass: temBloqueio?'bad':(temAjuste?'warn':'good'),
+    resumo: temBloqueio?'Há bloqueio(s) que invalidam a tese antes de pôr dinheiro. Resolva os ⛔ primeiro.':(temAjuste?'A tese se sustenta, mas há ajustes que aumentam muito a chance de retorno. Feche os ⚠️ antes de escalar verba.':'Critérios estruturais ok. Falta o que nenhum framework resolve: validar a conversão num piloto real.'),
+    criterios};
+  const fontes=[
+    'Natureza da oferta (nova oportunidade × melhoria), Big Domino, escada de valor, 3 crenças: Russell Brunson, Expert Secrets / DotCom Secrets (SRC-041/042) [A-resumo].',
+    'Loop de retenção (gatilho→ação→recompensa variável→investimento): Nir Eyal, Hooked (SRC-044) [A].',
+    'Copy / gatilhos / prova / simplicidade: Joseph Sugarman (SRC-046) [A-resumo].',
+    'Ancoragem, aversão à perda, chamariz de preço: Kahneman (SRC-055) [A] / Ariely [L].',
+    'Transformação / mensagem: StoryBrand — Donald Miller (SRC-031) [A].',
+    'SWOT e níveis de produto: Kotler &amp; Keller (SRC-033) [A] + sinais do app.'
+  ];
+  return {golden,F,W,O,T,tows,pitch,coer,fontes,rv, natureza,valorLevers,valorFraco,ladder,crencasBridge,retencao,preco,prontidao};
 }
 function renderProdutizacaoInner(o){
   const P=produtizacao(o); const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
-  const quad=(titulo,arr,vazio)=>`<div class="card" style="margin:0">
-    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em">${titulo}</h2>
-    ${arr.length?`<ul class="gaps" style="margin-top:6px">${arr.map(x=>`<li>${esc(x.txt)} <span class="muted" style="font-size:10.5px">— ${x.f}</span></li>`).join('')}</ul>`:`<p class="hint">${vazio}</p>`}</div>`;
-  const icon={ok:'✅',alerta:'⚠️',bloqueio:'⛔'};
-  const coerH=P.coer.map(c=>`<li>${icon[c.t]||''} ${esc(c.txt)}</li>`).join('');
-  const towsH=P.tows.map(x=>`<div class="step"><b>${esc(x.t)}:</b> ${esc(x.d)}</div>`).join('');
+  const ic={ok:'✅',ajuste:'⚠️',bloqueio:'⛔'};
+  const quad=(titulo,arr,vazio)=>`<div class="card" style="margin:0"><h2 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em">${titulo}</h2>${arr.length?`<ul class="gaps" style="margin-top:6px">${arr.map(x=>`<li>${esc(x.txt)} <span class="muted" style="font-size:10.5px">— ${x.f}</span></li>`).join('')}</ul>`:`<p class="hint">${vazio}</p>`}</div>`;
+  const critH=P.prontidao.criterios.map(c=>`<tr><td style="white-space:nowrap">${ic[c.status]} <b>${esc(c.nome)}</b><br><span class="muted" style="font-size:10.5px">${esc(c.fonte)}</span></td><td>${esc(c.leitura)}<br><span class="muted">→ ${esc(c.acao)}</span></td></tr>`).join('');
+  const levH=P.valorLevers.map(l=>`<div class="opt-row"><div class="opt-h"><span class="chip ${l.status==='ok'?'good':'warn'}">${esc(l.nome)}</span><span class="muted" style="font-size:11px;margin-left:auto">${esc(l.fonte)}</span></div><div class="opt-b">${esc(l.leitura)}<br><b>→</b> ${esc(l.acao)}</div></div>`).join('');
+  const ladH=P.ladder.degraus.map((d,i)=>`<div class="line"><span><b>${i+1}. ${esc(d.nome)}</b></span><span class="muted" style="font-size:11.5px;text-align:right;max-width:60%">${esc(d.desc)}</span></div>`).join('');
+  const cbH=P.crencasBridge.map(c=>`<div class="step"><b>${esc(c.t)}:</b> ${esc(c.crenca)}<br><span class="muted">Ponte (Epiphany Bridge): ${esc(c.bridge)}</span></div>`).join('');
   const planosH=P.pitch.oferta.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('');
+  const towsH=P.tows.map(x=>`<div class="step"><b>${esc(x.t)}:</b> ${esc(x.d)}</div>`).join('');
   return `
-  <div class="card"><h2>Golden Circle ${mk('L')}<span class="tag">Sinek — comece pelo porquê</span></h2>
-    <p class="hint">Do propósito para fora. Pré-preenchido pela sua oferta; o <b>Porquê</b> é seu para refinar. Fonte: Sinek (boa prática, não auditada).</p>
+  <div class="card"><h2>Prontidão para investir ${mk('C')}<span class="tag">o veredito de produto</span></h2>
+    <div class="verdict ${P.prontidao.vclass}"><b>${esc(P.prontidao.verdict)}.</b> ${esc(P.prontidao.resumo)}</div>
+    <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Critério</th><th>Leitura → ação</th></tr></thead><tbody>${critH}</tbody></table></div>
+    <div class="pill-note" style="margin-top:8px">Checklist derivado dos frameworks do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler). ⛔ invalida a tese; ⚠️ reduz o retorno esperado. Mesmo "pronto" fica condicional ao piloto validar a conversão (GAP-002).</div>
+  </div>
+
+  <div class="card"><h2>Natureza da oferta ${mk('A')}<span class="tag">nova oportunidade × melhoria — Brunson</span></h2>
+    <div class="verdict ${P.natureza.status==='ok'?'good':'warn'}"><b>${esc(P.natureza.tipo)}.</b> ${esc(P.natureza.leitura)}</div>
+    <div class="pill-note" style="margin-top:8px"><b>→</b> ${esc(P.natureza.acao)}</div>
+  </div>
+
+  <div class="card"><h2>A oferta em camadas de valor ${mk('C')}<span class="tag">desejo · prova · velocidade · esforço</span></h2>
+    <p class="hint">Os motores de valor percebido (Brunson + Sugarman + Kahneman). O elo mais fraco é onde a oferta perde.</p>
+    <div class="opt-list">${levH}</div>
+  </div>
+
+  <div class="card"><h2>Escada de valor ${mk('A')}<span class="tag">Value Ladder — DotCom Secrets</span></h2>
+    <div class="casc">${ladH}</div>
+    <div class="${P.ladder.faltando.length?'alertbox':'pill-note'}" style="margin-top:8px">${esc(P.ladder.leitura)}</div>
+  </div>
+
+  <div class="card"><h2>As 3 crenças a quebrar + ponte ${mk('A')}<span class="tag">Epiphany Bridge — Brunson/Douglas</span></h2>
+    <div class="steps">${cbH}</div>
+  </div>
+
+  <div class="card"><h2>Loop de retenção ${mk('A')}<span class="tag">Hooked — combate o churn</span></h2>
     <div class="casc">
-      <div class="line"><span><b>WHY — Porquê</b> <span class="muted">(propósito/causa)</span></span></div>
-      <div class="opt-b" style="padding:2px 0 8px">${esc(P.golden.why)}</div>
-      <div class="line"><span><b>HOW — Como</b> <span class="muted">(mecanismo único)</span></span></div>
-      <div class="opt-b" style="padding:2px 0 8px">${esc(P.golden.how)}</div>
-      <div class="line"><span><b>WHAT — O quê</b> <span class="muted">(o produto)</span></span></div>
-      <div class="opt-b" style="padding:2px 0 2px">${esc(P.golden.what)}</div>
+      <div class="line"><span><b>Gatilho</b></span><span class="muted" style="text-align:right;font-size:11.5px;max-width:65%">${esc(P.retencao.gatilho)}</span></div>
+      <div class="line"><span><b>Ação</b></span><span class="muted" style="text-align:right;font-size:11.5px;max-width:65%">${esc(P.retencao.acao)}</span></div>
+      <div class="line"><span><b>Recompensa variável</b></span><span class="muted" style="text-align:right;font-size:11.5px;max-width:65%">${esc(P.retencao.recompensa)}</span></div>
+      <div class="line"><span><b>Investimento</b></span><span class="muted" style="text-align:right;font-size:11.5px;max-width:65%">${esc(P.retencao.investimento)}</span></div>
     </div>
-    ${(!P.golden.temWhy||!P.golden.temHow)?`<div class="alertbox" style="margin-top:8px">Preencha <b>promessa</b> e <b>mecanismo único</b> no Estrategista para o Golden Circle ficar específico do seu produto.</div>`:''}
+    <div class="pill-note" style="margin-top:8px">${esc(P.retencao.nota)}</div>
   </div>
 
-  <div class="card"><h2>Matriz SWOT ${mk('A')}${mk('C')}<span class="tag">forças · fraquezas · oportunidades · ameaças</span></h2>
-    <p class="hint">Pré-preenchida com os sinais que o app já calcula (cada item traz a origem). Some o que só você conhece. Interno = Força/Fraqueza; Externo = Oportunidade/Ameaça (Kotler [A]).</p>
-    <div class="gtm-split">
-      ${quad('Forças (interno +)',P.F,'[Liste forças internas: marca, time, tecnologia, caixa…]')}
-      ${quad('Fraquezas (interno −)',P.W,'[Liste fraquezas internas, honestamente.]')}
-    </div>
-    <div class="gtm-split" style="margin-top:12px">
-      ${quad('Oportunidades (externo +)',P.O,'[Tendências, nichos, parcerias…]')}
-      ${quad('Ameaças (externo −)',P.T,'[Regulação, concorrência, macro…]')}
-    </div>
-    ${P.tows.length?`<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 6px">Cruzamento TOWS — a lógica estratégica</h4><div class="steps">${towsH}</div>`:''}
+  <div class="card"><h2>Precificação & ancoragem ${mk('L')}<span class="tag">good-better-best — Kahneman/Ariely</span></h2>
+    <div class="casc">${planosH}</div>
+    <div class="pill-note" style="margin-top:8px">${esc(P.preco.leitura)}<br><b>→</b> ${esc(P.preco.acao)}</div>
   </div>
 
-  <div class="card"><h2>Pitch estruturado ${mk('A')}${mk('L')}<span class="tag">posicionamento + Big Domino</span></h2>
+  <div class="card"><h2>Pitch estruturado ${mk('A')}<span class="tag">posicionamento + Big Domino</span></h2>
     <div class="verdict ${P.pitch.umaLinha.charAt(0)==='['?'warn':'good'}"><b>Pitch de uma linha:</b> ${esc(P.pitch.umaLinha)}</div>
-    ${P.pitch.bigDomino?`<div class="pill-note" style="margin-top:10px"><b>Big Domino (a UMA crença):</b> ${esc(P.pitch.bigDomino)}</div>`:''}
-    <div class="casc" style="margin-top:10px">
-      <div class="line"><span>Problema</span><span>${esc(P.pitch.problema)}</span></div>
-      <div class="line"><span>Mecanismo único</span><span>${esc(P.pitch.mecanismo)}</span></div>
-      <div class="line"><span>Prova</span><span class="muted" style="font-size:11.5px">${esc(P.pitch.prova)}</span></div>
-    </div>
-    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 4px">Oferta</h4>
-    <div class="casc">${planosH}<div class="line"><span>Bônus + garantia</span><span class="muted" style="font-size:11.5px">${esc(P.pitch.bonus)}</span></div></div>
-    <div class="pill-note" style="margin-top:10px"><b>CTA:</b> ${esc(P.pitch.cta)}</div>
+    ${P.pitch.bigDomino?`<div class="pill-note" style="margin-top:10px"><b>Big Domino:</b> ${esc(P.pitch.bigDomino)}</div>`:''}
+    <div class="casc" style="margin-top:10px"><div class="line"><span>Problema</span><span>${esc(P.pitch.problema)}</span></div><div class="line"><span>Mecanismo</span><span>${esc(P.pitch.mecanismo)}</span></div><div class="line"><span>Prova</span><span class="muted" style="font-size:11.5px;max-width:60%;text-align:right">${esc(P.pitch.prova)}</span></div><div class="line"><span>Garantia</span><span class="muted" style="font-size:11.5px;max-width:60%;text-align:right">${esc((o.garantia||'').trim()||P.pitch.bonus)}</span></div></div>
   </div>
 
-  <div class="card"><h2>Coerência do produto <span class="tag">a lógica fecha?</span></h2>
-    <p class="hint">Cruza produto × público × formato × preço × modelo e aponta o que não encaixa. É o teste de racionalidade do pitch.</p>
-    <ul class="gaps">${coerH}</ul>
+  <div class="card"><h2>SWOT ${mk('A')}${mk('C')}<span class="tag">sinais do app + Kotler</span></h2>
+    <p class="hint">Pré-preenchida com os sinais que o app calcula (cada item com a origem). Some o que só você conhece.</p>
+    <div class="gtm-split">${quad('Forças',P.F,'[forças internas]')}${quad('Fraquezas',P.W,'[fraquezas internas]')}</div>
+    <div class="gtm-split" style="margin-top:12px">${quad('Oportunidades',P.O,'[externas +]')}${quad('Ameaças',P.T,'[externas −]')}</div>
+    ${P.tows.length?`<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px">Cruzamento TOWS</h4><div class="steps">${towsH}</div>`:''}
   </div>
 
   <div class="card"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
     <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
-    <div class="disc" style="margin-top:8px">Estes frameworks <b>organizam</b> o raciocínio; não validam. O app pré-preenche o que deriva dos dados e marca o resto como <b>[você preenche]</b> — não inventa forças, ameaças nem propósito. Golden Circle (Sinek) é boa prática [L], fora do corpus. A prova e a conversão seguem a confirmar até o piloto.</div>
+    <div class="disc" style="margin-top:8px">Análise construída sobre os frameworks PRÁTICOS do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler), aplicados ao contexto que você preencheu. Quanto mais completo o contexto do produto, mais específica a análise. O veredito de prontidão é estrutural; a <b>conversão</b> só o piloto confirma (GAP-002). Nada aqui é promessa de resultado.</div>
   </div>`;
 }
 let prodOpp=null;
@@ -2751,17 +2839,38 @@ function viewProdutizacao(){
   if(!prodOpp) prodOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
   const o=normalizeOppDefaults(prodOpp);
   const oppOptions=opps.map(x=>`<option value="${x.id}" ${prodOpp&&prodOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  const tf=(key,label,ph)=>`<div><label>${label}</label><input type="text" data-pk="${key}" value="${esc(o[key]||'')}" placeholder="${esc(ph||'')}"/></div>`;
+  const sel=(key,label,opts)=>`<div><label>${label}</label><select data-pk="${key}">${opts.map(([v,t])=>`<option value="${v}" ${String(o[key])===String(v)?'selected':''}>${esc(t)}</option>`).join('')}</select></div>`;
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div><h1>Produtização</h1><p class="sub">Construa o produto e o pitch com lógica: <b>Golden Circle</b> (porquê), <b>SWOT</b> (forças/riscos) e <b>pitch estruturado</b> — pré-preenchidos pelos sinais do caso, com a fonte de cada um. O app organiza; você refina o subjetivo.</p></div>
+    <div><h1>Produtização</h1><p class="sub">Arquiteto de produto: pega o contexto do seu produto e roda pelos frameworks <b>práticos do corpus</b> (Brunson, Hooked, Sugarman, Kahneman, StoryBrand) para gerar uma análise específica e um <b>veredito de prontidão para investir</b>. Quanto mais contexto, mais afiada a análise.</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="prodLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
       <button class="btn sm" id="prodPrint">Baixar / imprimir</button>
     </div>
   </div>
+  <div class="card"><h2>Contexto do produto <span class="tag">quanto mais completo, mais específico</span></h2>
+    <p class="hint">Essas respostas alimentam a análise abaixo (recalcula na hora). Em RV, promessa e transformação são sobre <b>competência e processo</b> — nunca retorno.</p>
+    <div class="grid">
+      ${sel('tipoOferta','Tipo de oferta',[['nova','Nova oportunidade (novo caminho)'],['melhoria','Melhoria (fazer melhor o que já faz)']])}
+      ${sel('tempoResultado','Tempo até o 1º resultado',[['rapido','Rápido (semanas)'],['medio','Médio (1–3 meses)'],['longo','Longo (>3 meses)']])}
+      ${sel('esforcoCliente','Esforço exigido do cliente',[['baixo','Baixo'],['medio','Médio'],['alto','Alto']])}
+      ${tf('ofertaPromessa','Promessa central','ex.: operar com processo, sem descontrole emocional')}
+      ${tf('ofertaMecanismo','Mecanismo único','o que o seu método faz diferente')}
+      ${tf('porqueUnico','Por que o mecanismo é novo/único','o que o torna nova oportunidade, não mais do mesmo')}
+      ${tf('resultadoSonho','Resultado dos sonhos do cliente','o destino que ele realmente quer')}
+      ${tf('estadoAtual','Estado atual (antes)','onde o cliente está hoje')}
+      ${tf('estadoDesejado','Estado desejado (depois)','onde ele quer chegar')}
+      ${tf('ofertaProva','Prova / caso','depoimento, caso real ou dado verificável')}
+      ${tf('garantia','Garantia / risco reverso','ex.: 7 dias, ou condicionada à execução')}
+      ${tf('gatilhoHabito','Gatilho de hábito (retenção)','o que traz o cliente de volta toda semana')}
+      ${tf('ofertaBonus','Bônus','bônus que acelera o resultado / expira de verdade')}
+    </div>
+  </div>
   <div id="prodOut">${renderProdutizacaoInner(o)}</div>`;
   document.getElementById('prodLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){prodOpp=JSON.parse(JSON.stringify(s));viewProdutizacao();}}});
   document.getElementById('prodPrint').onclick=()=>openReport(renderProdutizacaoInner(o),'Produtização — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  main.querySelectorAll('[data-pk]').forEach(el=>el.addEventListener('input',()=>{o[el.dataset.pk]=el.value; const out=document.getElementById('prodOut'); if(out) out.innerHTML=renderProdutizacaoInner(o);}));
 }
 
 /* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
