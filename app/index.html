@@ -356,7 +356,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.4 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.5 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -2273,6 +2273,63 @@ function renderRoteiroCPL(o){
 // o clique é tratado no handler global de 'main' (abaixo), com try/catch.
 let _roteiroOpp=null;
 function bindRoteiroCpl(o){_roteiroOpp=o;}
+// Funil COMPLETO a construir, com CTA e "o que gravar" por etapa — sintetiza jornada + ads + compra do modelo recomendado.
+// Responde ao "sugerir TUDO no processo de venda: do funil aos CTAs e roteiros de gravação". Determinístico; não toca o motor financeiro.
+function funilRec(o){
+  const e=estrategia(o);
+  const modelo=e.modelo, ML=MODELOS[modelo].label, rv=e.rv, canal=e.canal;
+  const ads=e.ads.camadas||[]; const topo=ads[0], fundo=ads[ads.length-1]||ads[0];
+  const blocos=e.jornada.blocos.items||[]; const tipoBloco=e.jornada.blocos.tipo||'aulas';
+  const sl=s=>String(s||'').split(' (')[0];
+  const habito=sl((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).habito||'o hábito saudável de acompanhar o método');
+  const ctaFundo = modelo==='relampago'
+      ? '“Garanta sua vaga nas próximas 48–72h” — fecha na hora marcada (escassez real).'
+      : (modelo==='perpetuo'
+        ? '“Assine antes do seu prazo” — deadline individual real por lead, nunca contador falso.'
+        : '“Garanta sua vaga / assine agora — o carrinho fecha em [data real]”.');
+  const etapas=[
+    { etapa:'1 · Topo — Atração & captação', objetivo:'Encher a lista: transformar audiência e tráfego frio em leads.',
+      canal:(topo?topo.pub:canal.topo)+' · '+canal.topo,
+      conteudo:'Conteúdo que ENSINA — '+(topo?sl(topo.cri):'criativos educativos do nicho')+'. '+(rv?'Sem promessa de ganho.':''),
+      cta:'“Baixe a [isca] / inscreva-se na [aula gratuita]” — captura de e-mail/WhatsApp.',
+      gravar:'3–4 criativos curtos de topo (dor + promessa de competência) + 1 vídeo de convite para a isca/aula.',
+      meta:'nº de leads na lista (meta derivada do funil no Decisor)' },
+    { etapa:'2 · Meio — Aquecimento & quebra de crença', objetivo:'Educar, provar e quebrar a crença que trava a compra.',
+      canal:canal.cpl,
+      conteudo:tipoBloco+': '+(blocos.length?blocos.map(b=>b.nome).join(' → '):'3 aulas de aquecimento'),
+      cta:'“Confirme presença / assista à próxima aula” — compromisso e antecipação.',
+      gravar:'Os '+(blocos.length||3)+' vídeos de aquecimento (roteiro completo no botão abaixo): gancho → história (Epiphany Bridge) → prova de PROCESSO → ponte para a oferta.',
+      meta:'presença e engajamento por aula' },
+    { etapa:'3 · Fundo — Oferta & carrinho', objetivo:'Converter o lead aquecido em cliente com escassez honesta.',
+      canal:(fundo?fundo.pub:'remarketing de quem assistiu')+' + e-mail/WhatsApp',
+      conteudo:'Abertura do carrinho + sequência de vendas: '+e.compra.passos.map(p=>p.t).join(' → ')+'.',
+      cta:ctaFundo,
+      gravar:'Vídeo de abertura do carrinho (oferta + mecanismo + bônus/garantia) + e-mails de carrinho (abertura → objeção → prova → últimas 24h → última chamada).',
+      meta:'conversão lead→venda ('+(o.convLista||0)+'% premissado — a confirmar)' },
+    { etapa:'4 · Pós — Entrega, ativação & retenção', objetivo:'Ativar na 1ª semana (onde mais cancela: '+(o.cancel7Pct||0)+'%), reter e gerar indicação.',
+      canal:'onboarding (e-mail/WhatsApp/comunidade)',
+      conteudo:'Onboarding + '+habito+'; cuidar do relacionamento.',
+      cta:'“Dê o 1º passo hoje / participe” + “indique um amigo”.',
+      gravar:'Vídeo de boas-vindas + série de onboarding da 1ª semana.',
+      meta:'ativação na 1ª semana e churn' }
+  ];
+  return {modelo,ML,rv,etapas,estrutura:e.jornada.estrutura};
+}
+function renderFunilCard(o){
+  const f=funilRec(o);
+  const rows=f.etapas.map(s=>`<div class="opt-row">
+    <div class="opt-h"><span class="chip neutral">${esc(s.etapa)}</span><span class="muted" style="font-size:11px;margin-left:auto">${esc(s.canal)}</span></div>
+    <div class="opt-b"><b>Objetivo:</b> ${esc(s.objetivo)}<br>
+      <b>Conteúdo:</b> ${esc(s.conteudo)}<br>
+      <b style="color:var(--accent)">CTA:</b> ${esc(s.cta)}<br>
+      <b>O que gravar:</b> ${esc(s.gravar)}<br>
+      <span class="muted" style="font-size:11.5px">Meta: ${esc(s.meta)}</span></div></div>`).join('');
+  return `<div class="card"><h2>O funil a construir — ${esc(f.ML)} <span class="tag">etapa · conteúdo · CTA · o que gravar</span></h2>
+    <p class="hint">O caminho completo de venda para o modelo recomendado: da atração ao pós, com o CTA de cada etapa e o que precisa ser gravado. ${f.rv?'CTAs em competência/processo — nunca promessa de ganho (compliance).':''}</p>
+    <div class="opt-list">${rows}</div>
+    <div style="margin-top:12px"><button class="btn" id="roteiroCplBtn">Gerar roteiros de gravação (CPLs + e-mails)</button></div>
+  </div>`;
+}
 // Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
@@ -2336,6 +2393,10 @@ function renderApresentacao(o){
    <p class="muted" style="font-size:11px">${esc(e.ads.nota)}</p>
    <h3 style="${H3}">Jornada de compra</h3>
    <ul>${compraH}</ul>
+   <h3 style="${H3}">O funil a construir — CTA e o que gravar por etapa</h3>
+   <table><tr><th>Etapa</th><th>CTA</th><th>O que gravar</th></tr>
+   ${funilRec(o).etapas.map(s=>`<tr><td><b>${esc(s.etapa)}</b></td><td>${esc(s.cta)}</td><td>${esc(s.gravar)}</td></tr>`).join('')}
+   </table>
 
    <h2>7 · Mensagem &amp; copy</h2>
    ${pb.bigDomino?`<p><b>Big Domino:</b> ${esc(pb.bigDomino)}</p>`:'<p class="muted">Preencha o Essencial da oferta (promessa + mecanismo) para o Big Domino específico.</p>'}
@@ -2432,25 +2493,98 @@ function viewRecomendacao(){
   setActive('recomendacao');
   if(!recOpp) recOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
   const o=normalizeOppDefaults(recOpp);
+  const a=analyze(o), rt=recoveryTimeline(o,a.b), rec=recomendarModelo(o);
+  const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const e=estrategia(o);
+  const chosen=e.rec.aptos.concat(e.rec.bloqueados).find(r=>r.k===modelo);
+  const porque=(chosen&&chosen.fatores&&chosen.fatores.length)?chosen.fatores.slice(0,3).map(f=>f.txt).join(' · '):'';
   const oppOptions=opps.map(x=>`<option value="${x.id}" ${recOpp&&recOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
   const acoes=proximasAcoes(o).map((d,i)=>`<div class="step"><b>${i+1}.</b> ${esc(d)}</div>`).join('');
+  const kpi=(lab,v,cls)=>`<div class="kpi"><span class="lab">${lab}</span><div class="v ${cls||''}" style="font-size:18px">${v}</div></div>`;
+  // ---- Aba 1: a recomendação consolidada (veredito + modelo + funil + CTAs + conhecimento + próximas ações) ----
+  const recPane=`
+    <div class="kpigrid">
+      ${kpi('Veredito', a.verdict, a.vclass==='bad'?'neg':'')}
+      ${kpi('Modelo recomendado', MODELOS[modelo].label)}
+      ${kpi('Resultado operador (base)', brl(a.dB.operadorNet), a.dB.operadorNet<0?'neg':'')}
+      ${kpi('Recupera o aporte em', rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' m':'n/d'))}
+    </div>
+    <div class="card"><h2>A recomendação <span class="tag">decisão consolidada do Decisor</span></h2>
+      <div class="verdict ${a.vclass}"><b>${a.verdict}.</b> ${esc(a.vmsg)}</div>
+      <div class="casc" style="margin-top:8px">
+        <div class="line"><span>Modelo de lançamento</span><span><b>${MODELOS[modelo].label}</b> — ${esc(MODELOS[modelo].problema)}${modelo!==rec.top?' (fixado)':''}</span></div>
+        ${porque?`<div class="line sub"><span>Por quê</span><span>${esc(porque)}</span></div>`:''}
+        <div class="line"><span>Produto · modalidade</span><span>${esc(o.produtoNome)||'—'} · ${esc((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label)}</span></div>
+        <div class="line"><span>Ângulo</span><span>Educação / disciplina — sem promessa de ganho</span></div>
+        <div class="line"><span>Ticket médio</span><span style="font-family:var(--fmono)">${brl(ticketMensalBlend(o))}/mês</span></div>
+      </div>
+    </div>
+    ${renderFunilCard(o)}
+    ${renderConhecimentoCard(o)}
+    <div class="card"><h2>Próximas ações <span class="tag">o que fazer agora</span></h2>
+      <div class="steps">${acoes}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn ghost sm" data-goto="gtm">GTM Builder</button>
+        <button class="btn ghost sm" data-goto="estrategia">Estrategista</button>
+        <button class="btn ghost sm" data-goto="gerador">Estrutura</button>
+        <button class="btn ghost sm" data-goto="detail">Decisor (E5)</button>
+      </div>
+    </div>`;
+  // ---- Aba 2: diagnóstico (GTM Builder) ----
+  const diagPane=`<div class="card"><h2>Diagnóstico — expert &amp; audiência</h2>${diagReadoutGTM(o)}</div>
+    <div class="card"><h2>Mercado endereçável</h2>${mercadoReadoutGTM(o)}</div>
+    <div class="card"><h2>Ângulo de campanha</h2>${anguloReadoutGTM(o)}</div>`;
+  // ---- Aba 3: estratégia (Estrategista) ----
+  const estratPane=renderEstrategiaInner(o);
+  // ---- Aba 4: estrutura (Estrutura de lançamento) ----
+  let estrutPane; try{ estrutPane=`<div class="card">${renderEstruturaInner(gerarEstrutura(oppToProduto(o)))}</div>`; }catch(_){ estrutPane='<div class="card"><p class="hint">Informe produto e mercado (no Decisor) para gerar a estrutura operacional.</p></div>'; }
+  // ---- Aba 5: viabilidade (Decisor E5 — 3 cenários) ----
+  const cols=[['Conservador',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
+  const rtc=cols.map(([n,sc])=>recoveryTimeline(o,sc));
+  const cenRow=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,sc,d])=>`<td style="text-align:right;font-family:var(--fmono)">${fn(sc,d)}</td>`).join('')}</tr>`;
+  const viabPane=`<div class="card"><h2>Viabilidade financeira <span class="tag">3 cenários — Decisor E5</span></h2>
+    <div class="verdict ${a.vclass}"><b>${a.verdict}.</b> Break-even da conversão: ${a.be!=null?pct(a.be/100):'—'}. ${esc(opName(o))} recupera o aporte antes do split; no prejuízo assume a perda.</div>
+    <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr></thead><tbody>
+      ${cenRow('Conversão efetiva', sc=>pct(sc.conv))}
+      ${cenRow('Receita contratada', sc=>brl(sc.bruto))}
+      ${cenRow('Lucro operacional', sc=>brl(sc.lucro))}
+      ${cenRow('Resultado — '+esc(opName(o)), (sc,d)=>brl(d.operadorNet))}
+      <tr><td>Recupera o aporte em (meses)</td>${rtc.map(x=>`<td style="text-align:right;font-family:var(--fmono)">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <p class="muted" style="font-size:11px;margin-top:6px">Projeção determinística; conversão e cancelamento são premissas a confirmar. Receita contratada ≠ caixa ≠ lucro.</p>
+  </div>`;
   main.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div><h1>Recomendação do caso</h1><p class="sub">O assistente do projeto: lê o contexto, aponta a <b>dor</b>, a <b>maior alavanca</b> e o <b>maior risco</b>, e diz o que fazer em cada feature — com a fonte de cada recomendação.</p></div>
-    <select id="recLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
-  </div>
-  ${renderConhecimentoCard(o)}
-  <div class="card"><h2>Próximas ações <span class="tag">o que fazer agora</span></h2>
-    <div class="steps">${acoes}</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-      <button class="btn ghost sm" data-goto="estrategia">Abrir no Estrategista</button>
-      <button class="btn ghost sm" data-goto="detail">Abrir no Decisor</button>
-      <button class="btn ghost sm" data-goto="compilador">Abrir no Compilador</button>
+    <div><h1>Recomendação do caso</h1><p class="sub">A compilação do módulo Decisor — <b>GTM, Estrategista, Estrutura e viabilidade</b> numa só recomendação, com o <b>funil a construir, os CTAs e os roteiros de gravação</b>. Baixe a apresentação ao final.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="recLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn sm" id="recApres">Baixar apresentação</button>
     </div>
-  </div>`;
+  </div>
+  <div class="tabs" id="recTabs">
+    <button class="tab active" data-tab="rec">Recomendação</button>
+    <button class="tab" data-tab="diag">1 · Diagnóstico</button>
+    <button class="tab" data-tab="estrat">2 · Estratégia</button>
+    <button class="tab" data-tab="estrut">3 · Estrutura</button>
+    <button class="tab" data-tab="viab">4 · Viabilidade</button>
+  </div>
+  <div class="tabpane" data-pane="rec">${recPane}</div>
+  <div class="tabpane" data-pane="diag" style="display:none">${diagPane}</div>
+  <div class="tabpane" data-pane="estrat" style="display:none">${estratPane}</div>
+  <div class="tabpane" data-pane="estrut" style="display:none">${estrutPane}</div>
+  <div class="tabpane" data-pane="viab" style="display:none">${viabPane}</div>
+  <div style="display:flex;justify-content:center;margin:20px 0 6px"><button class="btn" id="recApres2" style="padding:11px 22px">Baixar apresentação da recomendação</button></div>`;
+  main.querySelectorAll('#recTabs .tab').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;
+    main.querySelectorAll('#recTabs .tab').forEach(x=>x.classList.toggle('active',x===b));
+    main.querySelectorAll('.tabpane').forEach(p=>p.style.display=(p.dataset.pane===t)?'':'none');});
   document.getElementById('recLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){recOpp=JSON.parse(JSON.stringify(s));viewRecomendacao();}}});
+  const doApres=()=>openReport(renderApresentacao(o),'Recomendação de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  const b1=document.getElementById('recApres'); if(b1) b1.onclick=doApres;
+  const b2=document.getElementById('recApres2'); if(b2) b2.onclick=doApres;
+  bindRoteiroCpl(o);
   main.querySelectorAll('[data-goto]').forEach(btn=>btn.onclick=()=>{const g=btn.dataset.goto, clone=JSON.parse(JSON.stringify(o));
-    if(g==='estrategia'){estrOpp=clone;viewEstrategia();} else if(g==='detail'){current=clone;viewDetail(clone);} else if(g==='compilador'){compOpp=clone;viewCompilador();}});
+    if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
+    else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);} else if(g==='compilador'){compOpp=clone;viewCompilador();}});
 }
 
 /* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
