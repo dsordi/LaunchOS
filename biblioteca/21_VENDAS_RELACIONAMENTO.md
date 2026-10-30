@@ -1,0 +1,83 @@
+# Artefato U — Venda, relacionamento e inteligência emocional (4 primários independentes)
+
+> **O que é:** fichas de assimilação de 4 livros de **venda/relacionamento/IE**, recebidos 2026-10-30. Domínio **novo** no corpus (tínhamos lançamento/copy/psicologia/trading; não metodologia de venda e fechamento).
+> **Cobertura:** primários lidos de primeira mão; leitura **seletiva declarada** (estrutura + capítulos-núcleo de cada framework, como DEC-019). Marca `[A]` para tese/frameworks.
+> **Origem:** todos **independentes** do eixo Walker/Érico/Brunson. Onde convergem com a base, valem como **sinal independente**.
+> **Camada que agregam:** sobretudo o lado **venda consultiva / alto-ticket / 1:1 / relacionamento / emoção** — **secundário** para o lançamento de massa (um-para-muitos), **primário** para oferta de alto-ticket (aplicação + call) e pós/relacionamento.
+> **Decisão:** DEC-040 em `10`. Catálogo: SRC-049..052 em `01`. Aplicação no app: **depois** (pedido do Davi: "absorver agora, aplicar depois").
+
+---
+
+## SRC-049 — *A Venda Desafiadora (The Challenger Sale)* · Dixon & Adamson `[A]`
+
+**1. Tese.** Em **venda complexa/consultiva**, o vendedor que ganha não é o "construtor de relacionamento" — é o **Desafiador**. Baseado em pesquisa (6.000 vendedores, 90 empresas). "**Como você vende virou mais importante do que o que você vende.**"
+
+**2. Frameworks.**
+- **5 perfis:** Trabalhador esforçado · **Desafiador** (vence) · Construtor de relacionamento (fica para trás na venda complexa) · Lobo solitário · Solucionador reativo.
+- **Teach – Tailor – Take control** (Ensinar – Adaptar – Assumir o controle): o Desafiador **ensina** algo novo ao cliente, **adapta** ao contexto dele e **controla** a conversa (preço/avanço) com **tensão construtiva**.
+- **Commercial Teaching / reframe:** não começar pelas dores que o cliente já conhece — **reenquadrar** o problema e levar o insight **até a sua força única** (só você resolve daquele jeito).
+
+**3. Aplicação ao LaunchOS (depois).**
+- **Alto-ticket / aplicação + call** (que o `diagnosticoProduto` já sinaliza): o roteiro da call = ensinar/reenquadrar + tensão construtiva, não "construir rapport e esperar".
+- **CPL 1 (quebra de crença)** ganha lastro independente: "reframe" do Challenger = a mesma lógica da Epiphany Bridge (Brunson), de **origem distinta** → reforça o princípio **ensinar para vender**.
+- **Ressalva:** é **B2B/enterprise**; transferir 1:1 para B2C infoproduto é erro (GAP-010). Serve ao 1:1/alto-ticket, não ao funil de massa cru.
+
+## SRC-050 — *A Máquina Definitiva de Vendas* · Chet Holmes `[A]`
+
+**1. Tese.** Resultado vem de **disciplina obstinada (pigheaded)** aplicada a poucas competências essenciais, repetidas até virar máquina — não de mais atividade.
+
+**2. Frameworks.**
+- **Marketing de educação / "palco" (stadium pitch):** só ~3% do mercado está comprando agora; os outros 97% não. Em vez de só mirar os 3%, **ensine o mercado inteiro** (conteúdo/educação) e você aquece a demanda futura e se posiciona como autoridade. → converge com **educação > promessa** da base.
+- **Dream 100 / melhores compradores:** foque obstinadamente nos **melhores compradores** (os que compram mais, mais rápido, por mais) e nos ~100 "dos sonhos", com toque repetido. **Fonte PRIMÁRIA do Dream 100** (que já estava na base via Brunson SRC-041 — agora upgrade).
+- **Disciplina/tempo** (toque cada papel uma vez; 6 regras), **12 competências essenciais**, **comunicação visual** (lembramos 50% do que vemos+ouvimos; use recurso visual sempre).
+
+**3. Aplicação (depois).**
+- **Trilha de ads / conteúdo:** o "palco" valida teaching no topo de funil (educar os 97% que ainda não compram) — reforça a jornada de conteúdo.
+- **Externo / parceiros:** Dream 100 primário fortalece o modelo externo do Estrategista.
+- **Execução (E6/E7):** disciplina obstinada + comunicação visual para CPL/VSL.
+
+## SRC-051 — *Como Fazer Amigos e Influenciar Pessoas* · Dale Carnegie `[A]`
+
+**1. Tese.** Influência começa por **genuíno interesse no outro** e por fazer a pessoa **querer** (não por forçar). Clássico fundador da persuasão interpessoal.
+
+**2. Princípios (núcleo).**
+- **3 fundamentos:** não critique/condene/reclame; dê **apreço honesto e sincero**; desperte na pessoa um **desejo ardente**.
+- **Fazer gostar de você:** interesse genuíno, sorriso, nome da pessoa, ser bom ouvinte, falar dos interesses do outro, fazer o outro se sentir importante.
+- **Ganhar para o seu modo de pensar:** evitar discussão; nunca dizer "você está errado"; deixar o outro falar; fazê-lo sentir que a ideia é dele.
+
+**3. Aplicação (depois).** Camada de **relacionamento/DM/comunidade** e **tom** da copy (respeito, apreço, interesse). Converge com Cialdini (`12`) **de origem independente e anterior**. Útil no 1:1, no pós-venda e na construção de comunidade (retenção), **menos** no funil de massa.
+
+## SRC-052 — *Inteligência Emocional em Vendas* · Jeb Blount `[A]`
+
+**1. Tese.** Em venda, **a emoção decide mais que a racionalidade**. Alto desempenho = QI **+** inteligências adquirida, tecnológica e **emocional (IE)** — e a IE é **aprendível** (o diferencial).
+
+**2. Frameworks.**
+- **4 inteligências:** Inata (QI) · Adquirida (IA) · Tecnológica (IT) · **Emocional (IE)**.
+- **Gestão das emoções disruptivas do vendedor:** medo da rejeição, **desespero** (que o cliente fareja e que destrói a venda), ansiedade/pressa; autoconsciência + autocontrole.
+- **Empatia / influenciar a emoção do outro**; controlar a própria primeiro.
+
+**3. Aplicação (depois).** Lado do **vendedor/expert** (gerir a própria emoção na call de alto-ticket; não transmitir desespero) e lado do **comprador** (ler/empatizar). Converge com a tese da base de que **comportamento/emoção domina** (Housel SRC-043, cânone de trading SRC-047/048, Hooked SRC-044) — agora também pelo lado da venda.
+
+---
+
+## Convergências independentes (o que isto fortalece)
+
+1. **"Ensinar para vender / educar o mercado"** agora tem **3+ origens independentes**: Holmes (marketing de educação/palco) + Challenger (commercial teaching/reframe) + a base (educação > promessa; Nelogica/ANBIMA/trading). Triangulação forte do princípio **teach-to-sell** — reforça HYP-007 pelo lado da *venda* (não só do engajamento).
+2. **"Emoção/relacionamento decide"** ganha o lado do **vendedor**: Carnegie + Blount convergem com Housel + trading + Hooked. Camada humana bem triangulada.
+3. **Dream 100** sobe de "via Brunson" para **fonte primária** (Holmes) → reforça o modelo externo/parceiros.
+
+## Onde entram no método (para aplicar depois)
+
+| Alvo | Contribuição | Fonte |
+|---|---|---|
+| **Alto-ticket / call (aplicação)** | ensinar/reenquadrar + tensão construtiva; gerir emoção na call | Challenger · Blount |
+| **CPL / conteúdo (topo)** | educar os 97% que ainda não compram ("palco"); reframe | Holmes · Challenger |
+| **Externo / parceiros** | Dream 100 primário | Holmes |
+| **Relacionamento / DM / comunidade / pós** | apreço, interesse, tom; retenção | Carnegie |
+| **Operador/expert** | autocontrole emocional; não transmitir desespero | Blount |
+
+## Ressalvas honestas
+
+- **B2B → B2C (GAP-010):** Challenger e Holmes são B2B/venda direta; o lançamento é um-para-muitos. Transferir sem adaptar é erro — servem mais ao **alto-ticket/1:1** e ao **conteúdo/relacionamento**, não ao funil de massa cru.
+- **Nada vira regra dura** sem teste real; conversão segue `[D]` (GAP-002). Convergência de princípio ≠ prova de conversão no caso do Davi.
+- **Rendimento marginal:** camada de venda/relacionamento é útil, mas o insumo de maior valor segue sendo **caso piloto** + **fonte jurídica/CVM**, não mais livros.
