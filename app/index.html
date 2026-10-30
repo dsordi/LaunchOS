@@ -320,6 +320,8 @@
   .kpi .ic svg{width:15px;height:15px}
   table.ledger td:first-child{color:var(--ink)} table.ledger .src{color:var(--faint)}
   a:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+  /* Downloads/relatórios: leves e apresentáveis — oculta o "chrome" técnico (transparência, fontes, marcas de confiança) no relatório; no app continua visível */
+  .pitch .disc,.pitch .mark,.pitch .internal-only{display:none!important}
 </style>
 </head>
 <body>
@@ -357,7 +359,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.7 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.8 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -1305,7 +1307,7 @@ function renderEstruturaInner(res){
    <h2>7. Arquitetura de preços</h2><p>${esc(res.preco.rec)}</p><p class="muted" style="font-size:11px">Fonte: ${esc(res.preco.fonte)}</p>
    <h2>8. Estrutura operacional (etapa por etapa)</h2>${fases}
    <h2>9. Portões</h2><ul>${port}</ul>
-   <h2>10. Fontes aplicadas (rastreabilidade)</h2><ul style="font-size:12px">${fontes}</ul>
+   <div class="internal-only"><h2>10. Fontes aplicadas (rastreabilidade)</h2><ul style="font-size:12px">${fontes}</ul></div>
    <div class="disc"><b>Transparência:</b> análise <b>sugerida por regras</b>, cruzando a base (Walker, StoryBrand, Kotler, Pissarra, matriz de tipos, arquitetura de preços). Os [colchetes] são para você completar com a realidade. <b>Nenhum número de mercado foi inventado</b> — dimensionamento bottom-up, depende da base real (GAP-002). Não é promessa de resultado; viabilidade financeira no Decisor (E5).</div>`;
 }
 function renderEstrutura(res){
@@ -2137,7 +2139,7 @@ function renderEstrategiaInner(o){
   <div class="card"><h2>Portão de compliance <span class="tag">bloqueio, não detalhe</span></h2>
     <p class="hint">Se o lançamento toca mercado financeiro, isto é portão — não ajuste fino (GAP-003).</p>${compl}</div>
 
-  <div class="card"><h2>O que falta saber <span class="tag">honestidade > completude</span></h2>
+  <div class="card internal-only"><h2>O que falta saber <span class="tag">honestidade > completude</span></h2>
     <p class="hint">O que o plano NÃO sabe — cada item é o que o piloto/execução real valida.</p>${gapsH}</div>`;
 }
 let estrOpp=null;
@@ -2334,104 +2336,78 @@ function renderFunilCard(o){
   </div>`;
 }
 // Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
+// Apresentação para DOWNLOAD — leve, clean e apresentável (para mostrar ao expert/parceiro/board).
+// Sem auditoria, sem fontes/marcas, sem contabilidade técnica, sem "o que falta saber". Uma linha honesta de projeção.
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
   const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
-  const e=estrategia(o), pb=playbookAplicado(o), m=mercadoGTM(o), P=produtizacao(o), slp=x=>String(x||'').split(' (')[0];
-  const seg=seguidoresTotais(o), alc=audienciaAlcancavel(o), eng=audienciaEngajada(o);
+  const e=estrategia(o), pb=playbookAplicado(o), P=produtizacao(o);
+  const seg=seguidoresTotais(o), alc=audienciaAlcancavel(o);
   const niv=NIVEL[o.nivelPublico]||'—', fmt=FORMATO[o.formatoEntrega]||'—';
-  const cols=[['Conservador',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
-  const rtc=cols.map(([n,sc])=>recoveryTimeline(o,sc));
-  const cenRow=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,sc,d])=>`<td style="text-align:right">${fn(sc,d)}</td>`).join('')}</tr>`;
-  const H3='font-size:13px;margin:16px 0 6px;color:#0f172a';
-  const fasesH=e.jornada.fases.map(f=>`<tr><td><b>${esc(f.f)}</b> <span class="muted">${esc(f.janela)}</span></td><td>${esc(f.obj)}</td><td>${esc(f.meta)}</td></tr>`).join('');
-  const adsH=e.ads.camadas.map(c=>`<tr><td><b>${esc(c.t)}</b></td><td>${brl(c.verba)}</td><td>${esc(c.obj)}</td></tr>`).join('');
+  const H3='font-size:13px;margin:18px 0 6px;color:#0f172a';
+  const vSimples={good:'Viável',warn:'Requer ajustes',bad:'Ainda não recomendado'}[a.vclass]||'Análise';
+  const mSimples={good:'O resultado se sustenta mesmo no cenário pé no chão.',warn:'O resultado depende de ajustar algumas premissas antes de comprometer a verba.',bad:'Nos números atuais o resultado não fecha — rever oferta, custos ou modelo.'}[a.vclass]||'';
   const compraH=e.compra.passos.map(p=>`<li><b>${esc(p.t)}:</b> ${esc(p.d)}</li>`).join('');
-  const crencasH=crencasFalsas(o).map(c=>`<li><b>${esc(c.t)}:</b> ${esc(c.obj)} → ${esc(c.ponte)}</li>`).join('');
-  const diagH=diagnosticoProduto(o).slice(0,6).map(x=>`<li><b>${esc(x.d)}:</b> ${esc(x.imp)} <span class="muted">(${esc(x.f)})</span></li>`).join('');
-  const gapsH=e.gaps.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('');
+  const crencasH=crencasFalsas(o).map(c=>`<li><b>${esc(c.t)}:</b> ${esc(c.obj)}</li>`).join('');
+  const funilH=funilRec(o).etapas.map(x=>`<tr><td><b>${esc(x.etapa)}</b></td><td>${esc(x.cta)}</td></tr>`).join('');
+  const cols=[['Pé no chão',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
+  const cenRow=(lab,fn)=>`<tr><td>${lab}</td>${cols.map(([n,sc,d])=>`<td style="text-align:right">${fn(sc,d)}</td>`).join('')}</tr>`;
   return `
    <p class="lead">${esc(o.nome)||'Expert'}${o.nicho?' · '+esc(o.nicho):''} &nbsp;×&nbsp; ${esc(opName(o))}</p>
 
-   <h2>1 · Resumo executivo</h2>
-   <div class="verdict ${a.vclass}"><b>${a.verdict}.</b> ${a.vmsg}</div>
+   <h2>Resumo</h2>
+   <div class="verdict ${a.vclass}"><b>${esc(vSimples)}.</b> ${esc(mSimples)}</div>
    <table>
-     <tr><td>Produto · modalidade</td><td>${esc(o.produtoNome)||'—'} · ${esc((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label)}</td></tr>
-     <tr><td>Modelo recomendado</td><td><b>${MODELOS[modelo].label}</b>${modelo!==rec.top?' (fixado)':''}</td></tr>
-     <tr><td>Ângulo</td><td>Educação / disciplina — sem promessa de ganho</td></tr>
+     <tr><td style="width:180px">Produto</td><td>${esc(o.produtoNome)||'—'} · ${esc(String((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label).split(' (')[0])}</td></tr>
+     <tr><td>Modelo de lançamento</td><td><b>${MODELOS[modelo].label}</b> — ${esc(MODELOS[modelo].problema)}</td></tr>
+     <tr><td>Ângulo</td><td>Educação e disciplina — sem promessa de ganho</td></tr>
      <tr><td>Ticket médio</td><td>${brl(ticketMensalBlend(o))}/mês</td></tr>
-     <tr><td>Aporte de ${esc(opName(o))}</td><td>${brl(rt.invest)} — recupera em ${rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses de caixa':'não recupera no horizonte')}</td></tr>
+     <tr><td>Investimento de ${esc(opName(o))}</td><td>${brl(rt.invest)}${rt.invest>0?(' — recupera em '+(rt.recuperado?num(rt.recMonth,1)+' meses':'—')):''}</td></tr>
    </table>
 
-   <h2>2 · A oportunidade</h2>
-   <p>${esc(o.hipotese)||('Unir a audiência e a autoridade do expert à infraestrutura e ao método de '+opName(o)+', num modelo de parceria por divisão de receita — cada lado entra com o que tem de mais forte.')}</p>
-   <p><b>Dor central do público:</b> ${esc(o.dorPrimaria)}. <b>Promessa-núcleo:</b> ${esc(e.dor.promessa)}.</p>
+   <h2>A oportunidade</h2>
+   <p>${esc((o.hipotese||'').replace(/\s*\[[ABCDL]\]\s*/g,' ').trim())||('Unir a audiência e a autoridade do expert à estrutura e ao método de '+opName(o)+', numa parceria por divisão de receita — cada lado entra com o que tem de mais forte.')}</p>
+   <p><b>Dor do público:</b> ${esc(o.dorPrimaria)}. <b>Promessa:</b> ${esc(e.dor.promessa)}.</p>
 
-   <h2>3 · Quem — expert &amp; audiência</h2>
+   <h2>Quem — expert &amp; audiência</h2>
    <table>
-     <tr><td>Seguidores (bruto)</td><td>${num(seg)}</td></tr>
-     <tr><td>Audiência alcançável (${o.alcancePct||0}%)</td><td>${num(alc)}</td></tr>
-     <tr><td>Audiência engajada</td><td>${num(eng)}</td></tr>
-     <tr><td>Intenção de compra</td><td>${esc(o.intencao||'—')}</td></tr>
+     <tr><td style="width:180px">Seguidores</td><td>${num(seg)}</td></tr>
+     <tr><td>Audiência alcançável</td><td>${num(alc)}</td></tr>
      <tr><td>Nível do público · formato</td><td>${esc(niv)} · ${esc(fmt)}</td></tr>
    </table>
 
-   <h2>4 · Mercado endereçável <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— bottom-up, com teto real da B3</span></h2>
+   <h2>O produto &amp; a oferta</h2>
+   <p><b>Pitch:</b> ${esc(P.pitch.umaLinha)}</p>
+   ${pb.bigDomino?`<p><b>A grande ideia:</b> ${esc(pb.bigDomino)}</p>`:''}
    <table>
-     <tr><td>Clientes potenciais (limitado pelo teto)</td><td>${num(m.clientesCap,0)}</td></tr>
-     <tr><td>Teto do nicho</td><td>${m.teto!=null?num(m.teto)+' CPFs ('+esc(nichoInfo(o).fonte)+')':'sem teto de bolsa'}</td></tr>
-     <tr><td>Valor de contrato potencial (topo)</td><td>${brl(m.receitaPot)}</td></tr>
+     <tr><td style="width:180px">Mecanismo único</td><td>${esc(P.pitch.mecanismo)}</td></tr>
+     <tr><td>Prova</td><td>${esc(P.pitch.prova)}</td></tr>
+     <tr><td>Garantia</td><td>${esc((o.garantia||'').trim()||P.pitch.bonus)}</td></tr>
    </table>
-   <p class="muted" style="font-size:11px">É o potencial de contratos (não caixa nem lucro), calculado de baixo para cima — depende da base real.</p>
 
-   <h2>5 · Diagnóstico do produto</h2>
-   <ul>${diagH}</ul>
-
-   <h2>6 · Estratégia</h2>
-   <p><b>Modelo: ${MODELOS[modelo].label}</b> — ${esc(MODELOS[modelo].problema)}. <b>Estrutura:</b> ${esc(e.jornada.estrutura)}.</p>
-   <h3 style="${H3}">Jornada de conteúdo</h3>
-   <table><tr><th>Fase</th><th>Objetivo</th><th>Meta</th></tr>${fasesH}</table>
-   <h3 style="${H3}">Trilha de ads</h3>
-   <table><tr><th>Camada</th><th>Verba</th><th>Objetivo</th></tr>${adsH}</table>
-   <p class="muted" style="font-size:11px">${esc(e.ads.nota)}</p>
-   <h3 style="${H3}">Jornada de compra</h3>
+   <h2>A estratégia</h2>
+   <p><b>Modelo: ${MODELOS[modelo].label}.</b> ${esc(e.jornada.estrutura)}.</p>
+   <h3 style="${H3}">O funil &amp; os CTAs</h3>
+   <table><tr><th>Etapa</th><th>CTA</th></tr>${funilH}</table>
+   <h3 style="${H3}">Como a pessoa compra</h3>
    <ul>${compraH}</ul>
-   <h3 style="${H3}">O funil a construir — CTA e o que gravar por etapa</h3>
-   <table><tr><th>Etapa</th><th>CTA</th><th>O que gravar</th></tr>
-   ${funilRec(o).etapas.map(s=>`<tr><td><b>${esc(s.etapa)}</b></td><td>${esc(s.cta)}</td><td>${esc(s.gravar)}</td></tr>`).join('')}
-   </table>
 
-   <h2>7 · Mensagem, pitch &amp; produtização</h2>
-   <p><b>Pitch (uma linha):</b> ${esc(P.pitch.umaLinha)}</p>
-   <p><b>Natureza da oferta:</b> ${esc(P.natureza.tipo)}. &nbsp; <b>Prontidão para investir:</b> ${esc(P.prontidao.verdict)} — ${esc(P.prontidao.resumo)}</p>
-   <p style="margin-top:8px"><b>SWOT (resumo):</b></p>
-   <table>
-     <tr><th>Forças</th><th>Fraquezas</th><th>Oportunidades</th><th>Ameaças</th></tr>
-     <tr style="vertical-align:top">
-       <td>${P.F.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
-       <td>${P.W.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
-       <td>${P.O.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
-       <td>${P.T.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
-     </tr>
-   </table>
-   ${pb.bigDomino?`<p style="margin-top:8px"><b>Big Domino:</b> ${esc(pb.bigDomino)}</p>`:'<p class="muted" style="margin-top:8px">Preencha o Essencial da oferta (promessa + mecanismo) para o Big Domino específico.</p>'}
-   <p><b>Objeções a quebrar (3 crenças):</b></p><ul>${crencasH}</ul>
+   <h2>A mensagem</h2>
+   <p>Objeções a vencer ao longo do lançamento:</p>
+   <ul>${crencasH}</ul>
 
-   <h2>8 · Viabilidade financeira <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— 3 cenários (flexão da conversão)</span></h2>
+   <h2>Projeção financeira</h2>
+   <p class="muted">Três cenários, variando a conversão. É uma projeção com as premissas atuais — não é garantia de resultado.</p>
    <table>
-     <tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr>
-     ${cenRow('Conversão efetiva', sc=>pct(sc.conv))}
-     ${cenRow('Receita contratada', sc=>brl(sc.bruto))}
-     ${cenRow('Lucro operacional', sc=>brl(sc.lucro))}
+     <tr><th>Linha</th><th style="text-align:right">Pé no chão</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr>
+     ${cenRow('Faturamento potencial', sc=>brl(sc.bruto))}
+     ${cenRow('Lucro', sc=>brl(sc.lucro))}
      ${cenRow('Resultado — '+esc(opName(o)), (sc,d)=>brl(d.operadorNet))}
-     <tr><td>Recupera o aporte em (meses)</td>${rtc.map(x=>`<td style="text-align:right">${x.invest<=0?'—':(x.recuperado?num(x.recMonth,1):'n/d')}</td>`).join('')}</tr>
+     <tr><td>Recupera o investimento em</td>${cols.map(([n,sc])=>{const r=recoveryTimeline(o,sc);return `<td style="text-align:right">${r.invest<=0?'—':(r.recuperado?num(r.recMonth,1)+' m':'—')}</td>`;}).join('')}</tr>
    </table>
-   <p><b>Go/No-Go:</b> ${a.verdict}. Break-even da conversão: ${a.be!=null?pct(a.be/100):'—'}. ${esc(opName(o))} recupera o aporte antes do split; no prejuízo assume a perda (o parceiro não fica negativo).</p>
 
-   <h2>9 · Próximos passos &amp; transparência</h2>
-   <p><b>O que ainda falta saber:</b></p><ul>${gapsH}</ul>
-   <p><b>Compliance:</b> ${esc(pb.compliance)}</p>
-   <div class="disc"><b>Transparência:</b> esta é uma projeção que se repete com as mesmas premissas — <b>não é uma previsão</b>. Conversão e cancelamento ainda são <b>estimativas a confirmar</b> num lançamento real. Nenhum número de mercado foi inventado. Não é promessa de resultado.</div>
+   <h2>Próximos passos</h2>
+   <ol>${proximasAcoes(o).slice(0,5).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
   `;
 }
 function viewCompilador(){
@@ -2828,7 +2804,7 @@ function renderProdutizacaoInner(o){
     ${P.tows.length?`<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px">Cruzamento TOWS</h4><div class="steps">${towsH}</div>`:''}
   </div>
 
-  <div class="card"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
+  <div class="card internal-only"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
     <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
     <div class="disc" style="margin-top:8px">Análise construída sobre os frameworks PRÁTICOS do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler), aplicados ao contexto que você preencheu. Quanto mais completo o contexto do produto, mais específica a análise. O veredito de prontidão é estrutural; a <b>conversão</b> só o piloto confirma (GAP-002). Nada aqui é promessa de resultado.</div>
   </div>`;
