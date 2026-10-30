@@ -384,18 +384,21 @@ const num=(n,d=0)=>isFinite(n)?n.toLocaleString('pt-BR',{maximumFractionDigits:d
 const pct=(n)=>isFinite(n)?(n*100).toLocaleString('pt-BR',{maximumFractionDigits:2})+'%':'—';
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=(s)=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// confiança em linguagem comum (para relatórios) — traduz [A]/[B]/[C]/[D]/[L]
+const CONF={A:['dado real','good'],B:['consenso','good'],C:['análise','neutral'],D:['a confirmar','warn'],L:['boa prática','neutral']};
+const confWord=(m)=>{const c=CONF[m]||['','neutral'];return c[0]?`<span class="chip ${c[1]}" style="font-size:10.5px;padding:1px 7px">${c[0]}</span>`:'';};
 
 /* ---------------- dados de referência (mercado real) ---------------- */
 // Tetos de mercado reais da B3 (2º tri 2026 — SRC-039) para dimensionamento bottom-up
 const NICHOS_B3=[
-  {k:'futuros',label:'Day trade / futuros (BM&F)',teto:235800,fonte:'B3 2T2026 (SRC-039)',nota:'~235,8 mil CPFs negociaram derivativos; Mini Índice ~172,8 mil.'},
-  {k:'acoes',label:'Ações à vista',teto:4300000,fonte:'B3 2T2026 (SRC-039)',nota:'~4,3 mi CPFs; ~1,7 mi ativos/mês.'},
-  {k:'rv_total',label:'Renda variável (total)',teto:5700000,fonte:'B3 2T2026 (SRC-039)',nota:'~5,7 mi CPFs em equities.'},
-  {k:'fii',label:'FIIs',teto:3400000,fonte:'B3 2T2026 (SRC-039)',nota:'~3,4 mi CPFs; PF = 74% do mercado.'},
+  {k:'futuros',label:'Day trade / futuros (BM&F)',teto:235800,fonte:'B3 2T2026',nota:'~235,8 mil CPFs negociaram derivativos; Mini Índice ~172,8 mil.'},
+  {k:'acoes',label:'Ações à vista',teto:4300000,fonte:'B3 2T2026',nota:'~4,3 mi CPFs; ~1,7 mi ativos/mês.'},
+  {k:'rv_total',label:'Renda variável (total)',teto:5700000,fonte:'B3 2T2026',nota:'~5,7 mi CPFs em equities.'},
+  {k:'fii',label:'FIIs',teto:3400000,fonte:'B3 2T2026',nota:'~3,4 mi CPFs; PF = 74% do mercado.'},
   {k:'educacao',label:'Educação financeira (amplo)',teto:null,fonte:'—',nota:'Sem teto de bolsa; o limite é a audiência alcançável do expert.'}
 ];
 // Âncoras internas da Nelogica (SRC-035/036)
-const NELOGICA_REF={ticketMin:76,ticketMax:148,fonte:'Nelogica (SRC-036)',dorPrimarias:['Controle emocional / psicológico','Gestão de tempo','Falta de conhecimento','Buscar renda extra']};
+const NELOGICA_REF={ticketMin:76,ticketMax:148,fonte:'Nelogica',dorPrimarias:['Controle emocional / psicológico','Gestão de tempo','Falta de conhecimento','Buscar renda extra']};
 
 function blankOpp(){
   return {
@@ -1087,7 +1090,7 @@ function recompute(o){
   const vmap={good:['GO','good'],warn:['ANÁLISE NECESSÁRIA','warn'],bad:['NO-GO','bad']};
   const vg=vmap[r.vclass]||['—','neutral'];
   const margem=s.receita>0?s.lucro/s.receita:0, investTot=(s.fixos||0)+(s.leadsDBCost||0);
-  const riscos=['Conversão lead→venda é premissa [D] — a variável de maior incerteza; só um piloto confirma.'];
+  const riscos=['A conversão de lead em venda ainda é estimativa — é a maior incerteza; só um teste real confirma.'];
   if(o.rendaVariavel) riscos.push('Renda variável: a copy não vai ao ar sem parecer jurídico (compliance).');
   if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) riscos.push('Prazo para recuperar o investimento maior que a fidelidade — risco de caixa.');
   if(r.sens&&r.sens.margem<0.3) riscos.push('Folga pequena até o zero: variação modesta na conversão vira prejuízo.');
@@ -1377,10 +1380,10 @@ function ledgerGTM(o){
     {item:'Audiência alcançável',val:num(m.alc),mk:'D',src:'Taxa de alcance (premissa)',tipo:'estimado'},
     {item:'Teto de mercado do nicho',val:(m.teto!=null?num(m.teto)+' CPFs':'sem teto de bolsa'),mk:'A',src:nichoInfo(o).fonte,tipo:'observado (dado da bolsa)'},
     {item:'Clientes potenciais',val:num(m.clientesCap,0),mk:'C',src:'base × adesão, limitado pelo teto',tipo:'derivado de premissas'},
-    {item:'Ticket médio',val:brl(m.tk)+'/mês',mk:'B',src:'Formatos do produto · faixa real Nelogica R$76–148 (SRC-036)',tipo:(tkOk?'dentro da faixa real':'FORA da faixa real da Nelogica')},
-    {item:'Conversão lead→venda',val:pct((o.convLista||0)/100),mk:'D',src:'Premissa — sem benchmark de lançamento',tipo:'estimado · o piloto valida'},
+    {item:'Ticket médio',val:brl(m.tk)+'/mês',mk:'B',src:'dos formatos · faixa real da base R$76–148',tipo:(tkOk?'dentro da faixa real':'FORA da faixa real da base')},
+    {item:'Conversão lead→venda',val:pct((o.convLista||0)/100),mk:'D',src:'estimativa — sem dado de lançamento',tipo:'a confirmar num teste real'},
     {item:'Custo por cliente (CAC)',val:brl(s.cac),mk:'C',src:'(mídia + base Nelogica) ÷ clientes efetivos',tipo:'derivado'},
-    {item:'Ângulo recomendado',val:'Educação/disciplina',mk:'B',src:'FInfluence SRC-037 + dor Nelogica SRC-035/036',tipo:'convergência independente'},
+    {item:'Ângulo recomendado',val:'Educação/disciplina',mk:'B',src:'pesquisa de mercado + dados da base',tipo:'fontes independentes concordam'},
     {item:'Veredito go/no-go',val:r.verdict,mk:'C',src:'Decisor E5 — cenário conservador',tipo:'derivado das premissas'}
   ];
 }
@@ -1390,7 +1393,7 @@ function gapsGTM(o){
   if(!(o.redes||[]).some(r=>+r.engaj>0)) g.push('Engajamento por rede vazio — sem ele a audiência engajada não é medida (vira métrica de vaidade).');
   if(!m.ades) g.push('Adesão do mercado não definida — o mercado endereçável fica indefinido.');
   if(!m.tk) g.push('Ticket dos formatos vazio — sem ticket não há receita (edite os formatos no detalhe completo).');
-  g.push('Conversão lead→venda ('+(o.convLista||0)+'%) é premissa [D]: nenhum benchmark de lançamento a sustenta — é o número que o piloto valida.');
+  g.push('A conversão de lead em venda ('+(o.convLista||0)+'%) ainda é estimativa: nenhum dado de lançamento confirma — é o número que um teste real valida.');
   if(!(+o.qtdLeadsDB)) g.push('Base de leads Nelogica não informada — pode subestimar o topo do funil.');
   if(o.intencao==='baixa') g.push('Intenção de compra baixa: audiência grande ≠ venda — gere sinal de intenção antes de projetar (GAP-005).');
   if(m.estoura) g.push('Clientes potenciais estouram o teto real do nicho — a projeção está acima do mercado que existe.');
@@ -1422,14 +1425,14 @@ function mercadoReadoutGTM(o){
      <div class="line sub"><span>× Receita contratada / cliente</span><span>${brl(m.recCliente)}</span></div>
      <div class="line total"><span>Valor de contrato potencial (topo)</span><span>${brl(m.receitaPot)}</span></div></div>
      ${bar}${alert}
-     <div class="pill-note">Bottom-up (base × adesão × ticket) <b>limitado pelo teto real da B3</b> (SRC-039). Não é TAM; é receita <b>contratada</b> potencial, não caixa nem lucro.</div>`;
+     <div class="pill-note">Bottom-up (base × adesão × ticket) <b>limitado pelo teto real da B3</b>. Não é TAM; é receita <b>contratada</b> potencial, não caixa nem lucro.</div>`;
 }
 function anguloReadoutGTM(o){
   const a=anguloGTM(o);
   const cls=a.escolhido==='promessa'?'bad':(a.escolhido==='educacao'?'good':'warn');
   const nome=a.escolhido==='educacao'?'Educação / disciplina':(a.escolhido==='hibrido'?'Híbrido':'Promessa de ganho');
   const head=a.escolhido==='educacao'?'Alinhado ao que o mercado engaja e à dor real do público':(a.escolhido==='hibrido'?'Híbrido — mantenha o peso na educação':'Desalinhado — risco de engajamento e de compliance');
-  return `<div class="verdict ${cls}"><b>Ângulo: ${nome}</b><br>${head}.<br><span style="font-size:12.5px">Recomendado: <b>educação / disciplina / cotidiano</b> — didático engaja +158% e ação/day-trade engaja pouco (FInfluence SRC-037 [A]); casa com a dor do público (SRC-035/036 [B]).</span></div>${a.alerta?`<div class="alertbox">${a.alerta}</div>`:''}`;
+  return `<div class="verdict ${cls}"><b>Ângulo: ${nome}</b><br>${head}.<br><span style="font-size:12.5px">Recomendado: <b>educação / disciplina / cotidiano</b> — conteúdo que ensina engaja muito mais; "ficar rico"/day-trade engaja pouco; e isso casa com a dor real do público.</span></div>${a.alerta?`<div class="alertbox">${a.alerta}</div>`:''}`;
 }
 function gonogoReadoutGTM(o){
   const r=analyze(o),s=r.b, rt=recoveryTimeline(o,r.b), pbWarn=isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12);
@@ -1448,7 +1451,7 @@ function gonogoReadoutGTM(o){
    ${r.sens&&r.sens.margem<0.3?`<div class="alertbox">Folga pequena: variação modesta na conversão [D] vira prejuízo. Calculável ≠ confiável — teste antes.</div>`:''}`;
 }
 function ledgerReadoutGTM(o){
-  const rows=ledgerGTM(o).map(x=>`<tr><td>${esc(x.item)}</td><td>${x.val}</td><td><span class="mark m${x.mk}">${x.mk}</span></td><td class="src">${esc(x.src)}<br><i>${esc(x.tipo)}</i></td></tr>`).join('');
+  const rows=ledgerGTM(o).map(x=>`<tr><td>${esc(x.item)}</td><td>${x.val}</td><td>${confWord(x.mk)}</td><td class="src">${esc(x.src)}<br><i>${esc(x.tipo)}</i></td></tr>`).join('');
   return `<table class="ledger"><thead><tr><th>O que</th><th>Valor</th><th>Conf.</th><th>Fonte / natureza</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 function gapsReadoutGTM(o){
@@ -1510,14 +1513,14 @@ function viewGTM(){
   </div>
 
   <div class="card"><h2>Bloco 2 · Mercado endereçável <span class="tag">bottom-up, com teto real da B3</span></h2>
-    <p class="hint">O teto vem do dado oficial da bolsa (SRC-039). A projeção não pode passar do mercado que existe.</p>
+    <p class="hint">O teto vem do dado oficial da bolsa. A projeção não pode passar do mercado que existe.</p>
     <div class="gtm-split">
       <div>
         <div class="grid">
           ${gf2('Nicho (define o teto)','nichoB3',{type:'select',options:NICHOS_B3.map(n=>[n.k,n.label+(n.teto!=null?' · teto '+num(n.teto):' · sem teto')])})}
           ${gf2('Adesão do mercado','adesaoMercado',{suffix:'% da base que vira cliente'})}
         </div>
-        <div class="pill-note">Ticket médio ponderado: <b>${brl(ticketMensalBlend(o))}/mês</b> (dos formatos). Faixa real Nelogica: R$76–148 (SRC-036). Para editar os formatos, abra o detalhe completo.</div>
+        <div class="pill-note">Ticket médio ponderado: <b>${brl(ticketMensalBlend(o))}/mês</b> (dos formatos). Faixa real da base: R$76–148. Para editar os formatos, abra o detalhe completo.</div>
       </div>
       <div id="gtmMercado"></div>
     </div>
@@ -1529,7 +1532,7 @@ function viewGTM(){
         ${gf2('Dor primária da audiência','dorPrimaria',{type:'select',options:NELOGICA_REF.dorPrimarias.map(d=>[d,d])})}
         ${gf2('Ângulo escolhido','angulo',{type:'select',options:[['educacao','Educação / disciplina'],['hibrido','Híbrido'],['promessa','Promessa de ganho']]})}
       </div>
-      <div class="pill-note">A dor vem do dado interno Nelogica (SRC-035/036). O ângulo recomendado vem da convergência com o FInfluence (SRC-037): o que o público engaja ≠ o que mais se promete.</div></div>
+      <div class="pill-note">A dor vem dos dados internos da base. O ângulo recomendado vem do que o mercado mais engaja — que não é o que mais se promete.</div></div>
       <div id="gtmAngulo"></div>
     </div>
   </div>
@@ -1586,7 +1589,7 @@ function viewGTM(){
 }
 
 /* ---------------- Estrategista de Lançamento (determinístico: conteúdo + ads + jornada de compra) ---------------- */
-// Demografia do investidor por nicho — B3 2T2026 / jun-2026 (SRC-039) [A]
+// Demografia do investidor por nicho — B3 2T2026 / jun-2026 [A]
 const B3_DEMO={
   futuros:{genero:'86% homens',idade:'52% entre 40-59 · 36% entre 25-39',regiao:'Sudeste 56% + Sul 19%',nota:'nicho minúsculo (~235,8 mil CPFs). Segmentação estreita → CPL tende a subir ao escalar (GAP-012).'},
   acoes:{genero:'73% homens',idade:'núcleo 25-39 (46%) · ~78% entre 25-59',regiao:'Sudeste 61% + Sul 16%',nota:'~4,3 mi CPFs; saldo mediano caindo → ticket baixo (casa com R$76–148 da base).'},
@@ -1602,8 +1605,8 @@ const DOR_NUCLEO={
   'Buscar renda extra':{promessa:'construir competência para buscar renda de forma consistente e responsável',crenca:'A crença a quebrar: "vou ficar rico rápido". Competência primeiro; consistência depois.',flag:true}
 };
 const CANAL_FMT={
-  youtube:{cpl:'aulas/lives longas no YouTube — canal líder de engajamento e de aprofundamento (SRC-037) e onde 73,5% da base aprende (SRC-036)',topo:'vídeos educativos longos no YouTube'},
-  instagram:{cpl:'CPLs em live/zoom + cortes em Reels e carrosséis — Instagram tem o melhor retorno por publicação (SRC-037)',topo:'Reels e carrosséis didáticos no Instagram'},
+  youtube:{cpl:'aulas/lives longas no YouTube — canal líder de engajamento e de aprofundamento, e onde 73,5% da base aprende',topo:'vídeos educativos longos no YouTube'},
+  instagram:{cpl:'CPLs em live/zoom + cortes em Reels e carrosséis — Instagram tem o melhor retorno por publicação',topo:'Reels e carrosséis didáticos no Instagram'},
   x:{cpl:'threads e Spaces no X para aquecer, mas leve a conversão para vídeo (YouTube/IG)',topo:'threads de volume no X; conversão sempre no vídeo'},
   outro:{cpl:'vídeo longo no canal onde o expert tiver mais engajamento real',topo:'conteúdo educativo no canal principal do expert'}
 };
@@ -1671,17 +1674,17 @@ function diagnosticoProduto(o){
   if(niv==='iniciante') push('Nível do público','Iniciante → consciente do problema.','Lidere quebrando a crença (CPL 1 forte); copy simples (3ª série); a objeção INTERNA ("não sou capaz") domina.','Schwartz/Sugarman','L');
   else if(niv==='avancado') push('Nível do público','Avançado → consciente da solução/produto.','Menos quebra de crença, mais MECANISMO e diferenciação (por que o SEU método); a objeção de VEÍCULO domina.','Schwartz/Dunford','L');
   else push('Nível do público','Intermediário → entre problema e solução.','Equilibre quebra de crença e prova; mecanismo + caso.','Schwartz','L');
-  if(fmt==='gravado') push('Formato','Curso gravado.','Churn alto sem acompanhamento — hábito de ESTUDO é crítico; a 1ª semana decide a retenção.','Hooked SRC-044','A');
-  else if(fmt==='aovivo') push('Formato','Mentoria / ao vivo.','High-touch sustenta ticket alto, mas tem CAPACIDADE limitada — pode barrar escala (externo).','Método E6','C');
-  else if(fmt==='carteira'||fmt==='robo') push('Formato',FORMATO[fmt]+'.','Modalidade seguir/automatizar: disciplina = NÃO interferir; compliance redobrado (frame aposta).','SRC-038/048','A');
-  else if(fmt==='software') push('Formato','Software / assinatura.','Retenção por USO/hábito; churn é a variável-chave do motor financeiro.','Hooked SRC-044','A');
-  else if(fmt==='comunidade') push('Formato','Comunidade.','Retenção por pertencimento/identidade (movimento); cuide do risco reputacional.','Brunson SRC-041','L');
-  if(tb.k==='high') push('Faixa de ticket','Ticket ALTO ('+tb.label+').','Venda por APLICAÇÃO + call (4-Question Close) — não vende "no grito"; qualifica e dá segurança.','Brunson SRC-041','L');
-  else if(tb.k==='mid') push('Faixa de ticket','Ticket médio ('+tb.label+').','Perfect Webinar / PLF com stack — o cavalo de batalha.','Brunson SRC-041','L');
-  else if(tb.k==='low') push('Faixa de ticket','Ticket baixo ('+tb.label+').','Self-serve / webinar perpétuo; o jogo é volume e eficiência de CPL.','DotCom Secrets SRC-042','L');
-  if(o.produtoValidado==='nao') push('Validação','Produto não validado.','Semente/validação antes de escalar; não recrute afiliado (queima o parceiro).','Matriz 03','B');
-  if(rv) push('Compliance','Toca renda variável.','Promessa = competência/processo; sem retorno; disclaimer de risco; falta fonte jurídica/CVM (bloqueio).','GAP-003 · SRC-038','A');
-  const tk=ticketMensalBlend(o); if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio fora da faixa real da base (R$76–148).','Justifique por valor ou reposicione os formatos.','SRC-036','B');
+  if(fmt==='gravado') push('Formato','Curso gravado.','Cancela mais sem acompanhamento — criar hábito de estudo é crítico; a 1ª semana decide a retenção.','retenção por hábito','A');
+  else if(fmt==='aovivo') push('Formato','Mentoria / ao vivo.','Atendimento próximo sustenta preço alto, mas tem limite de capacidade — pode travar a escala.','plano operacional','C');
+  else if(fmt==='carteira'||fmt==='robo') push('Formato',FORMATO[fmt]+'.','A pessoa segue/automatiza: disciplina é NÃO interferir; cuidado dobrado para não parecer aposta.','risco de parecer aposta','A');
+  else if(fmt==='software') push('Formato','Software / assinatura.','Retenção vem do uso/hábito; o cancelamento é a variável-chave do resultado.','retenção por hábito','A');
+  else if(fmt==='comunidade') push('Formato','Comunidade.','Retenção vem de pertencimento e identidade; cuide da reputação.','construção de comunidade','L');
+  if(tb.k==='high') push('Faixa de ticket','Ticket ALTO ('+tb.label+').','Venda por aplicação + call — não vende "no grito"; qualifica e dá segurança.','venda de alto valor','L');
+  else if(tb.k==='mid') push('Faixa de ticket','Ticket médio ('+tb.label+').','Webinário/lançamento com oferta empilhada — o cavalo de batalha.','método de lançamento','L');
+  else if(tb.k==='low') push('Faixa de ticket','Ticket baixo ('+tb.label+').','Venda automática / webinário sempre aberto; o jogo é volume e custo de lead baixo.','funil de vendas','L');
+  if(o.produtoValidado==='nao') push('Validação','Produto não validado.','Validar (semente) antes de escalar; não recrute afiliado (queima o parceiro).','comparação de modelos','B');
+  if(rv) push('Compliance','Toca renda variável.','Prometa competência e processo; sem retorno; avise do risco; ainda falta o aval do jurídico.','regra de renda variável','A');
+  const tk=ticketMensalBlend(o); if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio fora da faixa real da base (R$76–148).','Justifique pelo valor ou ajuste os formatos.','faixa real da base','B');
   return out;
 }
 function nivelConsciencia(o){
@@ -1703,7 +1706,7 @@ const MODELOS={
   relampago:{label:'Relâmpago',problema:'Caixa rápido na base quente',risco:'Uso frequente → base aprende a esperar',dur:'24–72h'}
 };
 function verbaFaixa(o){const v=+o.verbaTrafego||0;return v>=40000?'alta':(v>=10000?'media':'baixa');}
-// Scoring transparente de modelo por vetores do caso (E4). Tipo define esforço/verba/alcance, NÃO teto de faturamento (SRC-001; HYP-001).
+// Scoring transparente de modelo por vetores do caso (E4). Tipo define esforço/verba/alcance, NÃO teto de faturamento.
 function recomendarModelo(o){
   const val=o.produtoValidado||'parcial', vende=o.jaVendeBase==='sim', parc=!!o.temParceiros;
   const aut=o.expertAutoridade||'media', obj=o.objetivoCampanha||'faturar_base', jan=o.janelaCampanha||'normal';
@@ -1817,7 +1820,7 @@ function adsPorModelo(o,modelo){
     mk(0.5,'Fundo · conversão','Fechar em 48–72h','quem viu o evento / abriu o carrinho','urgência real concentrada nas últimas horas')
   ];nota='Relâmpago vive do remarketing da base quente — pouco tráfego frio. Concentre a verba no fundo, nas últimas horas.';}
   else {camadas=[
-    mk(0.5,'Topo · frio','Alcance + captação de lead','frio, segmentado pela demografia do nicho','educativo/didático (+158% — SRC-037); nunca promessa de ganho'),
+    mk(0.5,'Topo · frio','Alcance + captação de lead','frio, segmentado pela demografia do nicho','conteúdo que ensina (engaja muito mais); nunca promessa de ganho'),
     mk(0.25,'Meio · morno','Levar quem engajou aos CPLs','remarketing: viu vídeo/visitou página/entrou na lista','prova + convite; quebra de objeção'),
     mk(0.25,'Fundo · quente','Conversão no carrinho','remarketing: assistiu CPL 3 / abriu o carrinho','escassez honesta + depoimento; últimas 48h')
   ];nota='Interno: equilíbrio topo/meio/fundo. Ajuste pela realidade do seu CPL por canal (não há benchmark — GAP-012).';}
@@ -1838,8 +1841,8 @@ function compraPorModelo(o,modelo){
   else if(modelo==='perpetuo') passos=[
     {t:'Oferta sempre aberta',d:'Deadline individual honesto por lead (ex.: 5 dias após entrar no funil) — nunca contador falso.'},
     {t:'Estrutura',d:'Oferta principal + order bump; downsell automático. Âncora: '+an+'.'},
-    {t:'Sequência',d:'Automatizada (e-mail/WhatsApp) no escorregador/PAS [L]; reforço no último dia do deadline.'},
-    {t:'Pós',d:'Onboarding automatizado na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção e indicação (STEPPS [L]).'}
+    {t:'Sequência',d:'Automatizada (e-mail/WhatsApp) no modelo "cada linha puxa a próxima"; reforço no último dia do deadline.'},
+    {t:'Pós',d:'Onboarding automatizado na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção e indicação (programa de "indique um amigo").'}
   ];
   else if(modelo==='relampago') passos=[
     {t:'Oferta única',d:'Carrinho 48–72h com 1–2 formatos; sem complicar. Urgência real (fecha na hora marcada).'},
@@ -1849,8 +1852,8 @@ function compraPorModelo(o,modelo){
   else passos=[
     {t:'Abertura',d:'Após o CPL 3. Escassez honesta: data real de fechamento, vagas ou bônus que de fato expira — nunca falsa.'},
     {t:'Estrutura',d:'Oferta principal + order bump + downsell para quem não leva o plano-alvo. Âncora: '+an+'.'+(modelo==='externo'?' Comissão de afiliado entra no split.':'')},
-    {t:'Sequência',d:'E-mail/WhatsApp (escorregador/PAS [L]): abertura → conteúdo/objeção → prova → últimas 24h → última chamada. Maioria das vendas nas últimas 24h.'},
-    {t:'Pós',d:'Onboarding rápido na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção contra churn e indicação (STEPPS [L]).'}
+    {t:'Sequência',d:'E-mail/WhatsApp (cada linha puxa a próxima): abertura → conteúdo/objeção → prova → últimas 24h → última chamada. Maioria das vendas nas últimas 24h.'},
+    {t:'Pós',d:'Onboarding rápido na 1ª semana (cancelamento '+(o.cancel7Pct||0)+'%), retenção contra churn e indicação (programa de "indique um amigo").'}
   ];
   return {planos:pl,nOk,ancora,tkBlend,tkOk,passos};
 }
@@ -1863,13 +1866,13 @@ function otimizacoes(o){
   if(eng>0&&eng<2) push('Audiência','Engajamento ponderado '+num(eng,1)+'% — baixo: seguidor ≠ influência.','Pese a audiência engajada, não o total; gere sinal de intenção antes de escalar verba.','A');
   if(o.intencao==='baixa') push('Intenção','Intenção de compra declarada baixa.','Rode pesquisa / lista de espera / pré-venda para medir intenção antes de comprometer mídia (GAP-005).','C');
   if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) push('Unit economics','Payback ('+num(s.paybackMeses,1)+'m) maior que a fidelidade ('+(o.prazoFidelidade||12)+'m).','Recupera o CAC depois que o cliente já pode sair — suba o ticket de entrada, reduza CPL ou amarre fidelidade.','C');
-  if(o.nichoB3==='futuros') push('Mercado','Nicho day-trade/futuros é minúsculo (~235,8 mil CPFs — SRC-039); CPL sobe ao escalar.','Priorize conversão e ticket altos (high-touch) e considere componente perpétuo em vez de depender de volume frio.','A');
-  if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio '+brl(tk)+'/mês fora da faixa real da base (R$76–148 — SRC-036).','Justifique o preço por valor ou reposicione os formatos.','B');
+  if(o.nichoB3==='futuros') push('Mercado','Nicho day-trade/futuros é minúsculo (~235,8 mil CPFs); CPL sobe ao escalar.','Priorize conversão e ticket altos (high-touch) e considere componente perpétuo em vez de depender de volume frio.','A');
+  if(tk>0&&(tk<NELOGICA_REF.ticketMin||tk>NELOGICA_REF.ticketMax)) push('Preço','Ticket médio '+brl(tk)+'/mês fora da faixa real da base (R$76–148).','Justifique o preço por valor ou reposicione os formatos.','B');
   if(rt.invest>0&&!rt.recuperado) push('Caixa','O aporte não se recupera no horizonte projetado.','Aumente o % no PIX (entra à vista), reduza parcelas do cartão ou antecipe recebíveis para encurtar a recuperação.','C');
   else if(rt.invest>0&&rt.recuperado&&rt.recMonth>3) push('Caixa','Recuperação do aporte em '+num(rt.recMonth,1)+' meses de caixa.','Para acelerar: mais peso no PIX à vista ou antecipação de cartão (custa taxa, mas libera caixa).','C');
   if((+o.optinPct||0)<4) push('Captação','Opt-in '+(o.optinPct||0)+'% — baixo para converter audiência em lead.','Melhore a isca (específica para a dor) e a página de captura; teste formatos.','C');
   if(tk>0&&(+o.cpl||0)/tk>0.1) push('Mídia','CPL ('+brl(+o.cpl||0)+') alto frente ao ticket mensal ('+brl(tk)+').','Trabalhe criativo e segmentação para baixar o CPL, ou suba o ticket de entrada.','C');
-  if(o.rendaVariavel&&!o.expertCert) push('Confiança','Nicho RV e expert sem certificação — certificação é rara (SRC-037).','Buscar certificação/figura certificada no time: diferencial de confiança e menor risco de compliance.','A');
+  if(o.rendaVariavel&&!o.expertCert) push('Confiança','Nicho RV e expert sem certificação — certificação é rara.','Buscar certificação/figura certificada no time: diferencial de confiança e menor risco de compliance.','A');
   if(!out.length) push('Geral','Sem alertas críticos nos vetores avaliados.','Mantenha as premissas sob revisão e valide a conversão com um piloto.','C');
   return out;
 }
@@ -1889,28 +1892,28 @@ function motorConhecimento(o){
   if(o.produtoValidado==='nao') alavanca='validar a oferta (semente) antes de escalar';
   else if(altoTicket) alavanca='venda consultiva por call (perguntas SPIN + ensinar), não pitch de massa';
   else alavanca='ângulo educação/disciplina + mecanismo único claro';
-  if(rv) risco='compliance: copy travada sem parecer jurídico (GAP-003)';
-  else if(o.audienciaTemp==='fria'||o.intencao==='baixa') risco='audiência fria / baixa intenção — gere sinal antes de escalar verba';
+  if(rv) risco='a copy não vai ao ar sem o aval do jurídico';
+  else if(o.audienciaTemp==='fria'||o.intencao==='baixa') risco='audiência fria / pouca intenção — gere interesse antes de gastar em tráfego';
   else if(o.produtoValidado==='nao') risco='vender algo que o mercado ainda não quer';
-  else risco='conversão é premissa [D] — só o piloto confirma';
+  else risco='a conversão ainda é estimativa — só um teste real confirma';
   const R=[];
-  R.push({a:'Modelo de lançamento',r:'Recomendado: '+MODELOS[modelo].label+' — '+MODELOS[modelo].problema+'.',f:'Matriz 03 · Dream 100 (Holmes SRC-050 / Brunson SRC-041)',mk:'B'});
-  R.push({a:'Conteúdo / CPL',r:'Ensinar e reenquadrar a crença; educar também quem ainda não compra; linguagem simples ("3ª série").',f:'Brunson SRC-041 · Challenger SRC-049 (reframe) · Holmes SRC-050 ("palco") · Sugarman SRC-046',mk:'B'});
-  R.push({a:'Trilha de ads',r:'Criativo educativo no topo; segmentar pela demografia do nicho; '+(CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro).topo+'.',f:'FInfluence SRC-037 · B3 SRC-039 · Holmes SRC-050',mk:'A'});
-  R.push({a:'Oferta & preço',r:'Ancorar pelo formato mais longo; enquadrar o CUSTO de não resolver (aversão à perda), sem prometer ganho; stack good-better-best.',f:'Kahneman SRC-055 (ancoragem/aversão à perda) · Ramanujam/Brunson',mk:'A'});
-  if(altoTicket) R.push({a:'Fechamento (alto-ticket)',r:'Aplicação + call por PERGUNTAS (SPIN: implicação/necessidade) e Ensinar→Adaptar→Assumir o controle (Challenger); close suave; gerir a própria emoção (não transmitir desespero).',f:'SPIN SRC-053 · Challenger SRC-049 · Blount SRC-052',mk:'B'});
-  else R.push({a:'Fechamento',r:'Carrinho com escassez honesta; a maioria compra nas últimas 24h; sequência de e-mail.',f:'Walker SRC-030 · Brunson SRC-041',mk:'A'});
-  R.push({a:'Retenção / pós',r:'Crie '+sl(mod.habito)+'; onboarding com PICO forte e bom FIM na 1ª semana; relacionamento (apreço/interesse genuíno).',f:'Hooked SRC-044 · Kahneman SRC-055 (pico-fim) · Carnegie SRC-051',mk:'A'});
-  R.push({a:'Captação (F0)',r:'Encher o funil ANTES do carrinho — a captação de hoje paga em ~30–90 dias; disciplina de prospecção.',f:'Prospecção Fanática SRC-054 · Holmes SRC-050',mk:'A'});
-  R.push({a:'Compliance',r:rv?'Promessa = competência/processo, verificável; sem retorno; disclaimer de risco; parecer jurídico antes de ir ao ar.':'Promessa específica e verificável.',f:'GAP-003 · SRC-038/048',mk:'A'});
-  R.push({a:'Disciplina de projeção',r:'A projeção é [D], não previsão; o 1º lançamento regride à média; não confie em número inflado.',f:'Kahneman SRC-055 (falácia do planejamento/regressão à média) · GAP-002',mk:'A'});
+  R.push({a:'Modelo de lançamento',r:'Recomendado: '+MODELOS[modelo].label+' — '+MODELOS[modelo].problema+'.',f:'método de lançamento + Dream 100 (Holmes)',mk:'B'});
+  R.push({a:'Conteúdo / CPL',r:'Ensine e mude a crença; eduque também quem ainda não está comprando; fale simples, sem jargão.',f:'venda que ensina (Brunson, Challenger, Holmes) + copy (Sugarman)',mk:'B'});
+  R.push({a:'Anúncios',r:'Criativo que educa no topo; mire o público do nicho; '+(CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro).topo+'.',f:'pesquisa de influência financeira (ANBIMA) + dados da bolsa (B3)',mk:'A'});
+  R.push({a:'Oferta & preço',r:'Use o plano mais longo como referência de preço; mostre o custo de NÃO resolver (sem prometer ganho); ofereça 3 níveis (bom-melhor-ótimo).',f:'economia comportamental (Kahneman) + arquitetura de preço',mk:'A'});
+  if(altoTicket) R.push({a:'Fechamento (alto valor)',r:'Aplicação + call por PERGUNTAS (entenda a dor e o impacto) e postura de quem ensina e conduz; fechamento sem pressão; controle a própria ansiedade (não passe desespero).',f:'venda consultiva (SPIN, Challenger) + inteligência emocional (Blount)',mk:'B'});
+  else R.push({a:'Fechamento',r:'Carrinho com prazo/escassez de verdade; a maioria compra nas últimas 24h; sequência de e-mails.',f:'método de lançamento (Walker, Brunson)',mk:'A'});
+  R.push({a:'Retenção / pós',r:'Crie '+sl(mod.habito)+'; capriche no começo e no fim da 1ª semana (é o que fica na memória); cuide do relacionamento.',f:'hábito/retenção (Hooked) + memória da experiência (Kahneman) + relacionamento (Carnegie)',mk:'A'});
+  R.push({a:'Captação (antes do carrinho)',r:'Encha a lista ANTES de abrir o carrinho — captar hoje dá resultado em ~30 a 90 dias; constância.',f:'disciplina de captação (Prospecção Fanática, Holmes)',mk:'A'});
+  R.push({a:'Compliance',r:rv?'Prometa competência e processo (verificável), nunca retorno; avise do risco; só publique com o aval do jurídico.':'Promessa específica e verificável.',f:'regra de renda variável (jurídico ainda pendente)',mk:'A'});
+  R.push({a:'Leitura dos números',r:'A projeção é uma estimativa, não uma garantia; o 1º lançamento quase nunca repete o pico; desconfie de número inflado.',f:'economia comportamental (Kahneman)',mk:'A'});
   return {contexto,dor:o.dorPrimaria,alavanca,risco,R};
 }
 function playbookAplicado(o){
   const dor=DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
   const nk=o.nichoB3||'futuros';
   const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(nk);
-  const angulo='Educação / disciplina / gestão de risco — NUNCA promessa de ganho. Triangulado por 3 origens independentes: dor interna Nelogica (SRC-035/036), ANBIMA+Housel (SRC-037/043) e o cânone do trading (SRC-047/048). [B] forte.';
+  const angulo='Educação, disciplina e gestão de risco — nunca promessa de ganho. É o ângulo que o público mais engaja e o único que o jurídico permite (apoiado por dados da Nelogica, do mercado financeiro e da psicologia do trader).';
   const mod=crencaNucleo(o);
   const cpl=[
     {t:'CPL 1 · Quebra de crença',d:mod.crenca},
@@ -1919,9 +1922,9 @@ function playbookAplicado(o){
   ];
   const use=['Especificidade (número verificável)','Honestidade / credibilidade','Autoridade com credencial real','Curiosidade','Storytelling','Simplicidade (3ª série)','Vender a cura (dor presente)'];
   const evite=rv?['Ganância / apelo a lucro','Esperança como promessa de ganho','Medo/urgência de "perder a alta"','Paralelo "é como apostar e você ganha"']:['Promessa vaga sem lastro','Urgência falsa'];
-  const retencao='Ative na 1ª semana (janela de cancelamento '+(o.cancel7Pct||0)+'%). Crie '+mod.habito+' (Hooked SRC-044; evita frame aposta SRC-038).';
-  const compliance=rv?'Promessa sobre competência/processo, específica e verificável; disclaimer de risco; escassez só se verdadeira. Sem claim de retorno, em nenhuma forma (GAP-003 · SRC-038/048). Falta fonte jurídica/CVM — bloqueio para liberar copy.':'Nicho fora de RV: compliance padrão; mantenha promessa verificável.';
-  const transparencia='Mostre premissas, origem e grau de confiança — transparência converte (Sugarman SRC-046) e é o diferencial do LaunchOS frente a métricas infladas.';
+  const retencao='Ative o cliente na 1ª semana (é quando mais cancela: '+(o.cancel7Pct||0)+'%). Crie '+mod.habito+' — mantém o hábito saudável e evita o clima de aposta.';
+  const compliance=rv?'Prometa competência e processo (específico e verificável); avise do risco; escassez só se for real. Nunca prometa retorno, de forma alguma. Ainda falta o aval do jurídico — sem ele a copy não vai ao ar.':'Fora de renda variável: regra padrão; mantenha a promessa verificável.';
+  const transparencia='Mostre de onde vêm os números e o que ainda é estimativa — transparência converte e é o seu diferencial frente a quem infla resultado.';
   // ---- Copy ESPECÍFICA a partir do Essencial da oferta (SRC-041 Big Domino + SRC-046 headlines; compliance-safe) ----
   const prod=(o.produtoNome||'').trim()||'seu produto';
   const publico=(o.nicho||'').trim()||'seu público';
@@ -1941,7 +1944,7 @@ function playbookAplicado(o){
   const stack={produto:prod,planos:getPlanos(o),prova:prova||'(inclua um caso/depoimento real — prova é gatilho de Sugarman/Brunson)',bonus:bonus||'(defina um bônus que expira DE VERDADE + garantia — escassez honesta)'};
   const ofertaGaps=[];
   if(!promessa) ofertaGaps.push('Promessa central vazia — sem ela o Big Domino e as headlines ficam genéricos.');
-  if(!mecanismo) ofertaGaps.push('Mecanismo único vazio — é o que diferencia e sustenta a crença (Brunson SRC-041).');
+  if(!mecanismo) ofertaGaps.push('Mecanismo único vazio — é o que diferencia o seu método e sustenta a promessa.');
   if(!prova) ofertaGaps.push('Prova/caso vazio — a prova social é o CPL 2; sem ela a conversão cai.');
   if(rv&&promessa&&/ganh|lucro|rentab|retorno|% ao|reais|r\$/i.test(promessa)) ofertaGaps.push('⚠️ A promessa parece citar GANHO/retorno — em RV isso é bloqueio de compliance. Reescreva em competência/processo.');
   return {rv,angulo,cpl,use,evite,retencao,compliance,transparencia,temOferta,bigDomino,headlines,stack,ofertaGaps,prod};
@@ -1964,21 +1967,21 @@ function estrategia(o){
   const otim = otimizacoes(o);
   const compliance=[];
   if(rv){
-    compliance.push('Nicho de renda variável: nenhuma promessa de ganho, rentabilidade ou "renda garantida" — em copy, ads ou CPL (GAP-003).');
-    compliance.push('Promessa específica e verificável sobre COMPETÊNCIA/processo, não sobre resultado financeiro (Hopkins [L]).');
-    compliance.push('Incluir disclaimer de risco; o público confunde aposta × investimento — o regulador vigia o frame "método/renda/estratégia" (SRC-038).');
-    if(!o.expertCert) compliance.push('Expert sem certificação (ANBIMA/CFP): cautela extra com afirmação técnica; certificação é rara e vira diferencial de confiança (SRC-037).');
+    compliance.push('Renda variável: nenhuma promessa de ganho, rentabilidade ou "renda garantida" — em nenhum anúncio, aula ou página.');
+    compliance.push('Prometa competência e processo (específico e verificável), nunca resultado financeiro.');
+    compliance.push('Avise sempre do risco; o público confunde aposta com investimento — é o que o regulador fiscaliza.');
+    if(!o.expertCert) compliance.push('Expert sem certificação (ANBIMA/CFP): cuidado extra com afirmação técnica; a certificação é rara e vira diferencial de confiança.');
   }
-  if(promessaRisco) compliance.push('Ângulo "promessa de ganho" escolhido: é o de MENOR engajamento (SRC-037) e MAIOR risco jurídico. Recomendo pivotar para educação/disciplina.');
+  if(promessaRisco) compliance.push('Você escolheu o ângulo "promessa de ganho": é o que menos engaja e o de maior risco com o jurídico. Melhor mudar para educação/disciplina.');
   if(dor.flag) compliance.push('Dor "renda extra": fácil escorregar para promessa de ganho. Mantenha o frame em competência/consistência.');
   const gaps=[
-    'Conversão lead→venda ('+(o.convLista||0)+'%) é premissa [D] — nenhum benchmark de lançamento a sustenta; é o que o piloto valida (GAP-002).',
-    'Presença e conversão por CPL/etapa não são medidas ainda — o plano propõe a estrutura, não prevê a audiência real.',
-    'CPL de ads varia por canal e temperatura e degrada ao escalar (GAP-012); a divisão de verba é heurística [C], não benchmark.',
-    'O ranking de modelo é scoring transparente dos vetores, não lei: o tipo define esforço/verba/alcance, não teto de faturamento (SRC-001; HYP-001).',
-    'Frameworks de copy/gatilho são [L] (memória do modelo, não auditados) — viram [A] só com os textos-fonte.'
+    'A conversão de lead em venda ('+(o.convLista||0)+'%) ainda é estimativa — nenhum dado de lançamento confirma; é o que um teste real resolve.',
+    'A presença e a conversão de cada aula ainda não foram medidas — o plano propõe a estrutura, não adivinha a audiência real.',
+    'O custo por lead muda por canal e pode subir ao escalar; a divisão de verba é um ponto de partida, não uma regra.',
+    'A recomendação de modelo é um ranking transparente dos vetores, não uma lei: o tipo define esforço/alcance, não o teto de faturamento.',
+    'As técnicas de copy são boas práticas conhecidas — ajudam, mas não substituem testar com o seu público.'
   ];
-  if(o.intencao==='baixa') gaps.push('Intenção de compra baixa: gere sinal de intenção (lista de espera, pesquisa, pré-venda) antes de comprometer verba (GAP-005).');
+  if(o.intencao==='baixa') gaps.push('Intenção de compra baixa: gere interesse (lista de espera, pesquisa, pré-venda) antes de comprometer verba.');
   return {dor,canal,nc,rv,demo,promessaRisco,rec,modelo,modeloAuto,jornada,ads,compra,otim,compliance,gaps};
 }
 function renderEstrategiaInner(o){
@@ -2020,7 +2023,7 @@ function renderEstrategiaInner(o){
   const diagProd=diagnosticoProduto(o);
   const diagProdH=diagProd.map(x=>`<div class="opt-row"><div class="opt-h"><span class="chip neutral">${esc(x.d)}</span>${mk(x.mk)}<span class="muted" style="font-size:11px;margin-left:auto">${esc(x.f)}</span></div><div class="opt-b"><b>${esc(x.l)}</b> ${esc(x.imp)}</div></div>`).join('');
   const km=motorConhecimento(o);
-  const kmRows=km.R.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(x.a)}</b> ${mk(x.mk)}</td><td>${esc(x.r)}</td><td class="muted" style="font-size:11px">${esc(x.f)}</td></tr>`).join('');
+  const kmRows=km.R.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(x.a)}</b><br>${confWord(x.mk)}</td><td>${esc(x.r)}</td><td class="muted" style="font-size:11px">${esc(x.f)}</td></tr>`).join('');
   const crencasH=crencasFalsas(o).map(c=>`<div class="step"><b>Crença ${esc(c.t)}:</b> ${esc(c.obj)} <span class="muted">→ ${esc(c.ponte)}</span></div>`).join('');
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
@@ -2050,11 +2053,11 @@ function renderEstrategiaInner(o){
     <p class="hint">O algoritmo pontua os 5 modelos-núcleo contra os vetores do caso (produto validado, audiência, verba, objetivo, autoridade, janela) e aplica os portões de dependência da matriz (03). ${e.modeloAuto?'Usando a <b>recomendação automática</b> — todo o plano abaixo se adapta a ela.':'Você <b>fixou</b> um modelo — o plano abaixo segue sua escolha.'}</p>
     <div class="mdl-list">${aptosH}</div>
     ${porque}${bloqH}
-    <div class="pill-note" style="margin-top:8px">O tipo define esforço/verba/alcance, <b>não teto de faturamento</b> (SRC-001; HYP-001). É proposta, não lei — você decide.</div>
+    <div class="pill-note" style="margin-top:8px">O tipo define esforço/verba/alcance, <b>não teto de faturamento</b>. É proposta, não lei — você decide.</div>
   </div>
 
   <div class="card"><h2>1 · Jornada de conteúdo — ${esc(ML)} ${mk('L')}${mk('A')}<span class="tag">sob medida para o modelo</span></h2>
-    <p class="hint"><b>Estrutura:</b> ${esc(e.jornada.estrutura)}. Ângulo pelo nível de consciência (Schwartz [L]) e gatilho de Cialdini [L]; tom calibrado pela dor real (SRC-035/036 [A]).</p>
+    <p class="hint"><b>Estrutura:</b> ${esc(e.jornada.estrutura)}. Ângulo pelo grau de consciência do público e gatilho de persuasão; tom calibrado pela dor real da base.</p>
     <div class="casc">${faseRows}</div>
     <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px">${esc(e.jornada.blocos.tipo)}</h4>
     <div class="cpl-grid">${blocoCards}</div>
@@ -2062,17 +2065,17 @@ function renderEstrategiaInner(o){
   </div>
 
   <div class="card"><h2>2 · Trilha de ads — ${esc(ML)} ${mk('A')}${mk('C')}<span class="tag">temperatura × canal</span></h2>
-    <p class="hint">Canais e criativo ancorados no FInfluence (SRC-037): didático engaja +158%; análise técnica/previsão/"ficar rico" engajam menos. Divisão de verba é heurística <span class="mark mC">C</span>, não benchmark.</p>
+    <p class="hint">Canais e criativo ancorados em pesquisa de influência financeira: conteúdo que ensina engaja muito mais; "ficar rico"/análise técnica engajam menos. A divisão de verba é um ponto de partida, não uma regra.</p>
     <div style="overflow:auto"><table><thead><tr><th>Camada</th><th>Verba</th><th>Objetivo</th><th>Público</th><th>Criativo</th></tr></thead><tbody>${adRows}</tbody></table></div>
     <div class="pill-note" style="margin-top:10px">${esc(e.ads.nota)}</div>
-    <div class="pill-note" style="margin-top:8px"><b>Segmentação (demografia do nicho — B3 SRC-039 [A]):</b> ${esc(e.demo.genero)} · ${esc(e.demo.idade)} · ${esc(e.demo.regiao)}. <i>${esc(e.demo.nota)}</i></div>
+    <div class="pill-note" style="margin-top:8px"><b>Para mirar (perfil do nicho — dados da bolsa):</b> ${esc(e.demo.genero)} · ${esc(e.demo.idade)} · ${esc(e.demo.regiao)}. <i>${esc(e.demo.nota)}</i></div>
   </div>
 
   <div class="card"><h2>3 · Jornada de compra — ${esc(ML)} ${mk('L')}<span class="tag">oferta → carrinho → pós</span></h2>
     <p class="hint">Arquitetura good-better-best (Ramanujam/Kahneman [L]): 2–4 níveis, ancoragem pelo mais longo.</p>
     <div class="casc">${planRows}</div>
     ${e.compra.nOk?'':'<div class="alertbox">Arquitetura de oferta fora do ideal: use 2 a 4 formatos (good-better-best). Hoje há '+e.compra.planos.length+'.</div>'}
-    ${e.compra.tkOk?'':'<div class="alertbox">Ticket médio ('+brl(e.compra.tkBlend)+'/mês) fora da faixa real da base (R$76–148 — SRC-036). Justifique o preço ou revise.</div>'}
+    ${e.compra.tkOk?'':'<div class="alertbox">Ticket médio ('+brl(e.compra.tkBlend)+'/mês) fora da faixa real da base (R$76–148). Justifique o preço ou revise.</div>'}
     <div class="steps">${passosH}</div>
   </div>
 
@@ -2223,7 +2226,7 @@ function renderRoteiroCPL(o){
      <tr><td>Leads da base</td><td>${num(s.leadsDB)}</td></tr>
      <tr><td><b>Meta total de leads</b></td><td><b>${num(metaLeads)}</b></td></tr>
    </table>
-   <p class="muted" style="font-size:11px">Meta derivada do funil do projeto (cenário-base). Conversão lead→venda premissada: ${o.convLista}% [D].</p>
+   <p class="muted" style="font-size:11px">Meta calculada a partir do funil do projeto. Conversão de lead em venda usada: ${o.convLista}% (estimativa a confirmar).</p>
    <h2>3 · Roteiro dos 3 CPLs</h2>
    ${cplBlock(1,'Oportunidade — quebra de crença','Mostrar que existe um caminho melhor e destruir a crença que trava.',cr[0].obj+' (veículo)',M+' — '+P+', sem depender de '+(rv?'achar o ativo/setup perfeito':'sorte'),'Backstory → o muro (frustração) → a epifania ('+M+') → como isso muda tudo. '+mod.crenca,'Autoridade + Reciprocidade','Convide para o CPL 2 (a prova).')}
    ${cplBlock(2,'Transformação — prova',rv?'Provar o PROCESSO e a consistência — nunca retorno garantido.':'Provar que o método funciona.',cr[1].obj+' (interna)',(o.ofertaProva?o.ofertaProva:'[caso/depoimento real]'),'Caso real → como '+M+' foi aplicado passo a passo → resultado de PROCESSO. '+cr[1].ponte,'Prova social','Convide para o CPL 3 (a virada).')}
@@ -2236,7 +2239,7 @@ function renderRoteiroCPL(o){
      <li><b>Últimas 24h:</b> escassez real (${esc(o.ofertaBonus||'bônus/prazo que expira de verdade')}); a maioria compra agora.</li>
      <li><b>Última chamada:</b> fecha na data marcada.</li>
    </ul>
-   <div class="disc"><b>Compliance:</b> ${rv?'renda variável — promessa sobre COMPETÊNCIA/processo, específica e verificável; disclaimer de risco; sem claim de retorno; a copy só vai ao ar com parecer jurídico (GAP-003).':'mantenha a promessa específica e verificável.'} Roteiro gerado das premissas do projeto — é estrutura, não garantia; conversão é [D].</div>
+   <div class="disc"><b>Regras:</b> ${rv?'renda variável — prometa competência e processo (específico e verificável), avise do risco, nunca prometa retorno; a copy só vai ao ar com o aval do jurídico.':'mantenha a promessa específica e verificável.'} Roteiro montado a partir do projeto — é um esqueleto, não garantia; a conversão ainda é estimativa.</div>
   `;
 }
 // binding por DELEGAÇÃO (robusto a re-renders): bindRoteiroCpl só registra a oportunidade ativa;
@@ -2292,7 +2295,7 @@ function renderApresentacao(o){
      <tr><td>Teto do nicho</td><td>${m.teto!=null?num(m.teto)+' CPFs ('+esc(nichoInfo(o).fonte)+')':'sem teto de bolsa'}</td></tr>
      <tr><td>Valor de contrato potencial (topo)</td><td>${brl(m.receitaPot)}</td></tr>
    </table>
-   <p class="muted" style="font-size:11px">Não é TAM; é receita contratada potencial (não caixa nem lucro). GAP-002.</p>
+   <p class="muted" style="font-size:11px">É o potencial de contratos (não caixa nem lucro), calculado de baixo para cima — depende da base real.</p>
 
    <h2>5 · Diagnóstico do produto</h2>
    <ul>${diagH}</ul>
@@ -2325,7 +2328,7 @@ function renderApresentacao(o){
    <h2>9 · Próximos passos &amp; transparência</h2>
    <p><b>O que ainda falta saber:</b></p><ul>${gapsH}</ul>
    <p><b>Compliance:</b> ${esc(pb.compliance)}</p>
-   <div class="disc"><b>Transparência:</b> a projeção é <b>estrutura reproduzível, não previsão</b>. Conversão e churn são premissas <b>[D]</b> — só um lançamento piloto as valida. Nenhum número de mercado foi inventado (bottom-up com teto da B3). Não é promessa de resultado.</div>
+   <div class="disc"><b>Transparência:</b> esta é uma projeção que se repete com as mesmas premissas — <b>não é uma previsão</b>. Conversão e cancelamento ainda são <b>estimativas a confirmar</b> num lançamento real. Nenhum número de mercado foi inventado. Não é promessa de resultado.</div>
   `;
 }
 function viewCompilador(){
