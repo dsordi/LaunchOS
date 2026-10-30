@@ -412,7 +412,7 @@ function blankOpp(){
     ticketMensal:300, prazoFidelidade:12, cancel7Pct:10, multaPct:50,
     planos:null,  // formatos de comercialização [{nome,meses,ticketMensal,mix}]
     // aquisição / leads
-    optinPct:5, verbaTrafego:20000, cpl:8, qtdLeadsDB:0, custoLeadDB:1.60, convLista:2,
+    optinPct:5, verbaTrafego:20000, cpl:8, qtdLeadsDB:0, optinBaseDB:3, custoLeadDB:1.60, convLista:2,
     // modelo
     modelo:'interno',
     // custos / regras
@@ -479,7 +479,8 @@ function computeScenario(o, convMult){
   const conv=(o.convLista/100)*convMult;
   const leadsAud = audienciaAlcancavel(o)*((o.optinPct||0)/100);
   const leadsPagos = o.cpl>0 ? o.verbaTrafego/o.cpl : 0;
-  const leadsDB = +o.qtdLeadsDB||0;
+  const baseDB = +o.qtdLeadsDB||0;                         // base própria Nelogica subida ao Meta = AUDIÊNCIA fria (pessoas), não leads prontos
+  const leadsDB = baseDB*((+o.optinBaseDB||0)/100);        // só a fração que ENTRA como lead na campanha (opt-in) — não conta 1:1 (DEC-047)
   const leads = leadsAud+leadsPagos+leadsDB;
   const vendas = leads*conv;
   const efetivos = vendas*(1-(o.cancel7Pct||0)/100);       // passaram dos 7 dias
@@ -487,7 +488,7 @@ function computeScenario(o, convMult){
   const bruto = efetivos*recPorCliente;                    // receita contratada esperada (ao longo do termo)
   const receita = bruto;                                   // sem reembolso integral: receita = contratada
   const taxaPlat = receita*((o.taxaPlataformaPct||0)/100);
-  const leadsDBCost = leadsDB*(+o.custoLeadDB||0);         // contribuição Nelogica (base de leads)
+  const leadsDBCost = leadsDB*(+o.custoLeadDB||0);         // mídia p/ impactar a base fria até gerar o lead (custo por lead gerado na base)
   const fixos = (+o.verbaTrafego||0)+(+o.producao||0)+(+o.ferramentas||0)+(+o.outrosFixos||0);
   const antesImp = receita - taxaPlat - fixos - leadsDBCost;
   const baseImp = o.impostoBase==='faturamento'?receita:Math.max(0,antesImp);
@@ -781,7 +782,7 @@ function renderPitchHTML(o){
    <h2>O que cada lado traz</h2>
    <ul>
      <li><b>Você (expert):</b> audiência e autoridade — ${num(seg)} seguidores (${redesList}).</li>
-     <li><b>${esc(opName(o))} (operador):</b> a infraestrutura, a base de leads${o.qtdLeadsDB>0?` (${num(o.qtdLeadsDB)} leads)`:''}, o método de lançamento e a operação ponta a ponta — arca com o investimento e o recupera antes do split.</li>
+     <li><b>${esc(opName(o))} (operador):</b> a infraestrutura, a base própria${o.qtdLeadsDB>0?` (${num(o.qtdLeadsDB)} pessoas, audiência fria)`:''}, o método de lançamento e a operação ponta a ponta — arca com o investimento e o recupera antes do split.</li>
    </ul>
    <p class="hint" style="margin:-4px 0 0">O produto (${esc(o.produtoNome)||'assinatura'}) e sua titularidade são definidos pelo acordo — o dono pode ser o expert ou o operador.</p>
    <h2>Premissas da proposta</h2>
@@ -894,10 +895,11 @@ function viewDetail(o){
       ${field(o,'Conversão (lead→venda)','convLista',{suffix:'%'})}
     </div>
     <div class="grid" style="margin-top:12px">
-      ${field(o,'Leads da base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
-      ${field(o,'Custo por lead (base Nelogica)','custoLeadDB',{suffix:'R$/lead'})}
+      ${field(o,'Base Nelogica subida ao Meta (audiência fria)','qtdLeadsDB',{suffix:'pessoas'})}
+      ${field(o,'Taxa de entrada da base (vira lead na campanha)','optinBaseDB',{suffix:'%'})}
+      ${field(o,'Custo de mídia por lead gerado na base','custoLeadDB',{suffix:'R$/lead'})}
     </div>
-    <div class="pill-note">A <b>base de leads Nelogica</b> entra como custo (qtd × R$/lead). Se a Nelogica também banca esse valor, some-o aos <b>aportes a recuperar</b> no bloco 4 (botão abaixo).</div>
+    <div class="pill-note">A <b>base própria da Nelogica</b> é <b>audiência fria</b> subida ao Meta — você comunica em cima dela e só a <b>fração que entra</b> (taxa acima) vira lead na campanha; <b>não</b> conta 1:1. O valor é a <b>mídia</b> para impactá-la até gerar o lead. Se a Nelogica banca essa mídia, some-a aos <b>aportes a recuperar</b> no bloco 4 (botão abaixo).</div>
 
     <h3 class="grp">4. Revenue share e parceiros <span class="muted" style="font-weight:400;font-size:11px">(1 a N partes · split sobre o lucro líquido)</span></h3>
     <div class="grid" style="margin-bottom:10px">
@@ -975,7 +977,7 @@ function viewDetail(o){
     fn.innerHTML=`<div class="alertbox"><b>Busca automática indisponível neste ambiente.</b> Esta sessão não tem acesso à internet, e coletar seguidores de todas as redes exige APIs específicas (muitas pagas) — scraping viola os termos das plataformas. Por ora, informe os seguidores manualmente. Quando houver acesso + fontes de dados, ligo o enriquecimento automático aqui (Instagram, YouTube, TikTok, etc.).</div>`;
   };
   document.getElementById('addParte').onclick=()=>{o.partes.push({nome:'Nova parte',pct:0,operador:false});viewDetail(o);};
-  document.getElementById('setRecLeads').onclick=()=>{o.recuperaInvest=true;o.investExtra=(+o.investExtra||0)+(+o.qtdLeadsDB||0)*(+o.custoLeadDB||0);viewDetail(o);};
+  document.getElementById('setRecLeads').onclick=()=>{o.recuperaInvest=true;o.investExtra=(+o.investExtra||0)+(+o.qtdLeadsDB||0)*((+o.optinBaseDB||0)/100)*(+o.custoLeadDB||0);viewDetail(o);};
   document.getElementById('saveBtn').onclick=()=>{o.status='salvo';const i=opps.findIndex(x=>x.id===o.id);if(i>=0)opps[i]=o;else opps.push(o);save(opps);viewList();};
   recompute(o);
   bindPlano(o);
@@ -1397,7 +1399,7 @@ function gapsGTM(o){
   if(!m.ades) g.push('Adesão do mercado não definida — o mercado endereçável fica indefinido.');
   if(!m.tk) g.push('Ticket dos formatos vazio — sem ticket não há receita (edite os formatos no detalhe completo).');
   g.push('A conversão de lead em venda ('+(o.convLista||0)+'%) ainda é estimativa: nenhum dado de lançamento confirma — é o número que um teste real valida.');
-  if(!(+o.qtdLeadsDB)) g.push('Base de leads Nelogica não informada — pode subestimar o topo do funil.');
+  if(!(+o.qtdLeadsDB)) g.push('Base Nelogica (audiência fria) não informada — pode subestimar o topo do funil.');
   if(o.intencao==='baixa') g.push('Intenção de compra baixa: audiência grande ≠ venda — gere sinal de intenção antes de projetar (GAP-005).');
   if(m.estoura) g.push('Clientes potenciais estouram o teto real do nicho — a projeção está acima do mercado que existe.');
   if(o.rendaVariavel||(nichoInfo(o).teto!=null&&['futuros','acoes','rv_total','fii'].includes(o.nichoB3))) g.push('Compliance: nicho de renda variável — promessas passam por portão jurídico antes de ir ao ar (GAP-003).');
@@ -1548,8 +1550,9 @@ function viewGTM(){
         ${gf2('Investimento em mídia','verbaTrafego',{suffix:'R$'})}
         ${gf2('CPL (tráfego)','cpl',{suffix:'R$'})}
         ${gf2('Conversão (lead→venda)','convLista',{suffix:'% [D]'})}
-        ${gf2('Leads base Nelogica','qtdLeadsDB',{suffix:'qtd'})}
-        ${gf2('Custo/lead Nelogica','custoLeadDB',{suffix:'R$'})}
+        ${gf2('Base Nelogica no Meta (fria)','qtdLeadsDB',{suffix:'pessoas'})}
+        ${gf2('Entrada da base → lead','optinBaseDB',{suffix:'%'})}
+        ${gf2('Mídia por lead da base','custoLeadDB',{suffix:'R$'})}
         ${gf2('Cenário pé no chão','hairConserv',{suffix:'%'})}
         ${gf2('Acréscimo otimista','hairOtim',{suffix:'%'})}
       </div></div>
@@ -2204,6 +2207,7 @@ function normalizeOppDefaults(o){
   ['nichoB3','canalPrincipal','dorPrimaria','angulo','intencao','expertAutoridade','produtoValidado','jaVendeBase','objetivoCampanha','janelaCampanha','audienciaTemp','modalidadeProduto','nivelPublico','formatoEntrega','splitBase'].forEach(k=>{if(o[k]==null||o[k]==='')o[k]=d[k];});
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(o.adesaoMercado==null)o.adesaoMercado=5;
+  if(o.optinBaseDB==null)o.optinBaseDB=d.optinBaseDB;
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
   return o;
 }
@@ -2246,7 +2250,7 @@ function renderRoteiroCPL(o){
      <tr><td>CPL premissado</td><td>${cpl>0?brl(cpl):'[defina o CPL]'}</td></tr>
      <tr><td>Leads de mídia paga (verba ÷ CPL)</td><td>${cpl>0?num(verba/cpl):'—'}</td></tr>
      <tr><td>Leads da audiência (opt-in ${o.optinPct||0}%)</td><td>${num(s.leadsAud)}</td></tr>
-     <tr><td>Leads da base</td><td>${num(s.leadsDB)}</td></tr>
+     <tr><td>Leads vindos da base (fria)</td><td>${num(s.leadsDB)}</td></tr>
      <tr><td><b>Meta total de leads</b></td><td><b>${num(metaLeads)}</b></td></tr>
    </table>
    <p class="muted" style="font-size:11px">Meta calculada a partir do funil do projeto. Conversão de lead em venda usada: ${o.convLista}% (estimativa a confirmar).</p>
@@ -2535,7 +2539,7 @@ if(opps.length===0){
   ex.nichoB3='futuros'; ex.angulo='educacao'; ex.adesaoMercado=3; ex.expertConteudo='misto'; ex.dorPrimaria='Controle emocional / psicológico';
   ex.ticketMensal=300; ex.prazoFidelidade=12; ex.cancel7Pct=10; ex.multaPct=50;
   ex.planos=[{nome:'Mensal',meses:1,ticketMensal:300,mix:30,churn:0},{nome:'Anual',meses:12,ticketMensal:250,mix:50,churn:25},{nome:'Bianual',meses:24,ticketMensal:220,mix:20,churn:30}];
-  ex.qtdLeadsDB=5000; ex.custoLeadDB=1.60; ex.verbaTrafego=20000; ex.cpl=8;
+  ex.qtdLeadsDB=5000; ex.optinBaseDB=3; ex.custoLeadDB=1.60; ex.verbaTrafego=20000; ex.cpl=8;
   ex.partes=[{nome:'Expert',pct:40,operador:false},{nome:'Nelogica',pct:60,operador:true}];
   ex.status='exemplo';
   opps=[ex];save(opps);
