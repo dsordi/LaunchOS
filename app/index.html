@@ -361,7 +361,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.0 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.1 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -1320,14 +1320,47 @@ function renderEstruturaInner(res){
 function renderEstrutura(res){
   return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Raio-X + Estrutura</h2><button class="btn ghost sm" id="estrutPrint">Imprimir / PDF</button></div><div style="margin-top:4px">${renderEstruturaInner(res)}</div></div>`;
 }
+// Monta o relatório como documento HTML autossuficiente (estilos inline), tema claro, só o conteúdo do .pitch.
+function reportHTML(inner,title){
+  const styles=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>'
+    +'<style>'+styles+'</style>'
+    +'<style>html,body{background:#fff!important;margin:0;color:#0f172a}body{padding:28px}.app,.glow,.modal-overlay{display:none!important}.pitch{max-width:820px;margin:0 auto}.pitch .disc,.pitch .mark,.pitch .internal-only{display:none!important}@media print{body{padding:0}}</style>'
+    +'</head><body><div class="pitch"><h1>'+esc(title)+'</h1>'+inner+'</div></body></html>';
+}
+function baixarArquivo(nome,conteudo,tipo){
+  try{ const blob=new Blob([conteudo],{type:tipo||'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=nome; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000); return true;
+  }catch(e){ return false; }
+}
+async function getCap(name){ try{ return (window.claude&&claude.use)?await claude.use(name):null; }catch(e){ return null; } }
 function openReport(inner,title){
   const old=document.getElementById('reportModal'); if(old)old.remove();
   const ov=document.createElement('div');ov.className='modal-overlay';ov.id='reportModal';
-  ov.innerHTML=`<div class="modal"><div class="modal-actions"><button class="btn ghost sm" id="rptPrint">Imprimir / PDF</button><button class="btn sm" id="rptClose">fechar</button></div><div class="pitch"><h1>${esc(title)}</h1>${inner}</div></div>`;
+  ov.innerHTML=`<div class="modal"><div class="modal-actions"><button class="btn sm" id="rptSave">Baixar relatório</button><button class="btn ghost sm" id="rptPrint">Imprimir / PDF</button><button class="btn ghost sm" id="rptClose">fechar</button></div><div class="pitch"><h1>${esc(title)}</h1>${inner}</div></div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
   document.getElementById('rptClose').onclick=()=>ov.remove();
-  document.getElementById('rptPrint').onclick=()=>window.print();
+  const nomeBase=(title||'relatorio').replace(/[^\w\s\-À-ÿ]/g,'').replace(/\s+/g,'_').slice(0,70)||'relatorio';
+  const html=()=>reportHTML(inner,title);
+  // Baixar relatório: usa a capability de downloads do viewer (claude.ai). Fora do viewer (arquivo/https comum), cai no download por blob.
+  const save=document.getElementById('rptSave');
+  save.onclick=async()=>{
+    const orig=save.textContent; save.textContent='…';
+    const dl=await getCap('downloads');
+    if(dl){
+      try{ const r=await dl.save({filename:nomeBase+'.html',data:html()}); save.textContent=(r&&r.status==='saved')?'baixado ✓':orig; }
+      catch(e){ save.textContent=(e&&e.code==='declined')?orig:'indisponível'; }
+    } else { save.textContent=baixarArquivo(nomeBase+'.html',html())?'baixado ✓':'use Imprimir'; }
+    setTimeout(()=>save.textContent=orig,1600);
+  };
+  // Imprimir / PDF: abre o relatório em nova aba e dispara a impressão (Salvar como PDF). Se o navegador bloquear, tenta imprimir direto.
+  document.getElementById('rptPrint').onclick=()=>{
+    const h=html(); let w=null; try{ w=window.open('','_blank'); }catch(e){ w=null; }
+    if(w&&w.document){ w.document.open(); w.document.write(h); w.document.close(); w.focus(); setTimeout(()=>{try{w.print();}catch(e){}},400); }
+    else { try{ window.print(); }catch(e){} }
+  };
 }
 function viewGerador(){
   setActive('gerador');
@@ -2718,7 +2751,8 @@ function produtizacao(o){
   const stMec=(mecanismo&&porque)?'ok':(mecanismo?'ajuste':'bloqueio');
   const stProva=prova?'ok':(rv?'bloqueio':'ajuste');
   const stVal=o.produtoValidado==='sim'?'ok':(o.produtoValidado==='parcial'?'ajuste':'bloqueio');
-  const stComp=!rv?'ok':((o.angulo!=='promessa' && !(promessa&&/ganh|lucro|rentab|retorno|% ao/i.test(promessa)))?'ajuste':'bloqueio');
+  // Compliance NÃO trava o plano no papel: é DEPENDÊNCIA externa (jurídico) — trava a publicação, não o investimento. (pedido do Davi)
+  const stComp=rv?'dependencia':'ok';
   const criterios=[
     crit('Oferta é nova oportunidade', natureza.status, natureza.leitura, natureza.acao, 'Brunson'),
     crit('Mecanismo único claro e novo', stMec, stMec==='ok'?'Mecanismo + porquê da novidade preenchidos.':(mecanismo?'Mecanismo existe, mas falta o PORQUÊ ele é novo.':'Sem mecanismo único não há diferenciação.'), 'Preencha mecanismo + porquê é único.', 'Brunson/Sugarman'),
@@ -2728,15 +2762,20 @@ function produtizacao(o){
     crit('Retenção desenhada (loop de hábito)', gatilho?'ok':'ajuste', gatilho?'Gatilho de hábito definido.':'Loop de retenção não desenhado — risco de churn.', 'Defina gatilho → ação → recompensa variável → investimento.', 'Hooked'),
     crit('Produto validado', stVal, o.produtoValidado==='sim'?'Validado e convertendo.':(o.produtoValidado==='parcial'?'Validação parcial.':'Não validado.'), stVal==='ok'?'Mantenha medindo.':'Rode uma semente/piloto antes de escalar verba.', 'método/semente'),
     crit('Mercado endereçável real', info.teto?'ok':'ajuste', info.teto?('~'+num(info.teto)+' CPFs no nicho ('+info.fonte+').'):'Sem teto de bolsa — dimensione pela audiência alcançável.', 'Dimensione bottom-up com a base real.', 'B3'),
-    crit('Compliance (renda variável)', stComp, rv?'Renda variável: depende do jurídico — nunca 100% liberado aqui.':'Fora de RV — regra padrão.', rv?'Ângulo em competência/processo; copy só vai ao ar com aval jurídico.':'Mantenha a promessa verificável.', 'ANBIMA/GAP-003'),
+    crit('Compliance (renda variável)', stComp, rv?'Dependência externa (jurídico): NÃO trava o plano no papel — trava a PUBLICAÇÃO. A copy só vai ao ar com o aval do jurídico.':'Fora de RV — regra padrão.', rv?'Tocar o plano em paralelo; enviar a copy ao jurídico antes de publicar.':'Mantenha a promessa verificável.', 'ANBIMA/GAP-003'),
     crit('Arquitetura de preço (2–4 níveis)', nOkP?'ok':'ajuste', preco.leitura, preco.acao, 'Kahneman/Ariely')
   ];
+  // Compliance entra como DEPENDÊNCIA (não conta para bloqueio/ajuste): se a principal trava é compliance, o plano no papel segue.
+  const dependencias = rv ? [
+    'Aval do jurídico/compliance sobre a copy — externo ao time, não atingível por nós sozinhos.',
+    'Enquadramento regulatório da promessa publicitária (CVM/ANBIMA) — fora do nosso controle.'
+  ] : [];
   const temBloqueio=criterios.some(c=>c.status==='bloqueio'), temAjuste=criterios.some(c=>c.status==='ajuste');
   const prontidao={
     verdict: temBloqueio?'NÃO INVESTIR AINDA':(temAjuste?'AJUSTAR ANTES DE INVESTIR':'PRONTO (condicional ao piloto)'),
     vclass: temBloqueio?'bad':(temAjuste?'warn':'good'),
-    resumo: temBloqueio?'Há bloqueio(s) que invalidam a tese antes de pôr dinheiro. Resolva os ⛔ primeiro.':(temAjuste?'A tese se sustenta, mas há ajustes que aumentam muito a chance de retorno. Feche os ⚠️ antes de escalar verba.':'Critérios estruturais ok. Falta o que nenhum framework resolve: validar a conversão num piloto real.'),
-    criterios};
+    resumo: (temBloqueio?'Há bloqueio(s) ESTRUTURAIS que invalidam a tese antes de pôr dinheiro. Resolva os ⛔ primeiro.':(temAjuste?'A tese se sustenta, mas há ajustes que aumentam muito a chance de retorno. Feche os ⚠️ antes de escalar verba.':'Critérios estruturais ok. Falta o que nenhum framework resolve: validar a conversão num piloto real.'))+(dependencias.length?' Compliance é dependência externa (⚖️) — não trava o plano no papel, trava a publicação.':''),
+    criterios, dependencias};
   const fontes=[
     'Natureza da oferta (nova oportunidade × melhoria), Big Domino, escada de valor, 3 crenças: Russell Brunson, Expert Secrets / DotCom Secrets (SRC-041/042) [A-resumo].',
     'Loop de retenção (gatilho→ação→recompensa variável→investimento): Nir Eyal, Hooked (SRC-044) [A].',
@@ -2749,7 +2788,7 @@ function produtizacao(o){
 }
 function renderProdutizacaoInner(o){
   const P=produtizacao(o); const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
-  const ic={ok:'✅',ajuste:'⚠️',bloqueio:'⛔'};
+  const ic={ok:'✅',ajuste:'⚠️',bloqueio:'⛔',dependencia:'⚖️'};
   const quad=(titulo,arr,vazio)=>`<div class="card" style="margin:0"><h2 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em">${titulo}</h2>${arr.length?`<ul class="gaps" style="margin-top:6px">${arr.map(x=>`<li>${esc(x.txt)} <span class="muted" style="font-size:10.5px">— ${x.f}</span></li>`).join('')}</ul>`:`<p class="hint">${vazio}</p>`}</div>`;
   const critH=P.prontidao.criterios.map(c=>`<tr><td style="white-space:nowrap">${ic[c.status]} <b>${esc(c.nome)}</b><br><span class="muted" style="font-size:10.5px">${esc(c.fonte)}</span></td><td>${esc(c.leitura)}<br><span class="muted">→ ${esc(c.acao)}</span></td></tr>`).join('');
   const levH=P.valorLevers.map(l=>`<div class="opt-row"><div class="opt-h"><span class="chip ${l.status==='ok'?'good':'warn'}">${esc(l.nome)}</span><span class="muted" style="font-size:11px;margin-left:auto">${esc(l.fonte)}</span></div><div class="opt-b">${esc(l.leitura)}<br><b>→</b> ${esc(l.acao)}</div></div>`).join('');
@@ -2761,7 +2800,8 @@ function renderProdutizacaoInner(o){
   <div class="card"><h2>Prontidão para investir ${mk('C')}<span class="tag">o veredito de produto</span></h2>
     <div class="verdict ${P.prontidao.vclass}"><b>${esc(P.prontidao.verdict)}.</b> ${esc(P.prontidao.resumo)}</div>
     <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Critério</th><th>Leitura → ação</th></tr></thead><tbody>${critH}</tbody></table></div>
-    <div class="pill-note" style="margin-top:8px">Checklist derivado dos frameworks do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler). ⛔ invalida a tese; ⚠️ reduz o retorno esperado. Mesmo "pronto" fica condicional ao piloto validar a conversão (GAP-002).</div>
+    ${P.prontidao.dependencias&&P.prontidao.dependencias.length?`<div class="pill-note" style="margin-top:8px"><b>⚖️ Dependências externas</b> — não travam o plano no papel, travam a <b>publicação</b> (variáveis fora do controle do time):<ul class="gaps" style="margin:6px 0 0">${P.prontidao.dependencias.map(d=>`<li>⚖️ ${esc(d)}</li>`).join('')}</ul></div>`:''}
+    <div class="pill-note" style="margin-top:8px">Checklist derivado dos frameworks do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler). ⛔ invalida a tese; ⚠️ reduz o retorno esperado; <b>⚖️ é dependência externa</b> (compliance) — não derruba o veredito no papel. Mesmo "pronto" fica condicional ao piloto validar a conversão (GAP-002).</div>
   </div>
 
   <div class="card"><h2>Natureza da oferta ${mk('A')}<span class="tag">nova oportunidade × melhoria — Brunson</span></h2>
