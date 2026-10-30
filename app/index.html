@@ -347,6 +347,7 @@
       <a data-view="gtm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.2 7.8 13 13 7.8 16.2 11 11"/></svg><span>GTM Builder</span></a>
       <a data-view="estrategia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m8 8-2-2"/><path d="m18 18-2-2"/></svg><span>Estrategista</span></a>
       <a data-view="gerador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span>Estrutura de lançamento</span></a>
+      <a data-view="produtizacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/></svg><span>Produtização</span></a>
       <a data-view="compilador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>Compilador</span></a>
       <a data-view="recomendacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg><span>Recomendação</span></a>
       <div class="sec">Conhecimento</div>
@@ -356,7 +357,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.5 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.6 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -594,7 +595,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
 const setActive=(v)=>{document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));const c=document.getElementById('crumb');if(c)c.textContent=CRUMB[v]||(v===''?'Oportunidade':c.textContent);};
 
 function viewList(){
@@ -2334,7 +2335,7 @@ function renderFunilCard(o){
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
   const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
-  const e=estrategia(o), pb=playbookAplicado(o), m=mercadoGTM(o);
+  const e=estrategia(o), pb=playbookAplicado(o), m=mercadoGTM(o), P=produtizacao(o), slp=x=>String(x||'').split(' (')[0];
   const seg=seguidoresTotais(o), alc=audienciaAlcancavel(o), eng=audienciaEngajada(o);
   const niv=NIVEL[o.nivelPublico]||'—', fmt=FORMATO[o.formatoEntrega]||'—';
   const cols=[['Conservador',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
@@ -2398,8 +2399,24 @@ function renderApresentacao(o){
    ${funilRec(o).etapas.map(s=>`<tr><td><b>${esc(s.etapa)}</b></td><td>${esc(s.cta)}</td><td>${esc(s.gravar)}</td></tr>`).join('')}
    </table>
 
-   <h2>7 · Mensagem &amp; copy</h2>
-   ${pb.bigDomino?`<p><b>Big Domino:</b> ${esc(pb.bigDomino)}</p>`:'<p class="muted">Preencha o Essencial da oferta (promessa + mecanismo) para o Big Domino específico.</p>'}
+   <h2>7 · Mensagem, pitch &amp; produtização</h2>
+   <p><b>Pitch (uma linha):</b> ${esc(P.pitch.umaLinha)}</p>
+   <table>
+     <tr><td style="width:150px">Porquê (Why)</td><td>${esc(P.golden.why)}</td></tr>
+     <tr><td>Como (How)</td><td>${esc(P.golden.how)}</td></tr>
+     <tr><td>O quê (What)</td><td>${esc(P.golden.what)}</td></tr>
+   </table>
+   <p style="margin-top:8px"><b>SWOT (resumo):</b></p>
+   <table>
+     <tr><th>Forças</th><th>Fraquezas</th><th>Oportunidades</th><th>Ameaças</th></tr>
+     <tr style="vertical-align:top">
+       <td>${P.F.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
+       <td>${P.W.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
+       <td>${P.O.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
+       <td>${P.T.slice(0,2).map(x=>esc(slp(x.txt))).join('<br>')||'—'}</td>
+     </tr>
+   </table>
+   ${pb.bigDomino?`<p style="margin-top:8px"><b>Big Domino:</b> ${esc(pb.bigDomino)}</p>`:'<p class="muted" style="margin-top:8px">Preencha o Essencial da oferta (promessa + mecanismo) para o Big Domino específico.</p>'}
    <p><b>Objeções a quebrar (3 crenças):</b></p><ul>${crencasH}</ul>
 
    <h2>8 · Viabilidade financeira <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— 3 cenários (flexão da conversão)</span></h2>
@@ -2587,6 +2604,166 @@ function viewRecomendacao(){
     else if(g==='gerador'){geradorProduto=oppToProduto(clone);viewGerador();} else if(g==='detail'){current=clone;viewDetail(clone);} else if(g==='compilador'){compOpp=clone;viewCompilador();}});
 }
 
+/* ---------------- Produtização (Golden Circle + SWOT + pitch + coerência) ---------------- */
+// Frameworks determinísticos que ORGANIZAM o raciocínio. A SWOT é pré-preenchida com sinais que o app já
+// calcula; o Golden Circle, da oferta/dor. O subjetivo fica marcado [você preenche] — não invento conteúdo.
+// Fontes: SWOT via Kotler (SRC-033) [A] + sinais do app · Golden Circle = Sinek, boa prática [L] (não auditado)
+// · pitch/posicionamento = StoryBrand (SRC-031) + Moore/Dunford [L] · Big Domino = Brunson (SRC-041).
+// NÃO toca o motor financeiro (só lê analyze/ticketBand/sinais).
+function produtizacao(o){
+  const publico=(o.nicho||'').trim()||'[seu público]';
+  const prod=(o.produtoNome||'').trim()||'[seu produto]';
+  const promessa=(o.ofertaPromessa||'').trim(), mecanismo=(o.ofertaMecanismo||'').trim(), prova=(o.ofertaProva||'').trim(), bonus=(o.ofertaBonus||'').trim();
+  const mod=MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao;
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const dor=o.dorPrimaria||'[a dor central]';
+  const a=analyze(o), s=a.b, tb=ticketBand(o), info=nichoInfo(o);
+  const seg=seguidoresTotais(o), engPct=seg>0?(o.redes||[]).reduce((x,r)=>x+(+r.seguidores||0)*(+r.engaj||0),0)/seg:0;
+  const tkb=ticketMensalBlend(o);
+  const sl=s2=>String(s2||'').split(' (')[0];
+  // ---- Golden Circle (Sinek [L]) ----
+  const why = promessa
+    ? `Existimos para ajudar ${publico} a ${promessa.toLowerCase()} — atacando a raiz (${sl(dor).toLowerCase()}), não o sintoma.`
+    : `[Porquê — defina o propósito: que mudança real você quer causar em ${publico}, para além de vender ${prod}?]`;
+  const how = mecanismo || `[Como — seu mecanismo único: o que o seu método faz diferente de todos os outros]`;
+  const what = `${prod} — ${sl(mod.label)}${getPlanos(o).length?` · ${getPlanos(o).length} formato(s)`:''}.`;
+  const golden={why,how,what,temWhy:!!promessa,temHow:!!mecanismo};
+  // ---- SWOT (Kotler SRC-033 [A] + sinais do app) ----
+  const F=[],W=[],O=[],T=[]; const add=(arr,txt,f)=>arr.push({txt,f});
+  if(o.expertAutoridade==='alta') add(F,'Autoridade do expert consolidada no nicho.','sinal do app · Pissarra');
+  if(o.audienciaTemp==='quente') add(F,'Base própria quente e relacionada (converte melhor).','sinal do app');
+  if(engPct>=3) add(F,`Audiência engajada (${num(engPct,1)}% ponderado) — influência real, não só alcance.`,'sinal do app · Pissarra');
+  if(o.produtoValidado==='sim') add(F,'Produto já validado e convertendo.','sinal do app');
+  if(o.jaVendeBase==='sim') add(F,'Histórico de venda na própria base.','sinal do app');
+  if(rv&&o.expertCert) add(F,'Expert certificado — diferencial de confiança raro em RV.','sinal do app · ANBIMA');
+  if(tkb>=NELOGICA_REF.ticketMin&&tkb<=NELOGICA_REF.ticketMax) add(F,'Ticket dentro da faixa real da base (R$76–148).','sinal do app · Nelogica');
+  add(F,`Infraestrutura, método de lançamento e investimento de ${opName(o)} (parceria por divisão de receita).`,'estrutura do projeto');
+  if(o.produtoValidado==='nao') add(W,'Produto ainda não validado — risco de vender o que o mercado não quer.','sinal do app');
+  if((+o.optinPct||0)<4) add(W,`Opt-in baixo (${o.optinPct||0}%) — captação ineficiente.`,'sinal do app');
+  if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) add(W,`Payback (${num(s.paybackMeses,1)}m) maior que a fidelidade (${o.prazoFidelidade||12}m).`,'motor financeiro');
+  if(rv&&!o.expertCert) add(W,'Expert sem certificação em renda variável.','sinal do app · ANBIMA');
+  if(engPct>0&&engPct<2) add(W,`Engajamento ponderado baixo (${num(engPct,1)}%) — seguidor ≠ influência.`,'sinal do app · Pissarra');
+  if(o.audienciaTemp==='fria'||o.audienciaTemp==='nenhuma') add(W,'Audiência fria ou inexistente — captação é pré-requisito.','sinal do app');
+  add(W,'Conversão e churn ainda são premissas a confirmar — só o piloto valida.','regra do projeto · GAP-002');
+  if(info.teto) add(O,`Mercado endereçável de ~${num(info.teto)} CPFs no nicho (${info.fonte}).`,'B3 SRC-039');
+  add(O,'Alta de investidores PF e educação financeira em expansão.','B3/ANBIMA SRC-039/040');
+  add(O,'Ângulo educação/disciplina é o que mais engaja e o único compliance-safe.','FInfluence ANBIMA SRC-037');
+  if(o.modalidadeProduto==='copy'||o.modalidadeProduto==='ferramenta') add(O,'Demanda por resultado sem operar (copy/carteira/ferramenta).','sinal do app');
+  if(rv) add(T,'Compliance CVM / promessa publicitária — bloqueio se mal feito.','GAP-003');
+  if(o.nichoB3==='futuros') add(T,'Nicho pequeno (~235,8 mil CPFs): CPL sobe ao escalar.','B3 SRC-039');
+  add(T,'Confusão aposta × investimento endurece o ambiente regulatório.','ANBIMA SRC-038');
+  add(T,'Concorrência que promete ganho fácil (atrativa, porém desleal/arriscada).','sinal do mercado');
+  // ---- TOWS (cruzamento — lógica estratégica) ----
+  const t1=arr=>arr.length?sl(arr[0].txt).replace(/\.$/,''):null;
+  const tows=[];
+  if(t1(F)&&t1(O)) tows.push({t:'Força × Oportunidade (atacar)',d:`Use "${t1(F)}" para capturar "${t1(O)}".`});
+  if(t1(F)&&t1(T)) tows.push({t:'Força × Ameaça (defender)',d:`Use "${t1(F)}" para se proteger de "${t1(T)}".`});
+  if(t1(W)&&t1(O)) tows.push({t:'Fraqueza × Oportunidade (corrigir)',d:`Corrija "${t1(W)}" para não perder "${t1(O)}".`});
+  if(t1(W)&&t1(T)) tows.push({t:'Fraqueza × Ameaça (evitar)',d:`Minimize "${t1(W)}" para não ser pego por "${t1(T)}".`});
+  // ---- Pitch estruturado (posicionamento + Big Domino) ----
+  const pb=playbookAplicado(o);
+  const alt=rv?'operar no achismo / seguir dica de grupo':'as alternativas genéricas do mercado';
+  const umaLinha=(promessa&&mecanismo)
+    ? `Para ${publico} que enfrenta ${sl(dor).toLowerCase()}, o ${prod} é ${sl(mod.label).toLowerCase()} que ${promessa.toLowerCase()} através de ${mecanismo} — diferente de ${alt} porque ataca a raiz, não o sintoma.`
+    : `[Pitch de uma linha — preencha promessa + mecanismo no Estrategista. Modelo: "Para [público] que [dor], o ${prod} é [categoria] que [promessa] através de [mecanismo] — diferente de [alternativa] porque [diferencial]."]`;
+  const pitch={umaLinha,problema:sl(dor),mecanismo:mecanismo||'[mecanismo único]',prova:prova||'[caso/depoimento real — é o CPL 2; sem prova a conversão cai]',oferta:getPlanos(o),bonus:bonus||'[bônus que expira de verdade + garantia]',bigDomino:pb.bigDomino,cta:rv?'Convite para competência/processo (nunca retorno): ex. "entre na turma e aprenda a operar com método".':'Convite direto para a oferta com escassez honesta.'};
+  // ---- Coerência / lógica do produto ----
+  const coer=[]; const flag=(cond,txt)=>{if(cond)coer.push({t:'alerta',txt});};
+  if(tb.k==='high'&&o.nivelPublico==='iniciante') flag(true,'Ticket alto + público iniciante: iniciante hesita em ticket alto. Eduque mais no topo, ofereça entrada/parcelamento ou um degrau mais barato.');
+  if(tb.k==='high'&&o.formatoEntrega==='gravado') flag(true,'Ticket alto + curso gravado: alto valor costuma pedir ao vivo/mentoria/call (percepção de valor + fechamento consultivo).');
+  if(o.produtoValidado==='nao'&&['externo','perpetuo'].includes(o.modeloEscolhido)) flag(true,'Produto não validado + modelo '+o.modeloEscolhido+': valide (semente) antes — automatizar/escalar o que não converte amplifica o erro.');
+  if(o.audienciaTemp==='nenhuma') flag(true,'Sem audiência: construir/alugar lista é pré-requisito antes de qualquer carrinho.');
+  if(rv&&o.angulo==='promessa') flag(true,'RV + ângulo "promessa de ganho": maior risco jurídico e o que menos engaja. Mude para educação/disciplina.');
+  if(rv&&promessa&&/ganh|lucro|rentab|retorno|% ao|reais|r\$/i.test(promessa)) coer.push({t:'bloqueio',txt:'A promessa parece citar GANHO/retorno — em RV é bloqueio de compliance. Reescreva em competência/processo.'});
+  if(!promessa) flag(true,'Promessa central vazia: sem ela o Golden Circle (Why) e o pitch ficam genéricos.');
+  if(!mecanismo) flag(true,'Mecanismo único vazio: sem ele não há diferenciação — o pitch vira commodity.');
+  if(!coer.some(c=>c.t==='alerta'||c.t==='bloqueio')) coer.push({t:'ok',txt:'Sem incoerências críticas entre produto, público, formato, preço e modelo.'});
+  const fontes=[
+    'Golden Circle (Why-How-What): Simon Sinek, Start With Why — boa prática [L], não auditada (fora do corpus).',
+    'SWOT: análise estratégica clássica, via Kotler &amp; Keller (SRC-033) [A] + sinais calculados pelo app.',
+    'Pitch / posicionamento de uma linha: StoryBrand (SRC-031) [A] + Moore/Dunford [L].',
+    'Big Domino: Brunson, Expert Secrets (SRC-041) [A-resumo].'
+  ];
+  return {golden,F,W,O,T,tows,pitch,coer,fontes,rv};
+}
+function renderProdutizacaoInner(o){
+  const P=produtizacao(o); const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
+  const quad=(titulo,arr,vazio)=>`<div class="card" style="margin:0">
+    <h2 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em">${titulo}</h2>
+    ${arr.length?`<ul class="gaps" style="margin-top:6px">${arr.map(x=>`<li>${esc(x.txt)} <span class="muted" style="font-size:10.5px">— ${x.f}</span></li>`).join('')}</ul>`:`<p class="hint">${vazio}</p>`}</div>`;
+  const icon={ok:'✅',alerta:'⚠️',bloqueio:'⛔'};
+  const coerH=P.coer.map(c=>`<li>${icon[c.t]||''} ${esc(c.txt)}</li>`).join('');
+  const towsH=P.tows.map(x=>`<div class="step"><b>${esc(x.t)}:</b> ${esc(x.d)}</div>`).join('');
+  const planosH=P.pitch.oferta.map(p=>`<div class="line sub"><span>${esc(p.nome)} · ${num(p.meses)}m</span><span style="font-family:var(--fmono)">${brl(p.ticketMensal)}/mês</span></div>`).join('');
+  return `
+  <div class="card"><h2>Golden Circle ${mk('L')}<span class="tag">Sinek — comece pelo porquê</span></h2>
+    <p class="hint">Do propósito para fora. Pré-preenchido pela sua oferta; o <b>Porquê</b> é seu para refinar. Fonte: Sinek (boa prática, não auditada).</p>
+    <div class="casc">
+      <div class="line"><span><b>WHY — Porquê</b> <span class="muted">(propósito/causa)</span></span></div>
+      <div class="opt-b" style="padding:2px 0 8px">${esc(P.golden.why)}</div>
+      <div class="line"><span><b>HOW — Como</b> <span class="muted">(mecanismo único)</span></span></div>
+      <div class="opt-b" style="padding:2px 0 8px">${esc(P.golden.how)}</div>
+      <div class="line"><span><b>WHAT — O quê</b> <span class="muted">(o produto)</span></span></div>
+      <div class="opt-b" style="padding:2px 0 2px">${esc(P.golden.what)}</div>
+    </div>
+    ${(!P.golden.temWhy||!P.golden.temHow)?`<div class="alertbox" style="margin-top:8px">Preencha <b>promessa</b> e <b>mecanismo único</b> no Estrategista para o Golden Circle ficar específico do seu produto.</div>`:''}
+  </div>
+
+  <div class="card"><h2>Matriz SWOT ${mk('A')}${mk('C')}<span class="tag">forças · fraquezas · oportunidades · ameaças</span></h2>
+    <p class="hint">Pré-preenchida com os sinais que o app já calcula (cada item traz a origem). Some o que só você conhece. Interno = Força/Fraqueza; Externo = Oportunidade/Ameaça (Kotler [A]).</p>
+    <div class="gtm-split">
+      ${quad('Forças (interno +)',P.F,'[Liste forças internas: marca, time, tecnologia, caixa…]')}
+      ${quad('Fraquezas (interno −)',P.W,'[Liste fraquezas internas, honestamente.]')}
+    </div>
+    <div class="gtm-split" style="margin-top:12px">
+      ${quad('Oportunidades (externo +)',P.O,'[Tendências, nichos, parcerias…]')}
+      ${quad('Ameaças (externo −)',P.T,'[Regulação, concorrência, macro…]')}
+    </div>
+    ${P.tows.length?`<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 6px">Cruzamento TOWS — a lógica estratégica</h4><div class="steps">${towsH}</div>`:''}
+  </div>
+
+  <div class="card"><h2>Pitch estruturado ${mk('A')}${mk('L')}<span class="tag">posicionamento + Big Domino</span></h2>
+    <div class="verdict ${P.pitch.umaLinha.charAt(0)==='['?'warn':'good'}"><b>Pitch de uma linha:</b> ${esc(P.pitch.umaLinha)}</div>
+    ${P.pitch.bigDomino?`<div class="pill-note" style="margin-top:10px"><b>Big Domino (a UMA crença):</b> ${esc(P.pitch.bigDomino)}</div>`:''}
+    <div class="casc" style="margin-top:10px">
+      <div class="line"><span>Problema</span><span>${esc(P.pitch.problema)}</span></div>
+      <div class="line"><span>Mecanismo único</span><span>${esc(P.pitch.mecanismo)}</span></div>
+      <div class="line"><span>Prova</span><span class="muted" style="font-size:11.5px">${esc(P.pitch.prova)}</span></div>
+    </div>
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 4px">Oferta</h4>
+    <div class="casc">${planosH}<div class="line"><span>Bônus + garantia</span><span class="muted" style="font-size:11.5px">${esc(P.pitch.bonus)}</span></div></div>
+    <div class="pill-note" style="margin-top:10px"><b>CTA:</b> ${esc(P.pitch.cta)}</div>
+  </div>
+
+  <div class="card"><h2>Coerência do produto <span class="tag">a lógica fecha?</span></h2>
+    <p class="hint">Cruza produto × público × formato × preço × modelo e aponta o que não encaixa. É o teste de racionalidade do pitch.</p>
+    <ul class="gaps">${coerH}</ul>
+  </div>
+
+  <div class="card"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
+    <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
+    <div class="disc" style="margin-top:8px">Estes frameworks <b>organizam</b> o raciocínio; não validam. O app pré-preenche o que deriva dos dados e marca o resto como <b>[você preenche]</b> — não inventa forças, ameaças nem propósito. Golden Circle (Sinek) é boa prática [L], fora do corpus. A prova e a conversão seguem a confirmar até o piloto.</div>
+  </div>`;
+}
+let prodOpp=null;
+function viewProdutizacao(){
+  setActive('produtizacao');
+  if(!prodOpp) prodOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
+  const o=normalizeOppDefaults(prodOpp);
+  const oppOptions=opps.map(x=>`<option value="${x.id}" ${prodOpp&&prodOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div><h1>Produtização</h1><p class="sub">Construa o produto e o pitch com lógica: <b>Golden Circle</b> (porquê), <b>SWOT</b> (forças/riscos) e <b>pitch estruturado</b> — pré-preenchidos pelos sinais do caso, com a fonte de cada um. O app organiza; você refina o subjetivo.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="prodLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn sm" id="prodPrint">Baixar / imprimir</button>
+    </div>
+  </div>
+  <div id="prodOut">${renderProdutizacaoInner(o)}</div>`;
+  document.getElementById('prodLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){prodOpp=JSON.parse(JSON.stringify(s));viewProdutizacao();}}});
+  document.getElementById('prodPrint').onclick=()=>openReport(renderProdutizacaoInner(o),'Produtização — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+}
+
 /* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
 let dashChart=null;
 function dashAgg(){
@@ -2646,7 +2823,7 @@ function viewDashboard(){
 
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const rcpl=e.target.closest('#roteiroCplBtn');
   if(rcpl){ e.preventDefault();
@@ -2658,7 +2835,7 @@ main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
