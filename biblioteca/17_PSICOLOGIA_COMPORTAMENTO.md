@@ -82,3 +82,36 @@ O arquivo "Launch" enviado é um **resumo da Bookey** do livro do Walker, cujo *
 | DotCom Secrets (SRC-042) | arquitetura de funil/escada de valor | E3/E4/E6 (ver `16` §7) | Não (linhagem Brunson) |
 
 **O que NÃO muda:** nenhum vira regra dura sem teste real; conversão/churn seguem `[D]` (GAP-002); promessa em RV continua barrada (compliance). O ganho é **profundidade de audiência e retenção** (independente) + **arquitetura de funil** (linhagem).
+
+---
+
+## SRC-055 — *Rápido e Devagar: Duas Formas de Pensar (Thinking, Fast and Slow)* · Daniel Kahneman `[A]`
+
+> **Fonte:** livro **primário** (EPUB, PT), ~200 mil palavras. **Cobertura seletiva declarada** — lidas a visão estrutural do autor (as 5 partes) e os capítulos-síntese; não verbatim integral (seria desperdício sem ganho). Marca `[A]` para os frameworks.
+> **Origem:** **independente** (economia comportamental, Nobel). **Upgrade:** Kahneman estava na base só como `[L]` em `biblioteca/12` (SRC-027, ancoragem/aversão à perda/chamariz aplicados a preço); com o texto lido, esses princípios sobem de `[L]` para **`[A]`**. Decisão: DEC-042.
+
+**1. Tese.** A mente opera em dois modos: **Sistema 1** (rápido, intuitivo, emocional, associativo, automático) e **Sistema 2** (lento, deliberado, custoso). A maioria das escolhas é guiada pelo Sistema 1; o Sistema 2 muitas vezes só **racionaliza** depois. Somos sistematicamente enviesados — e **superestimamos o que sabemos e subestimamos o acaso**.
+
+**2. Frameworks aplicáveis.**
+- **Sistema 1 × Sistema 2** e **WYSIATI** ("o que você vê é tudo que há"): decidimos com a informação à mão, coerente, ignorando o que falta.
+- **Teoria da perspectiva:** dependência de referência; **aversão à perda** (perder dói ~2× mais do que ganhar o equivalente); sensibilidade decrescente; **efeitos de enquadramento** (a mesma escolha muda com a moldura); contabilidade mental; efeito dotação.
+- **Heurísticas e vieses:** ancoragem, disponibilidade, representatividade, substituição, **efeito halo**, **negligência da taxa-base**, **regressão à média**.
+- **Excesso de confiança / ilusão de validade / falácia do planejamento / percepção tardia (hindsight).**
+- **Dois eus:** o que **vivencia** × o que **se lembra**; **regra do pico-fim** e negligência da duração (a lembrança é dominada pelo pico e pelo fim, não pela média/duração).
+
+**3. Aplicação ao LaunchOS.**
+- **Copy (emoção primeiro):** decide-se no Sistema 1 (emoção), justifica-se no Sistema 2 (lógica) → **base independente de nível Nobel** para "compra na emoção, justifica na lógica" (Sugarman SRC-046, Brunson SRC-041, Housel SRC-043, cânone de trading) → esse princípio de copy sobe para **`[B]`/`[A]`**.
+- **Preço / arquitetura de oferta:** **ancoragem** (o formato mais longo/caro ancora os demais), **aversão à perda + enquadramento** (enquadrar o **custo de não resolver** vs. o preço), **chamariz** — faz os heurísticos de preço de `12` deixarem de ser só `[L]`.
+- **Escassez/urgência:** a aversão à perda explica por que escassez **verdadeira** converte (medo de perder > desejo de ganhar) — manter honesta.
+- **Retenção/experiência (pico-fim):** desenhar um **pico** forte e um **bom fim** no onboarding (1ª semana / janela de cancelamento) → converge com Hooked (SRC-044); a lembrança do cliente é o que retém.
+- **⚖️ Compliance (nuance dura):** usar aversão à perda em RV **não** pode virar "não perca a alta / os ganhos" (é claim de ganho via medo). Enquadrar na **dor de operar sem processo**, nunca na perda de lucro.
+
+**4. A maior contribuição — base independente para a HONESTIDADE do projeto.**
+Kahneman dá fundamento teórico (Nobel, independente) para a disciplina `[D]`/epistêmica do LaunchOS:
+- **Falácia do planejamento + excesso de confiança + WYSIATI** → por que **não confiar numa projeção** como previsão; por que marcamos tudo `[D]`.
+- **Negligência da taxa-base + viés de sobrevivência** → por que **"6 em 7"** engana (casos de ponta, ignorando a base dos que não fazem — HYP-003/DEC-008).
+- **Regressão à média** → por que **o 1º lançamento raramente repete o pico** (não é falha do método; é estatística) — reforça HYP-003.
+- **Ilusão de validade** → por que os números inflados do mercado de lançamento parecem convincentes e não são.
+→ É o **lastro independente mais forte até aqui** para "não prometer o que não se pode provar".
+
+**5. Ressalvas.** É cognição geral, não específica de lançamento — a aplicação é em **enquadramento (copy/preço)** e em **disciplina epistêmica**, não uma mecânica nova de funil. Nada vira regra dura sem teste real (GAP-002). Catálogo: SRC-055 em `01`; upgrade de SRC-027 anotado em `12`.

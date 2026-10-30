@@ -47,7 +47,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   14_MERCADO_EXTERNO_B3_ANBIMA.md ← mercado/investidor/influência financeira: B3 e ANBIMA ([A] independente, 2025–26) (N)
   15_CERTIFICACAO_MOTOR_FINANCEIRO.md ← auditoria/fórmulas/premissas do motor financeiro do app (board-grade) (O)
   16_FICHA_EXPERT_SECRETS.md  ← ficha de Expert Secrets + DotCom Secrets/Brunson (SRC-041/042): copy/funil (P)
-  17_PSICOLOGIA_COMPORTAMENTO.md ← Psychology of Money, Hooked, Naval (SRC-043/044/045): audiência/retenção (Q)
+  17_PSICOLOGIA_COMPORTAMENTO.md ← Psychology of Money, Hooked, Naval + Kahneman/Rápido e Devagar (SRC-043/044/045/055): audiência/retenção/vieses (Q)
   18_FICHA_COPY_SUGARMAN.md   ← The Adweek Copywriting Handbook/Sugarman (SRC-046): redação/gatilhos (R)
   19_PSICOLOGIA_TRADING.md    ← Reminiscences + Trading in the Zone (SRC-047/048): psicologia do trader (S)
   20_TESES_APLICADAS.md       ← "e daí?": cruza as fontes em 7 teses com recomendação direta (T) → Playbook do app

@@ -39,7 +39,7 @@ Skill principal = **transformar uma oportunidade em decisão de viabilidade defe
 
 ### Precificação e formatos — diretamente útil ao recurso recém-criado
 - **Madhavan Ramanujam — *Monetizing Innovation*** `[L]`: precificar **antes** de construir; medir *willingness-to-pay*; **good-better-best**; classificar features em *leader/filler/killer*. → Sustenta a tabela de formatos: ofereça **3 níveis**, não 7.
-- **Kahneman — *Thinking, Fast and Slow*** / **Ariely — *Predictably Irrational*** `[L]`: **ancoragem**, **aversão à perda**, **efeito chamariz (decoy)**, relatividade. → O formato mais longo/caro (bianual) **ancora** os demais; um chamariz bem posicionado move a escolha para o plano-alvo; **evitar paradoxo da escolha** (≤ ~3–4 opções).
+- **Kahneman — *Thinking, Fast and Slow*** / **Ariely — *Predictably Irrational*** `[L]`: **ancoragem**, **aversão à perda**, **efeito chamariz (decoy)**, relatividade. → O formato mais longo/caro (bianual) **ancora** os demais; um chamariz bem posicionado move a escolha para o plano-alvo; **evitar paradoxo da escolha** (≤ ~3–4 opções). **Atualização 2026-10-30:** o Kahneman foi **lido em primeira mão** (*Rápido e Devagar*, **SRC-055**, `[A]`) — ficha em `17`. Esses princípios (ancoragem/aversão à perda/enquadramento/chamariz) **deixam de ser só `[L]`**; a parte de Ariely segue `[L]`. Ver DEC-042.
 
 ### Ciência de marcas e audiência — liga a GAP-005
 - **Byron Sharp — *How Brands Grow*** `[L]`: crescimento vem mais de **penetração/alcance** do que de lealdade; disponibilidade mental e física; lei da duplicação. → Alerta contra **superestimar uma base pequena e leal**; reforça **audiência ≠ intenção** e o valor de alcance novo (contrapeso útil ao discurso "sua lista é tudo").
