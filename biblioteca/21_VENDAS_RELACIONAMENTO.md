@@ -119,3 +119,18 @@
 - **Venda consultiva por perguntas + ensinar > fechar no grito** agora tem **duas pesquisas independentes** (SPIN/Rackham + Challenger) → nuance de calibração do alto-ticket no Playbook (suavizar close, usar implicação).
 - **Disciplina de pipeline/captação** (Prospecção Fanática + Holmes) reforça o timing de captação antecipada (F0) e a meta de leads.
 - Mesmas ressalvas: B2B (GAP-010); nada vira regra sem piloto (GAP-002); camada secundária ao lançamento de massa. Catálogo: SRC-053/054 em `01`; DEC-041.
+
+---
+
+## Lote 3 (2026-10-30) — negociação / marca pessoal (baixa aderência)
+
+### SRC-056 — *Pense como um Bilionário* · Donald Trump (com Meredith McIver) `[A]` · **rigor e transferibilidade BAIXOS**
+
+> **Leitura crítica (inegociável):** é o livro de **menor aderência** do corpus. Gênero sucesso/negócios/**imobiliário/estilo de vida** com forte **autopromoção**; não é pesquisa nem método de lançamento. A maior parte (compra de imóvel, rotina, lifestyle, anedota) **não transfere** para lançamento digital. Marca `[A]` = "o que o autor afirma", **não** evidência. Registrado para rastreabilidade, sem inflar seu peso.
+
+**O pouco que aproveita (genérico):**
+- **Negociação do deal/split:** alavancagem; sinal de compromisso (entrada/"skin in the game"); não ser mesquinho no que importa (economizar no errado sai caro); manter o equilíbrio financeiro como âncora. → aplicável à **negociação do revenue share** (deals tipo Roxo/Delboni) e ao alto-ticket — mas já coberto, com mais rigor, por SPIN/Challenger (`21`).
+- **Marca pessoal:** o nome/marca do expert como ativo. → converge com Naval (SRC-045, conhecimento específico/alavancagem), de origem independente — reforço fraco.
+- **Conhecer os detalhes/números** e **pensar grande + persistência:** disciplina/mentalidade (motivacional, baixo rigor).
+
+**Veredito:** não altera nenhuma tese da base nem entra no app. É `[A]`-de-autor de baixo valor; **não** usar como fundamento de regra. Catálogo: SRC-056 em `01`; DEC-043.
