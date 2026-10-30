@@ -81,3 +81,41 @@
 - **B2B → B2C (GAP-010):** Challenger e Holmes são B2B/venda direta; o lançamento é um-para-muitos. Transferir sem adaptar é erro — servem mais ao **alto-ticket/1:1** e ao **conteúdo/relacionamento**, não ao funil de massa cru.
 - **Nada vira regra dura** sem teste real; conversão segue `[D]` (GAP-002). Convergência de princípio ≠ prova de conversão no caso do Davi.
 - **Rendimento marginal:** camada de venda/relacionamento é útil, mas o insumo de maior valor segue sendo **caso piloto** + **fonte jurídica/CVM**, não mais livros.
+
+---
+
+## Lote 2 (2026-10-30) — venda consultiva por perguntas + disciplina de pipeline
+
+### SRC-053 — *SPIN Selling (Alcançando Excelência em Vendas)* · Neil Rackham `[A]`
+
+**1. Tese.** Baseado em **pesquisa de campo** (Huthwaite, ~35 mil visitas de venda, 20+ países). O que funciona na **venda pequena** NÃO funciona na **venda grande/complexa** — inclusive os **fechamentos agressivos**.
+
+**2. Frameworks.**
+- **SPIN (sequência de perguntas):** **S**ituação (contexto; use pouco) → **P**roblema (dores) → **I**mplicação (amplia a dor: "o que isso custa / aonde leva?") → **N**ecessidade de solução (faz o cliente dizer o valor da solução). **Implicação + Necessidade de Solução** são as que mais pesam na venda grande.
+- **Necessidades implícitas → explícitas:** a venda grande ganha quando as perguntas transformam dor vaga (implícita) em desejo declarado de solução (explícita). **Equação de valor:** o custo da solução precisa parecer menor que o custo do problema.
+- **Características < Vantagens < Benefícios:** benefício = responder a uma necessidade **explícita**; na venda grande, característica/vantagem convertem pouco.
+- **⚠️ Achado-chave:** técnicas de **fechamento agressivo** aumentam a venda pequena e **reduzem** a venda grande (quanto maior/mais consultiva, mais o hard-close prejudica).
+
+**3. Aplicação (depois) + nuance importante.**
+- **Alto-ticket / call:** o roteiro de call deve ser **perguntas SPIN** (implicação/necessidade), não pitch nem fechamento forçado — **calibra** o nosso Playbook (que, vindo de Brunson, pende para closes fortes): no alto-ticket, **suavizar o fechamento** e aprofundar implicação.
+- Converge, de **pesquisa independente**, com Challenger (consultivo/ensinar) → reforça a camada de venda complexa.
+
+### SRC-054 — *Prospecção Fanática* · Jeb Blount `[A]`
+
+**1. Tese.** A causa nº 1 do fracasso em vendas é **pipeline vazio**. Prospecção **consistente e fanática** (não em surtos) é o que sustenta resultado.
+
+**2. Frameworks.**
+- **Regra dos 30 dias:** a prospecção de hoje paga nos **próximos ~90 dias** — há defasagem; parar de prospectar hoje seca o funil lá na frente.
+- **Lei da substituição:** reponha sempre o que sai do funil (nada entra sozinho).
+- **Horas de ouro:** proteja o tempo nobre de prospecção/venda; **prospecção equilibrada** (telefone + e-mail + social + indicação + rede), não um canal só.
+- **Desespero repele** (liga ao SRC-052): quem precisa demais da venda a perde — gerir a própria emoção.
+
+**3. Aplicação (depois).**
+- **E0/Captação:** disciplina de encher o funil **antes** do carrinho; a defasagem da "regra dos 30 dias" reforça **captar com antecedência** (bate com a fase F0 do Estrategista) e com a **meta de leads** do roteiro de CPL.
+- Converge com **disciplina obstinada de Holmes** (SRC-050), de origem independente.
+- **Ressalva:** é mais para **pipeline contínuo / 1:1** (perpétuo/alto-ticket) que para o pico de um lançamento de massa.
+
+### Convergências do lote 2
+- **Venda consultiva por perguntas + ensinar > fechar no grito** agora tem **duas pesquisas independentes** (SPIN/Rackham + Challenger) → nuance de calibração do alto-ticket no Playbook (suavizar close, usar implicação).
+- **Disciplina de pipeline/captação** (Prospecção Fanática + Holmes) reforça o timing de captação antecipada (F0) e a meta de leads.
+- Mesmas ressalvas: B2B (GAP-010); nada vira regra sem piloto (GAP-002); camada secundária ao lançamento de massa. Catálogo: SRC-053/054 em `01`; DEC-041.
