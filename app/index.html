@@ -1874,6 +1874,38 @@ function otimizacoes(o){
   return out;
 }
 // Playbook aplicado — consolida as teses da base (biblioteca/20) em recomendação direta por caso
+// Motor de conhecimento aplicado: lê o contexto da oportunidade, identifica a dor/alavanca/risco
+// e ROTEIA o conhecimento da base (16 livros) por feature, com citação de fonte. Determinístico.
+function motorConhecimento(o){
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const mod=MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao;
+  const niv=o.nivelPublico||'iniciante', fmt=o.formatoEntrega||'gravado', tb=ticketBand(o);
+  const rec=recomendarModelo(o), modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const altoTicket = tb.k==='high' || fmt==='aovivo';
+  const objMap={validar:'validar a oferta',faturar_base:'faturar na base',escalar:'escalar alcance',recorrencia:'previsibilidade/recorrência',caixa_rapido:'caixa rápido'};
+  const sl=s=>String(s||'').split(' (')[0];
+  const contexto=`${FORMATO[fmt]||'—'} · ${sl(mod.label)} · público ${NIVEL[niv]||'—'} · ticket ${tb.label} · objetivo ${objMap[o.objetivoCampanha]||'—'} · audiência ${o.audienciaTemp||'—'}.`;
+  let alavanca,risco;
+  if(o.produtoValidado==='nao') alavanca='validar a oferta (semente) antes de escalar';
+  else if(altoTicket) alavanca='venda consultiva por call (perguntas SPIN + ensinar), não pitch de massa';
+  else alavanca='ângulo educação/disciplina + mecanismo único claro';
+  if(rv) risco='compliance: copy travada sem parecer jurídico (GAP-003)';
+  else if(o.audienciaTemp==='fria'||o.intencao==='baixa') risco='audiência fria / baixa intenção — gere sinal antes de escalar verba';
+  else if(o.produtoValidado==='nao') risco='vender algo que o mercado ainda não quer';
+  else risco='conversão é premissa [D] — só o piloto confirma';
+  const R=[];
+  R.push({a:'Modelo de lançamento',r:'Recomendado: '+MODELOS[modelo].label+' — '+MODELOS[modelo].problema+'.',f:'Matriz 03 · Dream 100 (Holmes SRC-050 / Brunson SRC-041)',mk:'B'});
+  R.push({a:'Conteúdo / CPL',r:'Ensinar e reenquadrar a crença; educar também quem ainda não compra; linguagem simples ("3ª série").',f:'Brunson SRC-041 · Challenger SRC-049 (reframe) · Holmes SRC-050 ("palco") · Sugarman SRC-046',mk:'B'});
+  R.push({a:'Trilha de ads',r:'Criativo educativo no topo; segmentar pela demografia do nicho; '+(CANAL_FMT[o.canalPrincipal]||CANAL_FMT.outro).topo+'.',f:'FInfluence SRC-037 · B3 SRC-039 · Holmes SRC-050',mk:'A'});
+  R.push({a:'Oferta & preço',r:'Ancorar pelo formato mais longo; enquadrar o CUSTO de não resolver (aversão à perda), sem prometer ganho; stack good-better-best.',f:'Kahneman SRC-055 (ancoragem/aversão à perda) · Ramanujam/Brunson',mk:'A'});
+  if(altoTicket) R.push({a:'Fechamento (alto-ticket)',r:'Aplicação + call por PERGUNTAS (SPIN: implicação/necessidade) e Ensinar→Adaptar→Assumir o controle (Challenger); close suave; gerir a própria emoção (não transmitir desespero).',f:'SPIN SRC-053 · Challenger SRC-049 · Blount SRC-052',mk:'B'});
+  else R.push({a:'Fechamento',r:'Carrinho com escassez honesta; a maioria compra nas últimas 24h; sequência de e-mail.',f:'Walker SRC-030 · Brunson SRC-041',mk:'A'});
+  R.push({a:'Retenção / pós',r:'Crie '+sl(mod.habito)+'; onboarding com PICO forte e bom FIM na 1ª semana; relacionamento (apreço/interesse genuíno).',f:'Hooked SRC-044 · Kahneman SRC-055 (pico-fim) · Carnegie SRC-051',mk:'A'});
+  R.push({a:'Captação (F0)',r:'Encher o funil ANTES do carrinho — a captação de hoje paga em ~30–90 dias; disciplina de prospecção.',f:'Prospecção Fanática SRC-054 · Holmes SRC-050',mk:'A'});
+  R.push({a:'Compliance',r:rv?'Promessa = competência/processo, verificável; sem retorno; disclaimer de risco; parecer jurídico antes de ir ao ar.':'Promessa específica e verificável.',f:'GAP-003 · SRC-038/048',mk:'A'});
+  R.push({a:'Disciplina de projeção',r:'A projeção é [D], não previsão; o 1º lançamento regride à média; não confie em número inflado.',f:'Kahneman SRC-055 (falácia do planejamento/regressão à média) · GAP-002',mk:'A'});
+  return {contexto,dor:o.dorPrimaria,alavanca,risco,R};
+}
 function playbookAplicado(o){
   const dor=DOR_NUCLEO[o.dorPrimaria]||DOR_NUCLEO['Falta de conhecimento'];
   const nk=o.nichoB3||'futuros';
@@ -1987,6 +2019,8 @@ function renderEstrategiaInner(o){
   const pbOfertaGaps = pb.ofertaGaps.length? `<div class="pill-note" style="margin-top:8px"><b>Para refinar:</b> ${pb.ofertaGaps.map(esc).join(' · ')}</div>`:'';
   const diagProd=diagnosticoProduto(o);
   const diagProdH=diagProd.map(x=>`<div class="opt-row"><div class="opt-h"><span class="chip neutral">${esc(x.d)}</span>${mk(x.mk)}<span class="muted" style="font-size:11px;margin-left:auto">${esc(x.f)}</span></div><div class="opt-b"><b>${esc(x.l)}</b> ${esc(x.imp)}</div></div>`).join('');
+  const km=motorConhecimento(o);
+  const kmRows=km.R.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(x.a)}</b> ${mk(x.mk)}</td><td>${esc(x.r)}</td><td class="muted" style="font-size:11px">${esc(x.f)}</td></tr>`).join('');
   const crencasH=crencasFalsas(o).map(c=>`<div class="step"><b>Crença ${esc(c.t)}:</b> ${esc(c.obj)} <span class="muted">→ ${esc(c.ponte)}</span></div>`).join('');
   const compl=e.compliance.length?`<ul class="gaps">${e.compliance.map(x=>`<li>⚖️ ${esc(x)}</li>`).join('')}</ul>`:`<span class="chip good">Sem bloqueio de compliance para este nicho/ângulo</span>`;
   const gapsH=`<ul class="gaps">${e.gaps.map(x=>`<li>⚠️ ${esc(x)}</li>`).join('')}</ul>`;
@@ -2004,6 +2038,12 @@ function renderEstrategiaInner(o){
   <div class="card"><h2>Diagnóstico do produto <span class="tag">embasamento das sugestões</span></h2>
     <p class="hint">Como as dimensões do produto (modalidade, nível, formato, ticket) moldam a estratégia — cada leitura com a fonte que a sustenta.</p>
     <div class="opt-list">${diagProdH}</div>
+  </div>
+
+  <div class="card"><h2>Conhecimento aplicado a este caso ${mk('B')}<span class="tag">a dor → o conhecimento certo, por feature</span></h2>
+    <p class="hint">O motor lê o contexto da oportunidade e roteia o conhecimento da base (16 livros) para cada feature, com a fonte de cada recomendação.</p>
+    <div class="verdict good"><b>Dor / contexto dominante:</b> ${esc(km.dor)} — ${esc(km.contexto)}<br><span style="font-size:12.5px"><b>Maior alavanca:</b> ${esc(km.alavanca)}. <b>Maior risco:</b> ${esc(km.risco)}.</span></div>
+    <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Feature</th><th>Recomendação</th><th>Fonte</th></tr></thead><tbody>${kmRows}</tbody></table></div>
   </div>
 
   <div class="card"><h2>Modelo de lançamento ${mk('B')}${mk('C')}<span class="tag">scoring dos vetores — E4</span></h2>
