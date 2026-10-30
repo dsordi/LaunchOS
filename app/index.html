@@ -350,6 +350,8 @@
       <a data-view="estrategia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m8 8-2-2"/><path d="m18 18-2-2"/></svg><span>Estrategista</span></a>
       <a data-view="gerador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span>Estrutura de lançamento</span></a>
       <a data-view="produtizacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/></svg><span>Produtização</span></a>
+      <a data-view="ativos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg><span>Gerador de ativos</span></a>
+      <a data-view="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Cronograma</span></a>
       <a data-view="compilador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>Compilador</span></a>
       <a data-view="recomendacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg><span>Recomendação</span></a>
       <div class="sec">Conhecimento</div>
@@ -359,7 +361,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v1.9 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.0 · 2026-10-30
     </div>
   </aside>
   <section class="content">
@@ -599,7 +601,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
 const setActive=(v)=>{document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));const c=document.getElementById('crumb');if(c)c.textContent=CRUMB[v]||(v===''?'Oportunidade':c.textContent);};
 
 function viewList(){
@@ -2854,6 +2856,259 @@ function viewProdutizacao(){
   main.querySelectorAll('[data-pk]').forEach(el=>el.addEventListener('input',()=>{o[el.dataset.pk]=el.value; const out=document.getElementById('prodOut'); if(out) out.innerHTML=renderProdutizacaoInner(o);}));
 }
 
+/* ---------------- Gerador de ativos (copy redigida, compliance-safe) ---------------- */
+// Templating determinístico a partir do contexto capturado. Rascunho forte com [colchetes] para o que só o humano preenche.
+// Frameworks: Sugarman (slippery slide/gatilhos), Brunson (Epiphany Bridge/stack), StoryBrand, as 3 crenças. NÃO toca o motor financeiro.
+function gerarAtivos(o){
+  const prod=(o.produtoNome||'').trim()||'[produto]';
+  const publico=(o.nicho||'').trim()||'[seu público]';
+  const P=(o.ofertaPromessa||'').trim()||'[promessa central — competência/processo]';
+  const M=(o.ofertaMecanismo||'').trim()||'[mecanismo único]';
+  const prova=(o.ofertaProva||'').trim()||'[caso/depoimento real]';
+  const bonus=(o.ofertaBonus||'').trim()||'[bônus que expira de verdade]';
+  const gar=(o.garantia||'').trim()||'[garantia — ex.: 7 dias]';
+  const sonho=(o.resultadoSonho||'').trim();
+  const antes=(o.estadoAtual||'').trim(), depois=(o.estadoDesejado||'').trim();
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const cf=crencasFalsas(o), mod=crencaNucleo(o);
+  const dorL=(o.dorPrimaria||'o problema').toLowerCase();
+  const semSorte=rv?'sem depender de achar o ativo ou o momento perfeito':'sem depender de sorte';
+  const discl=rv?'\n\n(Aviso: investimento em renda variável envolve risco; isto é educação e processo, não promessa de retorno.)':'';
+  const unq=s=>String(s||'').replace(/^"|"$/g,'');
+  const emails=[
+    {assunto:`Abriu: ${prod}`, alt:`Começou — ${P}`, corpo:
+`Olá, [nome],
+
+Nos últimos dias eu te mostrei ${M}.
+
+Hoje o carrinho do ${prod} está aberto — e eu quero te ver dentro.
+
+Em resumo: ${P}, ${semSorte}.
+
+👉 [LINK DA OFERTA]
+
+O carrinho fecha em [data/hora real]. Depois disso, só na próxima turma.
+
+[assinatura]${discl}`},
+    {assunto:`"Será que funciona pra mim?"`, alt:`A objeção que trava todo mundo`, corpo:
+`[nome],
+
+A dúvida mais comum que recebo é: ${unq(cf[1].obj)}
+
+Faz sentido — mas é exatamente aí que a maioria trava.
+
+${mod.prova}
+
+Não é sobre talento. É sobre ${M}, aplicado com método.
+
+👉 [LINK DA OFERTA] — o carrinho ainda está aberto.
+
+[assinatura]${discl}`},
+    {assunto:`A prova que eu queria te mostrar`, alt:`O que acontece na prática`, corpo:
+`[nome],
+
+Deixa eu te mostrar o que acontece quando ${M} entra na rotina:
+
+${prova}
+
+(Resultado de processo e consistência — não é garantia, e cada caso é um caso.)
+
+Você pode ser o próximo a aplicar isso.
+
+👉 [LINK DA OFERTA]
+
+[assinatura]${discl}`},
+    {assunto:`Últimas horas — ${prod}`, alt:`Fecha amanhã`, corpo:
+`[nome],
+
+O carrinho do ${prod} fecha em [X horas].
+
+Recapitulando o que você leva:
+• ${P}
+• O método: ${M}
+• Bônus: ${bonus}
+• Garantia: ${gar}
+
+A maioria decide agora, nas últimas horas. Se faz sentido pra você, esse é o momento.
+
+👉 [LINK DA OFERTA]
+
+[assinatura]${discl}`},
+    {assunto:`Fecha hoje às [hora]`, alt:`Última chamada`, corpo:
+`[nome],
+
+Última chamada: o carrinho fecha HOJE às [hora].
+
+Se você chegou até aqui, já sabe que isso é possível — e que ${M} é o caminho.
+
+O risco é todo meu: ${gar}.
+
+👉 [LINK DA OFERTA]
+
+Nos vemos lá dentro.
+
+[assinatura]${discl}`}
+  ];
+  const anuncios=[
+    {angulo:'Dor / problema', headline:`${publico}: o problema não é falta de esforço`, texto:`A maioria tenta resolver ${dorL} pelo caminho errado. ${mod.crenca} ${P}, ${semSorte}.`, cta:'Saiba mais'},
+    {angulo:'Mecanismo / curiosidade', headline:`${M}: o método que muda o jogo`, texto:`Existe uma forma de alcançar ${sonho||'o resultado'} que quase ninguém usa: ${M}. Sem fórmula mágica, sem promessa de ganho — processo.`, cta:'Quero entender'},
+    {angulo:'Prova / autoridade', headline:`Veja o que o método entrega`, texto:`${prova}. Isso é o que acontece quando se aplica ${M} com disciplina. Resultado de processo — não é garantia.`, cta:'Ver como'},
+    {angulo:'História (Epiphany Bridge)', headline:antes&&depois?`De ${antes} para ${depois}`:`A virada que eu não esperava`, texto:`Eu também achava que ${unq(cf[1].obj).toLowerCase()} Até descobrir ${M}. Hoje, ${sonho||'outro jogo'}.`, cta:'Quero essa virada'}
+  ];
+  const pagina=[
+    {secao:'Headline', conteudo:`${P} — ${semSorte}.`},
+    {secao:'Subheadline', conteudo:`Para ${publico} que quer ${sonho||'resultado real'} com método, não com achismo.`},
+    {secao:'O problema', conteudo:`${unq(cf[2].obj)} ${unq(cf[0].obj)} Você já tentou e não funcionou — e o problema não é você.`},
+    {secao:'A virada (mecanismo)', conteudo:`${M}. ${mod.ponte}`},
+    {secao:'Prova', conteudo:`${prova}. (Resultado de processo/consistência — não é garantia de ganho.)`},
+    {secao:'A oferta', conteudo:`${prod} inclui:\n`+getPlanos(o).map(p=>`• ${p.nome} — ${brl(p.ticketMensal)}/mês (${p.meses} meses)`).join('\n')+`\n• Bônus: ${bonus}`},
+    {secao:'Garantia', conteudo:`${gar}. O risco é nosso.`},
+    {secao:'FAQ', conteudo:`• Funciona para iniciante? ${o.nivelPublico==='iniciante'?'Sim — foi desenhado do zero.':'[responda conforme o público]'}\n• E se eu não tiver tempo? [tempo mínimo por dia/semana]\n• É garantia de ganho? Não. ${rv?'É renda variável, envolve risco; o que ensinamos é competência e processo.':'O que entregamos é método.'}`},
+    {secao:'CTA final', conteudo:`Garanta sua vaga: [LINK]. O carrinho fecha em [data real].`}
+  ];
+  const vsl=[
+    {bloco:'Gancho (primeiros 15s)', fala:`Se você é ${publico} e quer ${sonho||'um resultado real'}, assista até o fim — porque ${M} muda a forma como você vê isso.`},
+    {bloco:'Problema / agitação', fala:`${unq(cf[0].obj)} ${unq(cf[1].obj)} E quanto mais tempo passa, mais caro custa continuar ${antes||'onde você está'}.`},
+    {bloco:'Epiphany Bridge', fala:`Eu também estava preso nisso. Até descobrir ${M}. Foi aí que tudo mudou.`},
+    {bloco:'Prova', fala:`${prova}. Processo e consistência — não sorte, não promessa de ganho.`},
+    {bloco:'Oferta', fala:`É isso que você encontra no ${prod}: ${P}. Com ${bonus} e ${gar}.`},
+    {bloco:'Escassez honesta', fala:`As vagas/condição são por tempo real: fecha em [data]. Depois, só na próxima turma.`},
+    {bloco:'CTA', fala:`Clique no botão abaixo e entre agora: [LINK].`}
+  ];
+  return {emails,anuncios,pagina,vsl,rv};
+}
+function renderAtivosInner(o){
+  const A=gerarAtivos(o);
+  const box=(id,titulo,texto)=>`<div class="opt-row"><div class="opt-h"><b>${esc(titulo)}</b><button class="btn ghost sm internal-only" data-copy="${id}" style="margin-left:auto">copiar</button></div><div class="opt-b" id="${id}" style="white-space:pre-wrap;line-height:1.55">${esc(texto)}</div></div>`;
+  const emailsH=A.emails.map((e,i)=>box('at-em'+i,`E-mail ${i+1}`,`Assunto: ${e.assunto}\nAssunto (alternativo): ${e.alt}\n\n${e.corpo}`)).join('');
+  const adsH=A.anuncios.map((a,i)=>box('at-ad'+i,`Anúncio ${i+1} — ${a.angulo}`,`HEADLINE: ${a.headline}\n\n${a.texto}\n\nCTA: ${a.cta}`)).join('');
+  const pagH=A.pagina.map((s,i)=>box('at-pg'+i,s.secao,s.conteudo)).join('');
+  const vslH=A.vsl.map((s,i)=>box('at-vsl'+i,s.bloco,s.fala)).join('');
+  const aviso=A.rv?`<div class="alertbox">Renda variável: os textos estão em competência/processo, sem promessa de ganho. Ainda assim, passe pelo <b>jurídico</b> antes de publicar.</div>`:'';
+  return `
+   ${aviso}
+   <div class="card"><h2>Sequência de e-mails (carrinho) <span class="tag">5 e-mails redigidos</span></h2>
+     <p class="hint">Rascunho pronto para ajustar. Os [colchetes] são o que só você preenche (nome, link, data, hora).</p>${emailsH}</div>
+   <div class="card"><h2>Anúncios <span class="tag">4 ângulos</span></h2>${adsH}</div>
+   <div class="card"><h2>Página de vendas <span class="tag">estrutura + copy por seção</span></h2>${pagH}</div>
+   <div class="card"><h2>Roteiro de VSL <span class="tag">vídeo de vendas</span></h2>${vslH}</div>`;
+}
+let ativosOpp=null;
+function viewAtivos(){
+  setActive('ativos');
+  if(!ativosOpp) ativosOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
+  const o=normalizeOppDefaults(ativosOpp);
+  const oppOptions=opps.map(x=>`<option value="${x.id}" ${ativosOpp&&ativosOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div><h1>Gerador de ativos</h1><p class="sub">Copy <b>redigida</b> a partir do contexto do projeto — e-mails de carrinho, anúncios, página de vendas e VSL. Compliance-safe por construção. É um <b>rascunho forte para ajustar</b>, não texto final.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="atLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn sm" id="atPrint">Baixar / imprimir</button>
+    </div>
+  </div>
+  <div class="card" style="padding:13px 18px"><p class="hint" style="margin:0">Quanto mais completo o <b>Essencial da oferta</b> (Estrategista) e o <b>Contexto do produto</b> (Produtização), mais específica a copy. Campos vazios viram [colchetes].</p></div>
+  <div id="atOut">${renderAtivosInner(o)}</div>`;
+  document.getElementById('atLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){ativosOpp=JSON.parse(JSON.stringify(s));viewAtivos();}}});
+  document.getElementById('atPrint').onclick=()=>openReport(renderAtivosInner(o),'Ativos de Copy — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  main.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=()=>{const el=document.getElementById(btn.dataset.copy);if(el&&navigator.clipboard){navigator.clipboard.writeText(el.innerText).then(()=>{const t=btn.textContent;btn.textContent='copiado ✓';setTimeout(()=>btn.textContent=t,1200);}).catch(()=>{});}});
+}
+
+/* ---------------- Cronograma do lançamento (E6/E7 — linha do tempo operacional) ---------------- */
+function cronograma(o){
+  const rec=recomendarModelo(o); const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const T=[]; const add=(fase,desc,resp,dia,portao)=>T.push({fase,desc,resp,dia,portao:!!portao});
+  if(modelo==='relampago'){
+    add('Aviso','Avisar a base / abrir lista de espera','Expert',-3,false);
+    if(rv) add('Aviso','Aval do jurídico na copy do evento','Jurídico',-3,true);
+    add('Aviso','Subir remarketing para a base quente','Tráfego',-2,false);
+    add('Evento','Aula/live única ancorando a oferta','Expert',-1,false);
+    add('Carrinho','Abrir carrinho (48–72h)','Lançador',0,false);
+    add('Carrinho','Sequência de vendas; concentrar nas últimas horas','Copy',0,false);
+    add('Carrinho','Fechar o carrinho na hora marcada','Lançador',2,true);
+    add('Pós','Onboarding + ativação da 1ª semana','Operação',3,false);
+  } else if(modelo==='perpetuo'){
+    add('Setup','Definir avatar e promessa','Expert',-20,false);
+    if(rv) add('Setup','Aval do jurídico (VSL/anúncios)','Jurídico',-18,true);
+    add('Setup','Produzir isca/VSL e sequência automatizada','Copy/Design',-15,false);
+    add('Setup','Configurar tracking e deadline individual','Tráfego',-10,true);
+    add('No ar','Ligar tráfego contínuo (sempre ativo)','Tráfego',0,false);
+    add('No ar','Monitorar fadiga de criativo e conversão por etapa','Tráfego',7,false);
+    add('No ar','Otimizar página/sequência com os dados','Lançador',14,false);
+  } else if(modelo==='semente'){
+    add('Sondagem','Pesquisar a audiência (dor, linguagem, objeções)','Expert',-14,false);
+    add('Teste','Publicar 2–3 ângulos e medir engajamento','Copy',-10,false);
+    add('Oferta beta','Abrir 1ª turma com vagas reais e preço de pioneiro','Lançador',-3,false);
+    if(rv) add('Oferta beta','Aval do jurídico na oferta','Jurídico',-3,true);
+    add('Oferta beta','Fechar beta e colher feedback/depoimentos','Lançador',2,true);
+    add('Aprendizado','Consolidar oferta/copy validadas para o interno','Estrategista',7,false);
+  } else {
+    if(modelo==='externo'){ add('Parceiros','Recrutar e equipar afiliados (comissão clara)','Lançador',-35,false); add('Parceiros','Alinhar material e datas com os parceiros','Lançador',-20,true); }
+    add('Captação','Definir avatar/persona e a grande promessa','Expert',-30,false);
+    if(rv) add('Captação','Validar ângulo/promessa com o jurídico','Jurídico',-28,true);
+    add('Captação','Configurar tracking e medição ANTES da captação','Tráfego',-28,true);
+    add('Captação','Criar isca + página de captura','Copy/Design',-27,false);
+    add('Captação','Subir campanhas de captação (tráfego + base)','Tráfego',-25,false);
+    add('Captação','Atingir a meta de leads para abrir o aquecimento','Lançador',-11,true);
+    add('Aquecimento','CPL 1 — quebra de crença','Expert',-10,false);
+    add('Aquecimento','CPL 2 — prova / transformação','Expert',-7,false);
+    add('Aquecimento','CPL 3 — ponte para a oferta','Expert',-4,false);
+    add('Carrinho','Abrir carrinho (oferta + bônus + garantia)','Lançador',0,false);
+    add('Carrinho','Sequência de vendas (e-mails/WhatsApp)','Copy',0,false);
+    add('Carrinho','Últimas 24h — reforço de escassez honesta','Copy',4,false);
+    add('Carrinho','Fechar o carrinho na data','Lançador',5,true);
+    add('Pós','Onboarding e ativação da 1ª semana','Operação',6,false);
+    add('Pós','Reconciliar previsto × realizado + registrar aprendizados','Estrategista',30,true);
+  }
+  const d0 = o.dataCarrinho ? new Date(o.dataCarrinho+'T00:00:00') : null;
+  const fmtD=(dia)=>{ if(!d0||isNaN(d0.getTime())) return null; const d=new Date(d0.getTime()); d.setDate(d.getDate()+dia); return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); };
+  T.forEach(t=>t.data=fmtD(t.dia));
+  const dias=T.map(t=>t.dia), minD=Math.min(0,...dias), maxD=Math.max(0,...dias);
+  const fases=[]; T.forEach(t=>{let f=fases.find(x=>x.nome===t.fase); if(!f){f={nome:t.fase,min:t.dia,max:t.dia}; fases.push(f);} f.min=Math.min(f.min,t.dia); f.max=Math.max(f.max,t.dia);});
+  return {modelo,modeloLabel:MODELOS[modelo].label,T,fases,minD,maxD,temData:!!(d0&&!isNaN(d0.getTime())),portoes:T.filter(t=>t.portao)};
+}
+function renderCronogramaInner(o){
+  const C=cronograma(o); const span=Math.max(1,C.maxD-C.minD); const pos=(dia)=>((dia-C.minD)/span)*100;
+  const faseBars=C.fases.map(f=>{const left=pos(f.min), w=Math.max(2.5,pos(f.max)-pos(f.min));
+    return `<div style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:6px"><div style="font-size:12px;font-weight:600;color:#dbe7f2">${esc(f.nome)}</div><div style="position:relative;height:22px;background:#0A1422;border:1px solid var(--line);border-radius:6px"><div style="position:absolute;left:${left}%;width:${w}%;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,140,0,.32),rgba(255,140,0,.72));border-radius:6px"></div></div></div>`;}).join('');
+  const d0mark=`<div style="display:grid;grid-template-columns:130px 1fr;gap:10px"><div></div><div style="position:relative;height:16px"><div style="position:absolute;left:${pos(0)}%;transform:translateX(-50%);font-size:10px;color:var(--cyan);white-space:nowrap">▲ D0 · carrinho</div></div></div>`;
+  const rows=C.T.map(t=>`<tr><td style="white-space:nowrap"><b>D${t.dia>=0?'+':''}${t.dia}</b>${t.data?`<br><span class="muted" style="font-size:10.5px">${esc(t.data)}</span>`:''}</td><td>${t.portao?'🚦 ':''}${esc(t.desc)}</td><td class="muted" style="white-space:nowrap">${esc(t.resp)}</td></tr>`).join('');
+  return `
+   <div class="card"><h2>Linha do tempo — ${esc(C.modeloLabel)} <span class="tag">D-${Math.abs(C.minD)} → D+${C.maxD}</span></h2>
+     <p class="hint">Cada fase e sua janela. ${C.temData?'Datas reais a partir da abertura do carrinho.':'Defina a data de abertura do carrinho (acima) para ver datas reais.'}</p>
+     ${faseBars}${d0mark}
+   </div>
+   <div class="card"><h2>Tarefas, responsáveis e portões <span class="tag">🚦 = portão (trava o avanço)</span></h2>
+     <div style="overflow:auto"><table><thead><tr><th>Quando</th><th>Tarefa</th><th>Responsável</th></tr></thead><tbody>${rows}</tbody></table></div>
+   </div>
+   <div class="card"><h2>Portões do lançamento <span class="tag">não avance sem cumprir</span></h2>
+     <ul class="gaps">${C.portoes.map(t=>`<li>🚦 <b>D${t.dia>=0?'+':''}${t.dia}${t.data?' ('+esc(t.data)+')':''}:</b> ${esc(t.desc)} <span class="muted">— ${esc(t.resp)}</span></li>`).join('')}</ul></div>`;
+}
+let cronoOpp=null;
+function viewCalendario(){
+  setActive('calendario');
+  if(!cronoOpp) cronoOpp = current || (opps[0]?JSON.parse(JSON.stringify(opps[0])):blankOpp());
+  const o=normalizeOppDefaults(cronoOpp);
+  const oppOptions=opps.map(x=>`<option value="${x.id}" ${cronoOpp&&cronoOpp.id===x.id?'selected':''}>${esc(x.nome)||'(sem nome)'}</option>`).join('');
+  main.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div><h1>Cronograma do lançamento</h1><p class="sub">A linha do tempo operacional (captação → pós) adaptada ao modelo: <b>fases, tarefas, responsáveis e portões</b> que travam o avanço. Exportável.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="crLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
+      <button class="btn sm" id="crPrint">Baixar / imprimir</button>
+    </div>
+  </div>
+  <div class="card"><h2>Âncora de datas <span class="tag">opcional</span></h2>
+    <div class="grid"><div><label>Data de abertura do carrinho (D0)</label><input type="date" data-crk="dataCarrinho" value="${esc(o.dataCarrinho||'')}"/></div></div>
+    <p class="hint" style="margin-top:6px">Com a data, o cronograma calcula a data real de cada tarefa e portão.</p>
+  </div>
+  <div id="crOut">${renderCronogramaInner(o)}</div>`;
+  document.getElementById('crLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){cronoOpp=JSON.parse(JSON.stringify(s));viewCalendario();}}});
+  document.getElementById('crPrint').onclick=()=>openReport(renderCronogramaInner(o),'Cronograma de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  const dk=main.querySelector('[data-crk]'); if(dk) dk.addEventListener('input',()=>{o.dataCarrinho=dk.value; const out=document.getElementById('crOut'); if(out) out.innerHTML=renderCronogramaInner(o);});
+}
+
 /* ---------------- Dashboard (reskin — visão da carteira, dados reais) ---------------- */
 let dashChart=null;
 function dashAgg(){
@@ -2913,7 +3168,7 @@ function viewDashboard(){
 
 /* ---------------- router ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
   const rcpl=e.target.closest('#roteiroCplBtn');
   if(rcpl){ e.preventDefault();
@@ -2925,7 +3180,7 @@ main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
