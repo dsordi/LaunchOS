@@ -175,6 +175,7 @@
   @media print{ body>.app{display:none!important} .glow{display:none!important} .modal-overlay{position:static;background:none;padding:0;display:block;overflow:visible} .modal{box-shadow:none;max-width:none} .modal .modal-actions{display:none!important} }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style id="reskin">
   /* ===== Reskin v1.3 — shell premium (base: dashboard Gemini), engine intacta ===== */
   :root{ --bg:#001326; --panel:#001A33; --fmono:'JetBrains Mono',ui-monospace,monospace; }
@@ -372,7 +373,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.5 · 2026-10-31
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.6 · 2026-10-31
     </div>
   </aside>
   <section class="content">
@@ -2425,6 +2426,114 @@ function renderFunilCard(o){
 // Apresentação completa do projeto — narrativa: resumo → oportunidade → quem → mercado → produto → estratégia → mensagem → viabilidade → plano → transparência
 // Apresentação para DOWNLOAD — leve, clean e apresentável (para mostrar ao expert/parceiro/board).
 // Sem auditoria, sem fontes/marcas, sem contabilidade técnica, sem "o que falta saber". Uma linha honesta de projeção.
+// ===== Export PPT board-grade (PptxGenJS) — só LÊ os motores, não altera nada =====
+function pptClean(x){return String(x==null?'':x).replace(/\[[ABCDL]\]/g,'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();}
+function pptBRL(n){return isFinite(n)?('R$ '+Math.round(n).toLocaleString('pt-BR')):'—';}
+function gerarPPT(o){
+  const X=new PptxGenJS(); X.defineLayout({name:'W',width:13.33,height:7.5}); X.layout='W'; X.author='LaunchOS'; X.company='Nelogica';
+  const NAVY='0A121C',INK='243244',MUT='64748B',ACC='FF8C00',GOOD='2E8B57',BAD='C0392B',WARN='B7791F',BG='FFFFFF',SOFT='F3F5F8';
+  const a=analyze(o),s=a.b,rt=recoveryTimeline(o,s),rec=recomendarModelo(o);
+  const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const e=estrategia(o),pb=playbookAplicado(o),Pr=produtizacao(o);
+  const seg=seguidoresTotais(o),alc=audienciaAlcancavel(o);
+  const proj=(o.produtoNome||o.nome||'Projeto');
+  const vMap={good:['VIÁVEL',GOOD],warn:['AJUSTAR ANTES DE INVESTIR',WARN],bad:['NÃO RECOMENDADO AINDA',BAD]};
+  const vv=vMap[a.vclass]||['ANÁLISE',MUT];
+  const head=(t)=>{const sl=X.addSlide();sl.background={color:BG};
+    sl.addText(t,{x:0.55,y:0.35,w:11.3,h:0.6,fontSize:22,bold:true,color:NAVY,fontFace:'Arial'});
+    sl.addShape(X.ShapeType.line,{x:0.55,y:1.05,w:12.25,h:0,line:{color:ACC,width:2.5}});
+    sl.addText('LaunchOS · '+pptClean(proj)+' · projeção com premissas atuais — não é previsão',{x:0.55,y:7.08,w:12.25,h:0.3,fontSize:8,color:MUT});
+    return sl;};
+  // 1 — Capa
+  (function(){const sl=X.addSlide();sl.background={color:NAVY};
+    sl.addText('LaunchOS',{x:0.6,y:2.3,w:12,h:0.9,fontSize:40,bold:true,color:'FFFFFF',fontFace:'Arial'});
+    sl.addText('Avaliação de Lançamento — documento de decisão',{x:0.6,y:3.25,w:12,h:0.5,fontSize:16,color:ACC});
+    sl.addText(pptClean(proj)+(o.nome&&o.nome!==proj?('   ·   '+pptClean(o.nome)):''),{x:0.6,y:4.05,w:12,h:0.5,fontSize:18,bold:true,color:'FFFFFF'});
+    sl.addText('Uso interno · '+new Date().toLocaleDateString('pt-BR'),{x:0.6,y:6.7,w:12,h:0.4,fontSize:11,color:'8A99AD'});})();
+  // 2 — Veredito
+  (function(){const sl=head('Veredito');
+    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.3,w:12.25,h:1.2,fill:{color:vv[1]},rectRadius:0.08});
+    sl.addText(vv[0],{x:0.8,y:1.42,w:11.7,h:0.55,fontSize:26,bold:true,color:'FFFFFF'});
+    sl.addText(pptClean(a.vmsg),{x:0.8,y:1.98,w:11.9,h:0.45,fontSize:12,color:'FFFFFF'});
+    const kpis=[['Lucro líquido (base)',pptBRL(s.lucro)],['Resultado do operador',pptBRL(a.dB.operadorNet)],['Faturamento potencial',pptBRL(s.bruto)],['Recupera o aporte em',rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recup.')]];
+    kpis.forEach((k,i)=>{const x=0.55+i*3.075;
+      sl.addShape(X.ShapeType.roundRect,{x,y:2.85,w:2.9,h:1.5,fill:{color:SOFT},line:{color:'E2E8F0',width:1},rectRadius:0.06});
+      sl.addText(k[0],{x:x+0.15,y:3.0,w:2.6,h:0.5,fontSize:10,color:MUT});
+      sl.addText(k[1],{x:x+0.15,y:3.5,w:2.6,h:0.7,fontSize:18,bold:true,color:NAVY});});
+    sl.addText([{text:'Modelo recomendado: ',options:{bold:true}},{text:MODELOS[modelo].label+' — '+pptClean(MODELOS[modelo].problema),options:{}}],{x:0.55,y:4.65,w:12.25,h:0.4,fontSize:12,color:INK});
+    sl.addText('Break-even da conversão: '+(a.be!=null?pct(a.be/100):'—')+'   ·   Ticket médio: '+pptBRL(ticketMensalBlend(o))+'/mês   ·   Investimento: '+pptBRL(rt.invest),{x:0.55,y:5.1,w:12.25,h:0.4,fontSize:11,color:MUT});})();
+  // 3 — Oportunidade
+  (function(){const sl=head('A oportunidade');
+    sl.addText(pptClean(o.hipotese)||('Unir a audiência e a autoridade do expert à estrutura e ao método de '+opName(o)+', numa parceria por divisão de receita.'),{x:0.55,y:1.3,w:12.25,h:0.9,fontSize:13,color:INK});
+    const rows=[['Dor do público',pptClean(o.dorPrimaria)],['Promessa',pptClean(e.dor.promessa)],['Modelo de lançamento',MODELOS[modelo].label],['Ângulo','Educação e disciplina — sem promessa de ganho'],['Nicho',pptClean(nichoInfo(o).label)]].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:r[1],options:{color:INK}}]);
+    sl.addTable(rows,{x:0.55,y:2.35,w:12.25,colW:[3.2,9.05],fontFace:'Arial',fontSize:12,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.42,valign:'middle'});})();
+  // 4 — Audiência
+  (function(){const sl=head('Quem — expert & audiência');
+    const ni=nichoInfo(o);
+    const rows=[['Seguidores',num(seg)],['Audiência alcançável',num(alc)],['Nível · formato',(NIVEL[o.nivelPublico]||'—')+' · '+(FORMATO[o.formatoEntrega]||'—')],['Mercado endereçável',ni.teto?('~'+num(ni.teto)+' CPFs ('+ni.fonte+')'):'sem teto de bolsa']].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:String(r[1]),options:{color:INK}}]);
+    sl.addTable(rows,{x:0.55,y:1.4,w:12.25,colW:[4,8.25],fontSize:13,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.55,valign:'middle'});})();
+  // 5 — Produto & oferta
+  (function(){const sl=head('O produto & a oferta');
+    sl.addText([{text:'Pitch: ',options:{bold:true}},{text:pptClean(Pr.pitch.umaLinha),options:{}}],{x:0.55,y:1.3,w:12.25,h:0.8,fontSize:13,color:INK});
+    if(pb.bigDomino) sl.addText([{text:'A grande ideia: ',options:{bold:true}},{text:pptClean(pb.bigDomino),options:{}}],{x:0.55,y:2.15,w:12.25,h:0.8,fontSize:12,color:INK});
+    const rows=[['Natureza da oferta',pptClean(Pr.natureza.tipo)],['Mecanismo único',pptClean(Pr.pitch.mecanismo)],['Prova',pptClean(Pr.pitch.prova)],['Garantia',pptClean((o.garantia||'').trim()||Pr.pitch.bonus)]].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:r[1],options:{color:INK}}]);
+    sl.addTable(rows,{x:0.55,y:3.05,w:12.25,colW:[3,9.25],fontSize:12,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.5,valign:'middle'});})();
+  // 6 — Estratégia & funil
+  (function(){const sl=head('Estratégia — modelo & funil');
+    sl.addText([{text:'Modelo: '+MODELOS[modelo].label+'. ',options:{bold:true}},{text:pptClean(e.jornada.estrutura),options:{}}],{x:0.55,y:1.25,w:12.25,h:0.6,fontSize:12,color:INK});
+    const hdr=[{text:'Etapa',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'CTA',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}}];
+    const frows=[hdr].concat(funilRec(o).etapas.map(x=>[{text:pptClean(x.etapa),options:{bold:true,color:NAVY}},{text:pptClean(x.cta),options:{color:INK}}]));
+    sl.addTable(frows,{x:0.55,y:1.95,w:12.25,colW:[4,8.25],fontSize:11.5,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.42,valign:'middle'});})();
+  // 7 — Mensagem
+  (function(){const sl=head('A mensagem — objeções a vencer');
+    const cr=crencasFalsas(o);
+    const rows=[[{text:'Crença',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Objeção',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Ponte',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}}]].concat(cr.map(c=>[{text:pptClean(c.t),options:{bold:true,color:NAVY}},{text:pptClean(c.obj),options:{color:INK}},{text:pptClean(c.ponte),options:{color:MUT}}]));
+    sl.addTable(rows,{x:0.55,y:1.4,w:12.25,colW:[2.2,5,5.05],fontSize:11.5,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.6,valign:'middle'});})();
+  // 8 — Viabilidade
+  (function(){const sl=head('Viabilidade financeira — 3 cenários');
+    const cols=[['Pé no chão',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
+    const H=[{text:'Linha',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}}].concat(cols.map(c=>({text:c[0],options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}})));
+    const row=(lab,fn)=>[{text:lab,options:{bold:true,color:NAVY}}].concat(cols.map(c=>({text:fn(c[1],c[2]),options:{align:'right',color:INK}})));
+    const rows=[H,row('Faturamento potencial',(sc)=>pptBRL(sc.bruto)),row('Lucro',(sc)=>pptBRL(sc.lucro)),row('Resultado — '+opName(o),(sc,d)=>pptBRL(d.operadorNet)),row('Recupera em (meses)',(sc)=>{const r=recoveryTimeline(o,sc);return r.invest<=0?'—':(r.recuperado?num(r.recMonth,1):'n/d');})];
+    sl.addTable(rows,{x:0.55,y:1.35,w:12.25,colW:[4.25,2.67,2.67,2.66],fontSize:12,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.5,valign:'middle'});
+    try{sl.addChart(X.ChartType.bar,[{name:'Resultado do operador',labels:cols.map(c=>c[0]),values:cols.map(c=>Math.round(c[2].operadorNet))}],{x:2.6,y:4.2,w:8.1,h:2.5,barDir:'col',showLegend:false,showValue:true,chartColors:[ACC],dataLabelColor:NAVY,dataLabelFontSize:11,catAxisLabelColor:MUT});}catch(ec){}})();
+  // 9 — Prontidão para investir
+  (function(){const sl=head('Prontidão para investir');
+    const pc=Pr.prontidao.vclass==='bad'?BAD:(Pr.prontidao.vclass==='warn'?WARN:GOOD);
+    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.2,w:12.25,h:0.8,fill:{color:pc},rectRadius:0.06});
+    sl.addText(pptClean(Pr.prontidao.verdict)+' — '+pptClean(Pr.prontidao.resumo),{x:0.75,y:1.28,w:11.9,h:0.64,fontSize:12,bold:true,color:'FFFFFF',valign:'middle'});
+    const icon={ok:'OK',ajuste:'Ajustar',bloqueio:'Bloqueio',dependencia:'Dependência'};
+    const rows=[[{text:'Critério',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Status',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Ação',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}}]].concat(Pr.prontidao.criterios.map(c=>{const col=c.status==='bloqueio'?BAD:(c.status==='ajuste'?WARN:(c.status==='dependencia'?MUT:GOOD));return [{text:pptClean(c.nome),options:{color:NAVY}},{text:icon[c.status]||c.status,options:{color:col,bold:true}},{text:pptClean(c.acao),options:{color:MUT}}];}));
+    sl.addTable(rows,{x:0.55,y:2.15,w:12.25,colW:[3.8,1.8,6.65],fontSize:9.5,border:{type:'solid',color:'E2E8F0',pt:0.5},rowH:0.3,valign:'middle'});})();
+  // 10 — Validação orgânica & próximos passos
+  (function(){const sl=head('Validação orgânica & próximos passos');
+    const C=conteudoOrganico(o);
+    sl.addText('Antes de investir verba — validar demanda na prática (orgânico):',{x:0.55,y:1.25,w:12.25,h:0.35,fontSize:12,bold:true,color:NAVY});
+    sl.addText(C.plano.map(x=>'•  '+pptClean(x.t)+': '+pptClean(x.d)).join('\n'),{x:0.55,y:1.65,w:12.25,h:2.0,fontSize:11,color:INK,lineSpacingMultiple:1.1});
+    sl.addText('Próximos passos:',{x:0.55,y:3.95,w:12.25,h:0.35,fontSize:12,bold:true,color:NAVY});
+    sl.addText(proximasAcoes(o).slice(0,5).map((x,i)=>(i+1)+'.  '+pptClean(x)).join('\n'),{x:0.55,y:4.35,w:12.25,h:2.4,fontSize:11,color:INK,lineSpacingMultiple:1.15});})();
+  // 11 — Premissas & transparência (estilo RI)
+  (function(){const sl=head('Premissas & transparência');
+    sl.addText([
+      {text:'Esta é uma projeção determinística que se repete com as mesmas premissas — não é previsão.\n',options:{bold:true}},
+      {text:'•  Conversão, cancelamento (churn) e captação são premissas a confirmar num lançamento real; não há benchmark público auditável por tipo de lançamento.\n',options:{}},
+      {text:'•  Faturamento ≠ caixa ≠ lucro ≠ margem. Os valores são receita de contrato projetada, não faturamento realizado.\n',options:{}},
+      {text:'•  Nenhum número de mercado foi inventado; o dimensionamento é bottom-up (audiência × conversão × ticket).\n',options:{}},
+      {text:'•  Renda variável: toda copy e promessa passam pelo jurídico antes de publicar (compliance é premissa permanente).\n',options:{}},
+      {text:'•  O resultado só se confirma com um caso piloto real reconciliado (previsto × realizado).',options:{}}
+    ],{x:0.55,y:1.4,w:12.25,h:4.6,fontSize:12,color:INK,lineSpacingMultiple:1.25});})();
+  return X.write({outputType:'blob'});
+}
+async function baixarPPT(o){
+  if(typeof PptxGenJS==='undefined'){ alert('A biblioteca de PPT ainda está carregando — tente de novo em alguns segundos.'); return; }
+  try{
+    const blob=await gerarPPT(o);
+    const nome=((o.produtoNome||o.nome||'LaunchOS').replace(/[^\w\s\-À-ÿ]/g,'').replace(/\s+/g,'_').slice(0,60)||'LaunchOS')+'_board.pptx';
+    const dl=await getCap('downloads');
+    if(dl){ try{ await dl.save({filename:nome,data:blob}); }catch(e){ if(!(e&&e.code==='declined')) baixarArquivo(nome,blob,'application/vnd.openxmlformats-officedocument.presentationml.presentation'); } }
+    else baixarArquivo(nome,blob,'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+  }catch(err){ alert('Não consegui gerar o PPT: '+(err&&err.message||err)); }
+}
 function renderApresentacao(o){
   const a=analyze(o), s=a.b, rt=recoveryTimeline(o,s), rec=recomendarModelo(o);
   const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
@@ -2542,6 +2651,7 @@ function viewCompilador(){
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="compLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
       <button class="btn sm" id="compApres">Apresentação completa</button>
+      <button class="btn sm" id="compPpt">Baixar PPT (board)</button>
     </div>
   </div>
   <div class="tabs" id="compTabs">
@@ -2559,6 +2669,7 @@ function viewCompilador(){
     main.querySelectorAll('.tabpane').forEach(p=>p.style.display=(p.dataset.pane===t)?'':'none');});
   document.getElementById('compLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const src=opps.find(x=>x.id===id);if(src){compOpp=JSON.parse(JSON.stringify(src));viewCompilador();}}});
   const ca=document.getElementById('compApres'); if(ca) ca.onclick=()=>openReport(renderApresentacao(o),'Apresentação de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
+  const cpp=document.getElementById('compPpt'); if(cpp) cpp.onclick=()=>baixarPPT(o);
   bindRoteiroCpl(o);
   main.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{const g=b.dataset.goto, clone=JSON.parse(JSON.stringify(o));
     if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
@@ -2637,6 +2748,7 @@ function viewRecomendacao(){
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="recLoad" style="width:auto"><option value="">— carregar oportunidade —</option>${oppOptions}</select>
       <button class="btn sm" id="recApres">Baixar apresentação</button>
+      <button class="btn sm" id="recPpt">Baixar PPT (board)</button>
     </div>
   </div>
   <div class="tabs" id="recTabs">
@@ -2659,6 +2771,7 @@ function viewRecomendacao(){
   const doApres=()=>openReport(renderApresentacao(o),'Recomendação de Lançamento — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
   const b1=document.getElementById('recApres'); if(b1) b1.onclick=doApres;
   const b2=document.getElementById('recApres2'); if(b2) b2.onclick=doApres;
+  const bp=document.getElementById('recPpt'); if(bp) bp.onclick=()=>baixarPPT(o);
   bindRoteiroCpl(o);
   main.querySelectorAll('[data-goto]').forEach(btn=>btn.onclick=()=>{const g=btn.dataset.goto, clone=JSON.parse(JSON.stringify(o));
     if(g==='gtm'){gtmOpp=clone;viewGTM();} else if(g==='estrategia'){estrOpp=clone;viewEstrategia();}
