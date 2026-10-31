@@ -322,6 +322,22 @@
   a:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
   /* Downloads/relatórios: leves e apresentáveis — oculta o "chrome" técnico (transparência, fontes, marcas de confiança) no relatório; no app continua visível */
   .pitch .disc,.pitch .mark,.pitch .internal-only{display:none!important}
+  /* ===== Redensificação (navegação em 3 fases + progressive disclosure) — só frontend ===== */
+  #subnav{background:var(--panel);border-bottom:1px solid var(--line);padding:0 26px;flex:0 0 auto}
+  #subnav .subnav-row{display:flex;flex-direction:row;align-items:center;gap:4px;flex-wrap:wrap}
+  #subnav .subnav-row.sbsteps{min-height:30px;border-bottom:1px solid var(--line)}
+  #subnav .subnav-row.sbtabs{min-height:40px}
+  .pstep{background:none;border:none;color:var(--faint);font-weight:600;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:5px 6px}
+  .pstep:hover{color:var(--muted)} .pstep.on{color:var(--accent)}
+  .psep{color:var(--faint);font-size:11px;margin:0 2px}
+  .ptab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:600;font-size:12.5px;cursor:pointer;padding:9px 11px;margin-bottom:-1px}
+  .ptab:hover{color:var(--ink)} .ptab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .ptab.sec{font-weight:500;font-size:11.5px;color:var(--faint)}
+  .pdrawer{font-size:10px;color:var(--faint);margin-left:10px;text-transform:uppercase;letter-spacing:.05em}
+  /* progressive disclosure: marcas de confiança ocultas na viewport de decisão; reveladas sob "Auditar premissas" */
+  #main .mark{display:none}
+  body.audit-on #main .mark{display:inline-block}
+  #auditToggle.on{color:var(--accent);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -346,14 +362,9 @@
       <a data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Oportunidades</span></a>
       <a data-view="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Nova oportunidade</span></a>
       <div class="sec">Decisor</div>
-      <a data-view="gtm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.2 7.8 13 13 7.8 16.2 11 11"/></svg><span>GTM Builder</span></a>
-      <a data-view="estrategia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="4"/><path d="m8 8-2-2"/><path d="m18 18-2-2"/></svg><span>Estrategista</span></a>
-      <a data-view="gerador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span>Estrutura de lançamento</span></a>
-      <a data-view="produtizacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/></svg><span>Produtização</span></a>
-      <a data-view="ativos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg><span>Gerador de ativos</span></a>
-      <a data-view="calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Cronograma</span></a>
-      <a data-view="compilador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>Compilador</span></a>
-      <a data-view="recomendacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg><span>Recomendação</span></a>
+      <a data-view="fase1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>1 · Desenho</span></a>
+      <a data-view="fase2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>2 · Veredito</span></a>
+      <a data-view="fase3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>3 · Execução</span></a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Princípios da base</span></a>
     </nav>
@@ -361,17 +372,19 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.4 · 2026-10-31
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.5 · 2026-10-31
     </div>
   </aside>
   <section class="content">
     <header class="topbar">
       <div class="crumb">LaunchOS <span style="color:#5d7389">/</span> <b id="crumb">Dashboard</b></div>
       <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn ghost sm" id="auditToggle" title="Mostrar/ocultar as marcas de confiança (A/B/C/D)">Auditar premissas</button>
         <span class="status"><span class="dot"></span> Motor determinístico · <b style="color:#34d399">auditado</b></span>
         <button class="btn" id="topNew" style="padding:8px 14px;font-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova oportunidade</button>
       </div>
     </header>
+    <div id="subnav" style="display:none"></div>
     <main id="main"></main>
   </section>
 </div>
@@ -602,7 +615,41 @@ function analyze(o){
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
 const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
-const setActive=(v)=>{document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));const c=document.getElementById('crumb');if(c)c.textContent=CRUMB[v]||(v===''?'Oportunidade':c.textContent);};
+// ===== Navegação em 3 fases (consolidação da menu fatigue) — só frontend, não toca engines/features =====
+const PHASES={
+  fase1:{label:'1 · Desenho',tools:[['gtm','Diagnóstico (GTM)'],['produtizacao','Produtização']],drawer:[['gerador','Estrutura']]},
+  fase2:{label:'2 · Veredito',tools:[['recomendacao','Recomendação'],['estrategia','Estrategista']],drawer:[['compilador','Compilador']]},
+  fase3:{label:'3 · Execução',tools:[['ativos','Gerador de ativos'],['calendario','Cronograma']],drawer:[]}
+};
+const PHASE_ORDER=['fase1','fase2','fase3'];
+function phaseOf(v){return PHASE_ORDER.find(f=>PHASES[f].tools.concat(PHASES[f].drawer).some(t=>t[0]===v))||null;}
+function goView(v){
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();
+  else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();
+  else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();
+  else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();
+  else if(v==='fase1')viewGTM();else if(v==='fase2')viewRecomendacao();else if(v==='fase3')viewAtivos();
+  else if(v==='new'){current=blankOpp();viewDetail(current);}
+}
+function renderSubnav(v){
+  const el=document.getElementById('subnav'); if(!el) return;
+  const f=phaseOf(v);
+  if(!f){ el.innerHTML=''; el.style.display='none'; return; }
+  el.style.display='';
+  const ph=PHASES[f], idx=PHASE_ORDER.indexOf(f), next=PHASE_ORDER[idx+1];
+  const steps=PHASE_ORDER.map((fk,i)=>`<button class="pstep${fk===f?' on':''}" data-go="${fk}">${esc(PHASES[fk].label)}</button>${i<PHASE_ORDER.length-1?'<span class="psep">→</span>':''}`).join('');
+  const tabs=ph.tools.map(t=>`<button class="ptab${t[0]===v?' on':''}" data-go="${t[0]}">${esc(t[1])}</button>`).join('');
+  const drawer=ph.drawer.length?`<span class="pdrawer">secundário</span>`+ph.drawer.map(t=>`<button class="ptab sec${t[0]===v?' on':''}" data-go="${t[0]}">+ ${esc(t[1])}</button>`).join(''):'';
+  const nextBtn=next?`<button class="btn sm" data-go="${next}" style="margin-left:auto">${esc(PHASES[next].label)} →</button>`:'';
+  el.innerHTML=`<div class="subnav-row sbsteps">${steps}</div><div class="subnav-row sbtabs">${tabs}${drawer}${nextBtn}</div>`;
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goView(b.dataset.go));
+}
+function setActive(v){
+  const ph=phaseOf(v), activeKey=ph||v;
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===activeKey));
+  const c=document.getElementById('crumb'); if(c) c.textContent = ph ? (PHASES[ph].label+' · '+(CRUMB[v]||'')) : (CRUMB[v]||(v===''?'Oportunidade':c.textContent));
+  renderSubnav(v);
+}
 
 function viewList(){
   setActive('list');
@@ -3350,8 +3397,7 @@ function viewDashboard(){
 }
 
 /* ---------------- router ---------------- */
-document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();else if(v==='new'){current=blankOpp();viewDetail(current);}});
+document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;goView(a.dataset.view);});
 main.addEventListener('click',e=>{
   const cp=e.target.closest('[data-copy]');
   if(cp){ e.preventDefault(); const el=document.getElementById(cp.dataset.copy);
@@ -3367,8 +3413,9 @@ main.addEventListener('click',e=>{
   const open=e.target.closest('[data-open]'),del=e.target.closest('[data-del]'),nv=e.target.closest('[data-view]');
   if(del){e.stopPropagation();opps=opps.filter(o=>o.id!==del.dataset.del);save(opps);viewList();return;}
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
-  if(nv){const v=nv.dataset.view;if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();else if(v==='new'){current=blankOpp();viewDetail(current);}}});
+  if(nv){goView(nv.dataset.view);}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
+const auditBtn=document.getElementById('auditToggle'); if(auditBtn) auditBtn.addEventListener('click',function(){document.body.classList.toggle('audit-on');this.classList.toggle('on',document.body.classList.contains('audit-on'));});
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
 if(opps.length===0){
