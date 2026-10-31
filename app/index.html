@@ -361,7 +361,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.2 · 2026-10-31
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.3 · 2026-10-31
     </div>
   </aside>
   <section class="content">
@@ -2840,6 +2840,92 @@ function renderOrganicoCard(o){
     <div class="pill-note" style="margin-top:8px">Honestidade: o orgânico mede <b>intenção e retenção</b> (alcance), não venda. Impressão ≠ cliente ≠ receita — é sinal de demanda para decidir a verba, não faturamento. Fonte: método Cimed/G4 (caso de autor) + boas práticas de criação; ⚠️ = ajustar para renda variável.</div>
   </div>`;
 }
+// Roteiro de conteúdo PRONTO PARA GRAVAR — sequência de peças já roteirizadas para a fase orgânica.
+// Monta do contexto do produto com os frameworks da base (Epiphany Bridge/Brunson, 3 crenças, Sugarman, StoryBrand) + as 12 regras (SRC-057).
+// [colchetes] = o que só o humano preenche. Compliance-safe (RV marcado). NÃO toca o motor financeiro.
+function roteiroOrganico(o){
+  const prod=(o.produtoNome||'').trim()||'[produto]';
+  const publico=(o.nicho||'').trim()||'[seu público]';
+  const M=(o.ofertaMecanismo||'').trim()||'[seu mecanismo único]';
+  const P=(o.ofertaPromessa||'').trim()||'[sua promessa — competência/processo]';
+  const prova=(o.ofertaProva||'').trim()||'[seu caso/depoimento real]';
+  const antes=(o.estadoAtual||'').trim()||'[onde ele está hoje]';
+  const dorL=String(o.dorPrimaria||'a dor do público').toLowerCase();
+  const temaL=String(o.dorPrimaria||'esse tema').toLowerCase();
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const cf=crencasFalsas(o), mod=crencaNucleo(o);
+  const unq=s=>String(s||'').replace(/^"|"$/g,'');
+  const sl=s=>String(s||'').split(' (')[0].trim();
+  const prod15='15–25s · legenda sempre · corte de respiros (1,1–1,2x) · 1 corte a cada ~3s';
+  const p=(n,titulo,formato,objetivo,gancho,roteiro,cta,producao,risco)=>({n,titulo,formato,objetivo,gancho,roteiro,cta,producao,risco:risco||null});
+  const pecas=[
+    p(1,'A dor que ninguém admite','Vídeo curto + Clickbait','Romper a crença do veículo e gerar identificação (sinal: salvamento / "sou eu").',
+      `Se você é ${publico} e vive ${dorL}, assiste os próximos 15 segundos.`,
+      `A maioria jura que o problema é ${unq(cf[0].obj).toLowerCase()} Não é. O problema de verdade é outro: ${sl(mod.crenca)} Enquanto você mira no lugar errado, não sai do lugar.`,
+      'Comenta "EU" se isso é você — no próximo vídeo eu mostro o que muda.',
+      prod15, rv?'RV: foque no ERRO/processo, nunca em promessa de ganho.':null),
+    p(2,'O erro nº1','Clickbait + Vídeo curto','Prender nos 3s e testar o ângulo do erro (sinal: retenção + "qual é?").',
+      `O erro nº1 de quem tenta sair ${dorL} — e quase ninguém percebe.`,
+      `Todo mundo foca no sintoma. Mas o que trava de verdade é ignorar ${M}. É isso que separa quem evolui de quem fica rodando em círculo.`,
+      'Quer o passo a passo? Comenta "QUERO".',
+      prod15, rv?'RV: é erro de PROCESSO, não "não ganhar dinheiro". Sem claim.':null),
+    p(3,'Minha virada (história)','Novelinha cap. 1 · Epiphany Bridge','Conectar pela história de origem (sinal: retenção da série, "me identifiquei").',
+      `Eu também já estive ${antes}.`,
+      `Por muito tempo tentei de tudo e nada funcionava — frustrante. Até descobrir ${M}. Foi aí que a chave virou. Não foi sorte: foi método. (Parte 1 de 2.)`,
+      'Segue pra não perder a parte 2, onde eu mostro como funciona.',
+      prod15),
+    p(4,'Como funciona o método','Novelinha cap. 2','Explicar o mecanismo de forma simples (sinal: "faz sentido", salvamento).',
+      `Parte 2: o que é ${M} — e por que funciona quando o resto não funciona.`,
+      `Em vez do jeito comum, ${M} ataca a raiz: ${sl(mod.ponte)} Simples de entender e dá pra repetir. ${P}.`,
+      'Isso te ajudou? Comenta "2" que eu trago mais.',
+      prod15, rv?'RV: competência/processo. Nunca prometa retorno.':null),
+    p(5,'"Será que funciona pra mim?"','Vídeo curto + Prova','Quebrar a objeção interna (sinal: "e eu consigo?").',
+      `"Será que funciona pra mim?" — a dúvida que mais trava.`,
+      `${unq(cf[1].ponte)} Não precisa ser gênio. ${prova}. É processo e consistência — cada caso é um caso, mas o caminho é o mesmo.`,
+      'Se você quer tentar, comenta "EU QUERO".',
+      prod15, rv?'RV: prova de PROCESSO/consistência, nunca de lucro.':null),
+    p(6,'"Não tenho tempo / é arriscado"','Vídeo curto','Quebrar a objeção externa tempo/dinheiro/risco (sinal: redução de objeção).',
+      `"Não tenho tempo" / "é arriscado demais" — deixa eu te mostrar.`,
+      `${unq(cf[2].ponte)} O risco maior é continuar ${antes}. Com ${M} e um pouco de constância, dá pra começar pequeno.`,
+      'Qual é a sua maior trava? Comenta aqui.',
+      prod15, rv?'RV: fale de gestão de risco/processo, não de retorno garantido.':null),
+    p(7,'Bastidor do processo','Vídeo curto + Edição dinâmica','Autoridade por demonstração (sinal: confiança, salvamento).',
+      `Deixa eu te mostrar como eu aplico ${M} na prática.`,
+      `[Mostre a rotina/checklist/tela — o processo acontecendo. Narre o porquê de cada passo.] É isso que faz a diferença: método, não achismo.`,
+      'Quer esse checklist? Comenta "CHECKLIST".',
+      '20–30s · mostre a tela/rotina · legenda · cortes rápidos'),
+    p(8,'Trend do momento','Trend','Ganhar alcance com formato em alta (sinal: alcance / novos seguidores).',
+      `pov: você finalmente entendeu ${M}.`,
+      `[Use um áudio/formato em alta aplicado ao tema — "diga que é ${publico} sem dizer", ou um "antes x depois" de processo. Leve, mas sério.]`,
+      'Marca alguém que precisa ver isso.',
+      '10–20s · formato em alta · legenda', rv?'RV: NÃO banalize investimento nem vire aposta/hype. Se fugir da seriedade, não publique.':null),
+    p(9,'Pergunta pra audiência','Audiência (validação)','Gerar pauta E medir demanda real (sinal: volume e teor dos comentários).',
+      `Me conta: qual a sua MAIOR dificuldade com ${temaL}?`,
+      `Eu leio todos os comentários — e o próximo vídeo vai ser sobre a dificuldade mais citada. Capricha na resposta.`,
+      'Responde aqui embaixo 👇',
+      '10–15s · fale olhando pra câmera · legenda'),
+    p(10,'Chamada da lista (go/no-go)','Call to action (intenção)','Medir intenção de compra ANTES de investir verba (sinal decisivo da validação).',
+      `Tô preparando ${prod}.`,
+      `${P}, através de ${M}. Vou abrir pra um grupo pequeno primeiro. [Se o interesse for alto, a gente lança de verdade.]`,
+      'Quem quiser ser avisado em primeiro lugar, comenta "EU QUERO" ou entra na lista: [LINK].',
+      '15–25s · legenda · CTA claro na tela', rv?'RV: "avisar primeiro"/lista é ok; não prometa ganho nem vaga garantida de retorno.':null)
+  ];
+  return {pecas,rv};
+}
+function renderRoteiroOrganicoCard(o){
+  const R=roteiroOrganico(o);
+  const box=(id,x)=>`<div class="opt-row"><div class="opt-h"><span class="cpl-n">#${x.n}</span><b>${esc(x.titulo)}</b> <span class="chip neutral">${esc(x.formato)}</span>${x.risco?' <span class="chip warn">⚠️ RV</span>':''}<button class="btn ghost sm internal-only" data-copy="${id}" style="margin-left:auto">copiar</button></div>
+    <div class="opt-b" id="${id}" style="white-space:pre-wrap;line-height:1.5"><b>Objetivo:</b> ${esc(x.objetivo)}
+<b>Gancho (3s):</b> ${esc(x.gancho)}
+<b>Roteiro:</b> ${esc(x.roteiro)}
+<b>CTA:</b> ${esc(x.cta)}
+<b>Como gravar:</b> ${esc(x.producao)}${x.risco?`
+<b>⚠️ Compliance:</b> ${esc(x.risco)}`:''}</div></div>`;
+  const items=R.pecas.map((x,i)=>box('ro-'+i,x)).join('');
+  return `<div class="card"><h2>Roteiro de conteúdo — pronto para gravar <span class="tag">${R.pecas.length} peças · é só gravar e editar</span></h2>
+    <p class="hint">Sequência já roteirizada para a fase orgânica, montada do contexto do produto com os frameworks da base (Epiphany Bridge, 3 crenças, gatilhos de copy, StoryBrand) + as 12 regras de produção. Os [colchetes] são o que só você preenche.</p>
+    ${items}</div>`;
+}
 function renderProdutizacaoInner(o){
   const P=produtizacao(o); const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
   const ic={ok:'✅',ajuste:'⚠️',bloqueio:'⛔',dependencia:'⚖️'};
@@ -2906,6 +2992,8 @@ function renderProdutizacaoInner(o){
   </div>
 
   ${renderOrganicoCard(o)}
+
+  ${renderRoteiroOrganicoCard(o)}
 
   <div class="card internal-only"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
     <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
@@ -3107,7 +3195,6 @@ function viewAtivos(){
   <div id="atOut">${renderAtivosInner(o)}</div>`;
   document.getElementById('atLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){ativosOpp=JSON.parse(JSON.stringify(s));viewAtivos();}}});
   document.getElementById('atPrint').onclick=()=>openReport(renderAtivosInner(o),'Ativos de Copy — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
-  main.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=()=>{const el=document.getElementById(btn.dataset.copy);if(el&&navigator.clipboard){navigator.clipboard.writeText(el.innerText).then(()=>{const t=btn.textContent;btn.textContent='copiado ✓';setTimeout(()=>btn.textContent=t,1200);}).catch(()=>{});}});
 }
 
 /* ---------------- Cronograma do lançamento (E6/E7 — linha do tempo operacional) ---------------- */
@@ -3266,6 +3353,10 @@ function viewDashboard(){
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const v=a.dataset.view;
   if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();else if(v==='new'){current=blankOpp();viewDetail(current);}});
 main.addEventListener('click',e=>{
+  const cp=e.target.closest('[data-copy]');
+  if(cp){ e.preventDefault(); const el=document.getElementById(cp.dataset.copy);
+    if(el&&navigator.clipboard){ navigator.clipboard.writeText(el.innerText).then(()=>{const t=cp.textContent;cp.textContent='copiado ✓';setTimeout(()=>cp.textContent=t,1200);}).catch(()=>{}); }
+    return; }
   const rcpl=e.target.closest('#roteiroCplBtn');
   if(rcpl){ e.preventDefault();
     try{ const o=_roteiroOpp||estrOpp||compOpp||current;
