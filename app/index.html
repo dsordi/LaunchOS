@@ -361,7 +361,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.3 · 2026-10-31
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.4 · 2026-10-31
     </div>
   </aside>
   <section class="content">
@@ -413,7 +413,7 @@ function blankOpp(){
     redes:[{rede:'Instagram',handle:'',seguidores:0,engaj:0}],
     alcancePct:10, intencao:'baixa',
     // produto (SEMPRE assinatura) + política de cancelamento
-    produtoNome:'', rendaVariavel:false,
+    produtoNome:'', rendaVariavel:true, // mercado financeiro é a linha de base do negócio → compliance de RV sempre ativo (DEC-057, revisa DEC-010)
     ticketMensal:300, prazoFidelidade:12, cancel7Pct:10, multaPct:50,
     planos:null,  // formatos de comercialização [{nome,meses,ticketMensal,mix}]
     // aquisição / leads
@@ -882,9 +882,9 @@ function viewDetail(o){
       ${field(o,'Tipo de produto (modalidade)','modalidadeProduto',{type:'select',options:Object.keys(MODALIDADE).map(k=>[k,MODALIDADE[k].label]),q:'define crença, ângulo e retenção em todo o sistema'})}
       ${field(o,'Nível do público','nivelPublico',{type:'select',options:Object.keys(NIVEL).map(k=>[k,NIVEL[k]])})}
       ${field(o,'Formato de entrega','formatoEntrega',{type:'select',options:Object.keys(FORMATO).map(k=>[k,FORMATO[k]])})}
-      ${field(o,'Toca renda variável?','rendaVariavel',{type:'check'})}
     </div>
     <div class="pill-note">A <b>modalidade</b>, o <b>nível</b> e o <b>formato</b> definidos aqui alimentam o Estrategista, a Produtização, a Recomendação e a apresentação — é a classificação central do produto.</div>
+    <div class="pill-note" style="margin-top:8px">⚖️ <b>Renda variável / mercado financeiro:</b> premissa permanente do negócio — o <b>compliance está sempre ativo</b> (toda copy passa pelo jurídico antes de publicar). Não é um campo por campanha.</div>
     <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Formatos de comercialização <span class="muted" style="font-weight:400">— 1 produto, vários planos (ex.: mensal, semestral, anual, bianual)</span></h4>
     <div style="display:grid;grid-template-columns:1fr 70px 100px 60px 80px auto;gap:8px;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:3px"><span>Formato</span><span>Meses</span><span>R$/mês</span><span>Mix %</span><span>Churn % período</span><span></span></div>
     ${planosHtml}
@@ -1385,8 +1385,8 @@ function viewGerador(){
       ${gfield(p,'Já vende na base?','jaVende',{type:'select',options:[['nao','Não / pouco'],['sim','Sim, com consistência']]})}
       ${gfield(p,'Audiência disponível','audiencia',{type:'select',options:[['nenhuma','Nenhuma'],['fria','Fria (seguidores s/ intenção)'],['quente','Quente (base relacionada)']]})}
       ${gfield(p,'Verba de mídia','verba',{type:'select',options:[['baixa','Baixa'],['media','Média'],['alta','Alta']]})}
-      ${gfield(p,'Toca renda variável?','rendaVariavel',{type:'check'})}
     </div>
+    <div class="pill-note" style="margin-top:8px">⚖️ Renda variável / mercado financeiro é premissa permanente — compliance sempre ativo.</div>
     <h4 style="font-size:12px;margin:14px 0 6px;color:#334155">Mercado endereçável <span class="muted" style="font-weight:400">— bottom-up (base real × adesão × ticket)</span></h4>
     <div class="grid">
       ${gfield(p,'Base-alvo','baseAlvo',{q:'ex.: nº de usuários do Profit'})}
@@ -2225,7 +2225,6 @@ function viewEstrategia(){
       ${sel('dorPrimaria','Dor primária',NELOGICA_REF.dorPrimarias.map(x=>[x,x]))}
       ${sel('angulo','Ângulo',[['educacao','Educação/disciplina'],['hibrido','Híbrido'],['promessa','Promessa de ganho']])}
       ${chk('temParceiros','Tem parceiros/afiliados?')}
-      ${chk('rendaVariavel','Toca renda variável?')}
       ${modeloSel}
     </div>
   </div>
@@ -2253,6 +2252,7 @@ function normalizeOppDefaults(o){
   if(o.temParceiros==null)o.temParceiros=false; if(o.modeloEscolhido==null)o.modeloEscolhido='';
   if(o.adesaoMercado==null)o.adesaoMercado=5;
   if(o.optinBaseDB==null)o.optinBaseDB=d.optinBaseDB;
+  if(o.rendaVariavel==null)o.rendaVariavel=true; // RV é a linha de base (DEC-057)
   if(!o.planos)o.planos=getPlanos(o).map(p=>({...p}));
   return o;
 }

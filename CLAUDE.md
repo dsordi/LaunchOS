@@ -76,7 +76,7 @@ _pendente/                    ← artefatos ainda não escritos (04, 05, 08)
 ## Decisões humanas pendentes (perguntar, não assumir)
 
 As três originais foram respondidas em 2026-10-28 (ver DEC-010/011/012 em `biblioteca/10`):
-1. Renda variável? → **alguns sim, outros não** → flag por oportunidade (bloqueio condicional). (DEC-010)
+1. Renda variável? → **tudo é RV — premissa permanente do negócio** → compliance sempre ativo, não é flag por oportunidade (DEC-057, revisa DEC-010). `blankOpp` default `rendaVariavel:true`; sem checkbox nas telas.
 2. Dados internos da Nelogica? → **parcialmente/depois** → E5 roda com premissas [D]; estrutura pronta para plugar dado real. (DEC-011)
 3. Caso piloto? → **ainda não definido** → split configurável 1..N partes. (DEC-012)
 
