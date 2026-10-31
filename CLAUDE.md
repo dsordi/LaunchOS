@@ -52,6 +52,7 @@ biblioteca/                   ← conhecimento consolidado (muda devagar)
   19_PSICOLOGIA_TRADING.md    ← Reminiscences + Trading in the Zone (SRC-047/048): psicologia do trader (S)
   20_TESES_APLICADAS.md       ← "e daí?": cruza as fontes em 7 teses com recomendação direta (T) → Playbook do app
   21_VENDAS_RELACIONAMENTO.md ← Challenger, Chet Holmes, Carnegie, Blount, SPIN, Prospecção Fanática + Trump (SRC-049..056): venda/relacionamento/IE/pipeline/negociação (U)
+  22_PRODUCAO_CONTEUDO_ORGANICO.md ← 12 regras G4/Cimed (SRC-057): craft de vídeo curto p/ alcance/retenção; base da "fase orgânica" de validação ([A]-autor+[L]) (V)
   _brief_original_missao.md   ← prompt original da missão (referência)
 operacao/                     ← registros de lançamentos reais (muda sempre) — vazio
 _pendente/                    ← artefatos ainda não escritos (04, 05, 08)

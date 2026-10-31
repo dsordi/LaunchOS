@@ -361,7 +361,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.1 · 2026-10-30
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.2 · 2026-10-31
     </div>
   </aside>
   <section class="content">
@@ -2786,6 +2786,60 @@ function produtizacao(o){
   ];
   return {golden,F,W,O,T,tows,pitch,coer,fontes,rv, natureza,valorLevers,valorFraco,ladder,crencasBridge,retencao,preco,prontidao};
 }
+// Fase orgânica — validação do produto "na rua" com conteúdo orgânico, aplicando as 12 regras de produção (método Cimed/G4, SRC-057).
+// Mede INTENÇÃO/retenção (sinal de demanda), não venda. Filtro de compliance para RV. NÃO toca o motor financeiro.
+function conteudoOrganico(o){
+  const prod=(o.produtoNome||'').trim()||'[produto]';
+  const publico=(o.nicho||'').trim()||'[seu público]';
+  const M=(o.ofertaMecanismo||'').trim()||'[seu mecanismo]';
+  const P=(o.ofertaPromessa||'').trim()||'[sua promessa]';
+  const dorL=String(o.dorPrimaria||'a dor do público').toLowerCase();
+  const rv=!!o.rendaVariavel||['futuros','acoes','rv_total','fii'].includes(o.nichoB3);
+  const naoVal=o.produtoValidado!=='sim';
+  const objetivo=naoVal
+    ? 'Validar DEMANDA e MENSAGEM com conteúdo orgânico antes de pôr verba — colocar o produto "na rua" e ler a reação real.'
+    : 'Aquecer a base e sustentar o lançamento com conteúdo orgânico de alcance e retenção.';
+  const plano=[
+    {t:'1. Sondagem (semana 1)', d:'Publique sobre '+dorL+' e PERGUNTE (regra 9 — Audiência). Ouça mais do que fala.'},
+    {t:'2. Testar ângulos (semana 1–2)', d:'Rode 2–3 versões da mensagem (promessa "'+P+'" e mecanismo "'+M+'") nos formatos de retenção abaixo.'},
+    {t:'3. Medir sinais (contínuo)', d:'Acompanhe os SINAIS DE INTENÇÃO: salvamentos, comentários "quero/como", DMs, visitas ao perfil, entradas na lista de espera.'},
+    {t:'4. Decidir (semana 3–4)', d:'Sinal forte → abra a oferta (semente/interno) e aí sim invista verba. Sinal fraco → pivote a mensagem ou o mecanismo e teste de novo. Barato e rápido.'}
+  ];
+  const R=(n,regra,ideia,metrica,risco)=>({n,regra,ideia,metrica,risco:risco||null});
+  const regras=[
+    R('01','Novelinha','Série em capítulos: "Os erros que travam '+publico+'" (cap. 1…n) — cada vídeo puxa o próximo até chegar no '+M+'.','retorno entre capítulos (retenção da série)'),
+    R('02','Vídeo curto','15–30s com UM ponto só: um erro comum ou uma ideia do '+M+'. Sem enrolar.','retenção (a métrica que mais pesa)'),
+    R('03','Clickbait','Manchete que prende nos 3s: "O erro nº1 de quem tenta '+dorL+'". Só vale se o vídeo cumprir.','retenção inicial (3s)', rv?'RV: nada de "fique rico"/promessa de ganho — a manchete é sobre ERRO/processo. Se virar claim, passa pelo jurídico.':null),
+    R('04','Thumb/Capa','Padrão visual fixo (mesmas cores, fonte, moldura) para o perfil ser reconhecido e o vídeo, clicado.','reconhecimento / CTR'),
+    R('05','Edição dinâmica','Corte a cada ~3s: zoom, nova câmera ou imagem de apoio enquanto explica o '+M+'.','retenção'),
+    R('06','Corte de respiros','Tire as pausas entre as falas e acelere 1,1–1,2x. Ninguém percebe, a retenção sobe.','retenção'),
+    R('07','Legenda','Sempre legendado — a maioria assiste sem som; sem legenda, pula.','consumo / retenção'),
+    R('08','Trend','Formato em alta (não dancinha) aplicado ao tema: "diga que é '+publico+' sem dizer", "pov: você descobriu '+M+'".','alcance (impulso do algoritmo)', rv?'RV: mantenha a seriedade — não banalize investimento nem vire aposta/hype.':null),
+    R('09','Audiência','LEIA os comentários — é aqui que a validação acontece: o que o público pede vira pauta e revela a demanda real.','pautas geradas / sinais de intenção (vetor de validação)'),
+    R('10','Consistência','Mesma linha de temas + post todo dia na janela de validação. Mais posts, mais chances de o sinal aparecer.','frequência / alcance acumulado'),
+    R('11','Call to action','Todo post com objetivo. Na validação o CTA é de INTENÇÃO: "comenta EU QUERO", "chama no direct", "entra na lista de espera".','sinais de intenção — é o seu go/no-go'),
+    R('12','Interação','Responda os comentários e termine com uma pergunta que traz a pessoa de volta ao vídeo.','engajamento / relacionamento')
+  ];
+  const criterio=naoVal
+    ? 'Go/No-Go orgânico [a confirmar]: defina ANTES o que é "demanda suficiente" (ex.: [N] pedidos "quero" ou [N] entradas na lista em [X] dias). Atingiu → investe verba. Não atingiu → pivota. São sinais de INTENÇÃO, não venda — só a oferta real converte.'
+    : 'Já validado: aqui o orgânico serve para aquecer e alimentar o funil pago, não para decidir o go/no-go.';
+  return {objetivo,plano,regras,criterio,rv,naoVal};
+}
+function renderOrganicoCard(o){
+  const C=conteudoOrganico(o);
+  const planoH=C.plano.map(x=>`<div class="step"><b>${esc(x.t)}:</b> ${esc(x.d)}</div>`).join('');
+  const rows=C.regras.map(r=>`<tr><td style="white-space:nowrap"><b>${r.n} ${esc(r.regra)}</b>${r.risco?' ⚠️':''}</td><td>${esc(r.ideia)}${r.risco?`<br><span class="muted" style="font-size:11px">⚠️ ${esc(r.risco)}</span>`:''}</td><td class="muted" style="font-size:11px">${esc(r.metrica)}</td></tr>`).join('');
+  return `<div class="card"><h2>Fase orgânica — validação na prática <span class="tag">12 formatos sobre o produto</span></h2>
+    <p class="hint">Antes de pôr verba: coloque o produto "na rua" com conteúdo orgânico e leia a reação real. As 12 regras de produção (método Cimed/G4) aplicadas ao seu produto, com filtro de compliance.</p>
+    <div class="verdict ${C.naoVal?'warn':'good'}"><b>Objetivo:</b> ${esc(C.objetivo)}</div>
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px">Sequência de ações (pôr na rua)</h4>
+    <div class="steps">${planoH}</div>
+    <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 6px">Recomendações nos 12 formatos</h4>
+    <div style="overflow:auto"><table><thead><tr><th>Formato</th><th>Ideia aplicada ao produto</th><th>Métrica</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="pill-note" style="margin-top:10px"><b>Critério de validação:</b> ${esc(C.criterio)}</div>
+    <div class="pill-note" style="margin-top:8px">Honestidade: o orgânico mede <b>intenção e retenção</b> (alcance), não venda. Impressão ≠ cliente ≠ receita — é sinal de demanda para decidir a verba, não faturamento. Fonte: método Cimed/G4 (caso de autor) + boas práticas de criação; ⚠️ = ajustar para renda variável.</div>
+  </div>`;
+}
 function renderProdutizacaoInner(o){
   const P=produtizacao(o); const mk=(m)=>`<span class="mark m${m}">${m}</span>`;
   const ic={ok:'✅',ajuste:'⚠️',bloqueio:'⛔',dependencia:'⚖️'};
@@ -2850,6 +2904,8 @@ function renderProdutizacaoInner(o){
     <div class="gtm-split" style="margin-top:12px">${quad('Oportunidades',P.O,'[externas +]')}${quad('Ameaças',P.T,'[externas −]')}</div>
     ${P.tows.length?`<h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px">Cruzamento TOWS</h4><div class="steps">${towsH}</div>`:''}
   </div>
+
+  ${renderOrganicoCard(o)}
 
   <div class="card internal-only"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
     <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
