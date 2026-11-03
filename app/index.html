@@ -373,7 +373,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.6 · 2026-10-31
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.7 · 2026-11-03
     </div>
   </aside>
   <section class="content">
@@ -3072,6 +3072,133 @@ function roteiroOrganico(o){
   ];
   return {pecas,rv};
 }
+// ===== Camada de IA (capability sample · DEC-060) — o Claude LÊ o contexto + a análise do algoritmo e ESCREVE o roteiro =====
+// Guardrails duros: tudo é RV (nunca promessa de ganho), nunca inventa número/prova/caso (o que falta vira [colchete]).
+// Determinístico (motor financeiro) permanece intacto — a IA só atua na camada de COPY/narrativa. Fallback para o modelo estruturado.
+let _aiCtl=null;
+function mdLite(s){
+  const esc2=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const lines=String(s).split('\n'); let html='',inList=false;
+  const flush=()=>{if(inList){html+='</ul>';inList=false;}};
+  for(const raw of lines){
+    let t=esc2(raw).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    if(/^#\s+/.test(raw)){flush();html+='<h3 style="font-size:15px;margin:16px 0 6px;color:var(--accent)">'+t.replace(/^#\s+/,'')+'</h3>';}
+    else if(/^#{2,}\s+/.test(raw)){flush();html+='<h4 style="font-size:13px;margin:13px 0 4px;color:var(--ink);font-weight:600">'+t.replace(/^#{2,}\s+/,'')+'</h4>';}
+    else if(/^\s*[-•*]\s+/.test(raw)){if(!inList){html+='<ul class="gaps" style="margin:4px 0">';inList=true;}html+='<li>'+t.replace(/^\s*[-•*]\s+/,'')+'</li>';}
+    else if(raw.trim()===''){flush();html+='<div style="height:6px"></div>';}
+    else {flush();html+='<p style="margin:4px 0;line-height:1.55">'+t+'</p>';}
+  }
+  flush(); return html;
+}
+function buildPromptRoteiro(o){
+  const mod=crencaNucleo(o), cf=crencasFalsas(o), rec=recomendarModelo(o);
+  const modelo=(o.modeloEscolhido&&MODELOS[o.modeloEscolhido])?o.modeloEscolhido:rec.top;
+  const g=(v,ph)=>{v=String(v==null?'':v).trim();return v||('[NÃO INFORMADO — '+ph+']');};
+  const ctx=[
+    'PRODUTO: '+g(o.produtoNome,'nome do produto'),
+    'PÚBLICO/NICHO: '+g(o.nicho,'quem é o público'),
+    'MODALIDADE: '+(MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label,
+    'NÍVEL DO PÚBLICO: '+(NIVEL[o.nivelPublico]||'—')+' · FORMATO DE ENTREGA: '+(FORMATO[o.formatoEntrega]||'—'),
+    'DOR CENTRAL: '+g(o.dorPrimaria,'a dor nº1 do público'),
+    'PROMESSA (competência/processo, NUNCA retorno): '+g(o.ofertaPromessa,'promessa central'),
+    'MECANISMO ÚNICO: '+g(o.ofertaMecanismo,'o que o método faz de diferente'),
+    'POR QUE O MECANISMO É NOVO: '+g(o.porqueUnico,'o que o torna uma nova oportunidade'),
+    'RESULTADO DOS SONHOS: '+g(o.resultadoSonho,'o destino que o cliente quer'),
+    'ESTADO ATUAL → DESEJADO: '+g(o.estadoAtual,'onde está hoje')+' → '+g(o.estadoDesejado,'onde quer chegar'),
+    'PROVA/CASO (use COMO ESTÁ; se vazio, NÃO invente): '+g(o.ofertaProva,'caso/depoimento real'),
+    'GARANTIA: '+g(o.garantia,'garantia')+' · BÔNUS: '+g(o.ofertaBonus,'bônus'),
+    'GATILHO DE HÁBITO (retenção): '+g(o.gatilhoHabito,'o que traz o cliente de volta'),
+    'MODELO DE LANÇAMENTO (recomendado pelo algoritmo): '+MODELOS[modelo].label+' — '+MODELOS[modelo].problema,
+    'AS 3 CRENÇAS FALSAS A QUEBRAR (do algoritmo) — veículo: "'+cf[0].obj+'"; interna: "'+cf[1].obj+'"; externa: "'+cf[2].obj+'". Pontes: '+cf.map(c=>c.ponte).join(' | '),
+    'ÂNGULO-NÚCLEO DA MODALIDADE — crença a quebrar: '+mod.crenca+' | prova: '+mod.prova+' | ponte: '+mod.ponte
+  ].join('\n');
+  const conhecimento=[
+    '- NOVA OPORTUNIDADE > MELHORIA (Brunson): posicione como um caminho NOVO, não "faça melhor o que já falhou".',
+    '- EPIPHANY BRIDGE (Brunson): história de origem — muro/frustração → epifania (o mecanismo) → nova crença. Venda pela história, não pela lógica.',
+    '- 3 CRENÇAS FALSAS (Brunson): quebre a crença no veículo, a interna ("eu não consigo") e a externa (tempo/risco/dinheiro).',
+    '- GANCHO E SLIPPERY SLIDE (Sugarman): a 1ª frase existe só para fazer consumir a 2ª; especificidade, curiosidade, simplicidade (3ª série); venda a cura da dor presente.',
+    '- STORYBRAND (Miller): o CLIENTE é o herói, você é o guia (empatia + autoridade). Clareza acima de esperteza.',
+    '- HOOKED (Eyal): gatilho → ação → recompensa variável → investimento; recompensa ÉTICA = aprendizado/progresso, NUNCA a emoção de operar/ganhar.',
+    '- PSICOLOGIA (Kahneman/Housel): decisão é emocional e justificada pela lógica; use aversão à perda como CUSTO DE NÃO AGIR (sem prometer ganho).',
+    '- 12 REGRAS DE PRODUÇÃO (Cimed/G4): retenção é tudo — vídeo curto, corte de respiros, legenda sempre, edição dinâmica (corte a cada ~3s), clickbait honesto, CTA de intenção, consistência, ler a audiência.',
+    '- PSICOLOGIA DO TRADER (Douglas/Livermore): resultado é PROCESSO e disciplina, não previsão — é o ângulo mais forte e o único compliance-safe em RV.'
+  ].join('\n');
+  return [
+'Você é um copywriter sênior de lançamentos digitais no mercado financeiro brasileiro, especialista em conteúdo orgânico de altíssima retenção (Reels/TikTok/Shorts). Você DOMINA e APLICA os frameworks abaixo. Escreva em português do Brasil, com storytelling, pronto para gravar.',
+'',
+'=== CONTEXTO DO PRODUTO + ANÁLISE DO ALGORITMO ===',
+ctx,
+'',
+'=== CONHECIMENTO QUE VOCÊ DEVE APLICAR (aplique os princípios; não cite os nomes dos autores) ===',
+conhecimento,
+'',
+'=== REGRAS INEGOCIÁVEIS ===',
+'1) TUDO é RENDA VARIÁVEL. NUNCA prometa ganho, lucro, rentabilidade, "ficar rico", "dobrar a banca" ou retorno — em NENHUMA palavra. Fale SEMPRE de competência, processo, disciplina e gestão de risco.',
+'2) NUNCA invente número, estatística, caso, depoimento, print ou nome. Se um dado concreto faltar (marcado [NÃO INFORMADO]), escreva um [colchete] dizendo o que o Davi deve preencher — jamais fabrique.',
+'3) Seja PERSUASIVO pelos frameworks e pela história, não pela promessa. Específico > genérico.',
+'4) PROCESSE e ADAPTE ao caso: se faltar algo, contextualize com raciocínio e marque os [colchetes] — não apenas encaixe o que foi dado.',
+'',
+'=== O QUE ENTREGAR (Markdown) ===',
+'# Ângulo central',
+'(2-3 frases: a grande sacada de posicionamento deste conteúdo — por que para o scroll e por que é novo.)',
+'',
+'Depois, 8 peças de conteúdo numeradas, cada uma neste formato:',
+'## Peça N — [título curto] · [formato da regra Cimed: ex. Vídeo curto / Clickbait / Novelinha / Trend / Bastidor]',
+'- **Objetivo / sinal:** (o que valida — salvamento, "quero", DM, lista de espera)',
+'- **Gancho (3s):** (a primeira fala, feita para prender)',
+'- **Roteiro:** (o texto falado COMPLETO, ~20-40s, com storytelling e os frameworks aplicados)',
+'- **CTA:** (chamada de INTENÇÃO, nunca de promessa)',
+'- **Como gravar:** (cortes, legenda, duração)',
+'',
+'A sequência vai do frio ao quente: dor → erro → história (epifania) → mecanismo → prova → objeção → bastidor → chamada da lista.',
+'Encerre com duas seções curtas: "## Sinais de validação (go/no-go)" e "## Compliance — o que NÃO dizer".'
+  ].join('\n');
+}
+async function aiGerarRoteiro(o,regen){
+  const out=document.getElementById('aiRoteiroOut'), status=document.getElementById('aiRoteiroStatus');
+  const btn=document.getElementById('aiRoteiroBtn'), stop=document.getElementById('aiRoteiroStop'), regenB=document.getElementById('aiRoteiroRegen'), copyB=document.getElementById('aiRoteiroCopy');
+  if(!out) return;
+  const sample=await getCap('sample');
+  if(!sample){ if(status)status.textContent=''; out.innerHTML='<div class="alertbox">A geração com IA só funciona dentro do claude.ai (Claude em runtime), autorizada pelo usuário. Abaixo, o modelo estruturado como base.</div>'+renderRoteiroOrganicoCard(o); return; }
+  const prompt=buildPromptRoteiro(o);
+  _aiCtl=new AbortController();
+  if(btn)btn.disabled=true; if(stop)stop.style.display=''; if(regenB)regenB.style.display='none'; if(copyB)copyB.style.display='none';
+  if(status)status.textContent='Pensando… (pode levar de 5 a 60s)';
+  out.innerHTML='<p class="muted">Gerando roteiro…</p>';
+  try{
+    const res=await sample(prompt,{modelTier:'complex',signal:_aiCtl.signal,cache:regen?false:true,onText:({text})=>{ if(status)status.textContent='Escrevendo…'; out.innerHTML=mdLite(text); }});
+    out.innerHTML=mdLite(res.text);
+    if(status)status.textContent=res.truncated?'Resposta longa — cortada; gere por partes se faltar algo.':'Pronto ✓';
+  }catch(e){
+    const code=(e&&e.code)||'erro';
+    if(code==='cancelled'){ if(status)status.textContent='Parado.'; if(e&&e.text)out.innerHTML=mdLite(e.text); }
+    else if(code==='not_granted'||code==='sampling_disabled'||code==='not_declared'||code==='capability_disabled'){ if(status)status.textContent=''; out.innerHTML='<div class="alertbox">A IA não está autorizada nesta visualização. Mostrando o modelo estruturado:</div>'+renderRoteiroOrganicoCard(o); }
+    else if(code==='rate_limited'){ if(status)status.textContent='Limite de uso atingido — tente de novo daqui a pouco.'; }
+    else if(code==='refused'){ if(status)status.textContent='A IA não respondeu a este caso. Ajuste o contexto e tente de novo.'; out.innerHTML=''; }
+    else { if(status)status.textContent='Falhou ('+code+'). Tente novamente.'; if(e&&e.text)out.innerHTML=mdLite(e.text); }
+  }finally{
+    if(btn)btn.disabled=false; if(stop)stop.style.display='none'; if(regenB)regenB.style.display=''; if(copyB)copyB.style.display='';
+  }
+}
+function bindAiRoteiro(o){
+  const btn=document.getElementById('aiRoteiroBtn'); if(!btn) return;
+  btn.onclick=()=>aiGerarRoteiro(o,false);
+  const rg=document.getElementById('aiRoteiroRegen'); if(rg) rg.onclick=()=>aiGerarRoteiro(o,true);
+  const st=document.getElementById('aiRoteiroStop'); if(st) st.onclick=()=>{ if(_aiCtl) _aiCtl.abort(); };
+}
+function renderAiRoteiroCard(o){
+  return `<div class="card"><h2>Roteiro de conteúdo — gerado por IA <span class="tag">escrito pelo Claude + algoritmo</span></h2>
+    <p class="hint">Aqui o Claude lê <b>todo o contexto do produto e a análise do algoritmo</b> e <b>escreve</b> o roteiro com storytelling, aplicando os frameworks da base — persuasivo e compliance-safe (renda variável). <b>Não inventa</b> número, prova nem promessa: o que faltar vira <b>[colchete]</b> para você preencher.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="aiRoteiroBtn">✨ Gerar roteiro com IA</button>
+      <button class="btn ghost sm" id="aiRoteiroRegen" style="display:none">Regenerar</button>
+      <button class="btn ghost sm" id="aiRoteiroStop" style="display:none">Parar</button>
+      <button class="btn ghost sm internal-only" id="aiRoteiroCopy" data-copy="aiRoteiroOut" style="display:none">copiar</button>
+      <span id="aiRoteiroStatus" class="muted" style="font-size:12px"></span>
+    </div>
+    <div id="aiRoteiroOut" style="margin-top:12px"></div>
+  </div>`;
+}
 function renderRoteiroOrganicoCard(o){
   const R=roteiroOrganico(o);
   const box=(id,x)=>`<div class="opt-row"><div class="opt-h"><span class="cpl-n">#${x.n}</span><b>${esc(x.titulo)}</b> <span class="chip neutral">${esc(x.formato)}</span>${x.risco?' <span class="chip warn">⚠️ RV</span>':''}<button class="btn ghost sm internal-only" data-copy="${id}" style="margin-left:auto">copiar</button></div>
@@ -3082,8 +3209,8 @@ function renderRoteiroOrganicoCard(o){
 <b>Como gravar:</b> ${esc(x.producao)}${x.risco?`
 <b>⚠️ Compliance:</b> ${esc(x.risco)}`:''}</div></div>`;
   const items=R.pecas.map((x,i)=>box('ro-'+i,x)).join('');
-  return `<div class="card"><h2>Roteiro de conteúdo — pronto para gravar <span class="tag">${R.pecas.length} peças · é só gravar e editar</span></h2>
-    <p class="hint">Sequência já roteirizada para a fase orgânica, montada do contexto do produto com os frameworks da base (Epiphany Bridge, 3 crenças, gatilhos de copy, StoryBrand) + as 12 regras de produção. Os [colchetes] são o que só você preenche.</p>
+  return `<div class="card"><h2>Modelo estruturado (base / fallback) <span class="tag">${R.pecas.length} peças · determinístico</span></h2>
+    <p class="hint">Versão determinística, montada por regras — serve de base e de fallback quando a IA não está disponível. A geração com IA acima é a versão <b>processada e escrita</b> para o seu caso.</p>
     ${items}</div>`;
 }
 function renderProdutizacaoInner(o){
@@ -3153,6 +3280,8 @@ function renderProdutizacaoInner(o){
 
   ${renderOrganicoCard(o)}
 
+  ${renderAiRoteiroCard(o)}
+
   ${renderRoteiroOrganicoCard(o)}
 
   <div class="card internal-only"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
@@ -3197,7 +3326,8 @@ function viewProdutizacao(){
   <div id="prodOut">${renderProdutizacaoInner(o)}</div>`;
   document.getElementById('prodLoad').addEventListener('change',ev=>{const id=ev.target.value;if(id){const s=opps.find(x=>x.id===id);if(s){prodOpp=JSON.parse(JSON.stringify(s));viewProdutizacao();}}});
   document.getElementById('prodPrint').onclick=()=>openReport(renderProdutizacaoInner(o),'Produtização — '+(esc(o.produtoNome)||esc(o.nome)||'Projeto'));
-  main.querySelectorAll('[data-pk]').forEach(el=>el.addEventListener('input',()=>{o[el.dataset.pk]=el.value; const out=document.getElementById('prodOut'); if(out) out.innerHTML=renderProdutizacaoInner(o);}));
+  bindAiRoteiro(o);
+  main.querySelectorAll('[data-pk]').forEach(el=>el.addEventListener('input',()=>{o[el.dataset.pk]=el.value; const out=document.getElementById('prodOut'); if(out){ out.innerHTML=renderProdutizacaoInner(o); bindAiRoteiro(o); }}));
 }
 
 /* ---------------- Gerador de ativos (copy redigida, compliance-safe) ---------------- */
