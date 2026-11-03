@@ -373,7 +373,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.7 · 2026-11-03
+      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.8 · 2026-11-03
     </div>
   </aside>
   <section class="content">
@@ -3075,7 +3075,12 @@ function roteiroOrganico(o){
 // ===== Camada de IA (capability sample · DEC-060) — o Claude LÊ o contexto + a análise do algoritmo e ESCREVE o roteiro =====
 // Guardrails duros: tudo é RV (nunca promessa de ganho), nunca inventa número/prova/caso (o que falta vira [colchete]).
 // Determinístico (motor financeiro) permanece intacto — a IA só atua na camada de COPY/narrativa. Fallback para o modelo estruturado.
-let _aiCtl=null;
+let _aiCtl=null, _aiRoteiroText='';
+async function salvarDownload(nome,data,mime){
+  const dl=await getCap('downloads');
+  if(dl){ try{ await dl.save({filename:nome,data}); return true; }catch(e){ if(e&&e.code==='declined') return false; } }
+  return baixarArquivo(nome,data,mime);
+}
 function mdLite(s){
   const esc2=x=>String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   const lines=String(s).split('\n'); let html='',inList=false;
@@ -3156,18 +3161,18 @@ conhecimento,
 }
 async function aiGerarRoteiro(o,regen){
   const out=document.getElementById('aiRoteiroOut'), status=document.getElementById('aiRoteiroStatus');
-  const btn=document.getElementById('aiRoteiroBtn'), stop=document.getElementById('aiRoteiroStop'), regenB=document.getElementById('aiRoteiroRegen'), copyB=document.getElementById('aiRoteiroCopy');
+  const btn=document.getElementById('aiRoteiroBtn'), stop=document.getElementById('aiRoteiroStop'), regenB=document.getElementById('aiRoteiroRegen'), copyB=document.getElementById('aiRoteiroCopy'), dlB=document.getElementById('aiRoteiroDl');
   if(!out) return;
   const sample=await getCap('sample');
   if(!sample){ if(status)status.textContent=''; out.innerHTML='<div class="alertbox">A geração com IA só funciona dentro do claude.ai (Claude em runtime), autorizada pelo usuário. Abaixo, o modelo estruturado como base.</div>'+renderRoteiroOrganicoCard(o); return; }
   const prompt=buildPromptRoteiro(o);
-  _aiCtl=new AbortController();
-  if(btn)btn.disabled=true; if(stop)stop.style.display=''; if(regenB)regenB.style.display='none'; if(copyB)copyB.style.display='none';
+  _aiCtl=new AbortController(); _aiRoteiroText='';
+  if(btn)btn.disabled=true; if(stop)stop.style.display=''; if(regenB)regenB.style.display='none'; if(copyB)copyB.style.display='none'; if(dlB)dlB.style.display='none';
   if(status)status.textContent='Pensando… (pode levar de 5 a 60s)';
   out.innerHTML='<p class="muted">Gerando roteiro…</p>';
   try{
-    const res=await sample(prompt,{modelTier:'complex',signal:_aiCtl.signal,cache:regen?false:true,onText:({text})=>{ if(status)status.textContent='Escrevendo…'; out.innerHTML=mdLite(text); }});
-    out.innerHTML=mdLite(res.text);
+    const res=await sample(prompt,{modelTier:'complex',signal:_aiCtl.signal,cache:regen?false:true,onText:({text})=>{ _aiRoteiroText=text; if(status)status.textContent='Escrevendo…'; out.innerHTML=mdLite(text); }});
+    _aiRoteiroText=res.text; out.innerHTML=mdLite(res.text);
     if(status)status.textContent=res.truncated?'Resposta longa — cortada; gere por partes se faltar algo.':'Pronto ✓';
   }catch(e){
     const code=(e&&e.code)||'erro';
@@ -3177,7 +3182,9 @@ async function aiGerarRoteiro(o,regen){
     else if(code==='refused'){ if(status)status.textContent='A IA não respondeu a este caso. Ajuste o contexto e tente de novo.'; out.innerHTML=''; }
     else { if(status)status.textContent='Falhou ('+code+'). Tente novamente.'; if(e&&e.text)out.innerHTML=mdLite(e.text); }
   }finally{
-    if(btn)btn.disabled=false; if(stop)stop.style.display='none'; if(regenB)regenB.style.display=''; if(copyB)copyB.style.display='';
+    const hasTxt=!!(_aiRoteiroText&&_aiRoteiroText.trim());
+    if(btn)btn.disabled=false; if(stop)stop.style.display='none'; if(regenB)regenB.style.display='';
+    if(copyB)copyB.style.display=hasTxt?'':'none'; if(dlB)dlB.style.display=hasTxt?'':'none';
   }
 }
 function bindAiRoteiro(o){
@@ -3185,6 +3192,7 @@ function bindAiRoteiro(o){
   btn.onclick=()=>aiGerarRoteiro(o,false);
   const rg=document.getElementById('aiRoteiroRegen'); if(rg) rg.onclick=()=>aiGerarRoteiro(o,true);
   const st=document.getElementById('aiRoteiroStop'); if(st) st.onclick=()=>{ if(_aiCtl) _aiCtl.abort(); };
+  const dl=document.getElementById('aiRoteiroDl'); if(dl) dl.onclick=()=>{ if(!_aiRoteiroText){alert('Gere o roteiro primeiro.');return;} const nm=((o.produtoNome||o.nome||'roteiro').replace(/[^\w\s\-À-ÿ]/g,'').replace(/\s+/g,'_').slice(0,60)||'roteiro')+'_roteiro_IA.md'; salvarDownload(nm,'# Roteiro de conteúdo — '+((o.produtoNome||o.nome||'Projeto'))+'\n\n'+_aiRoteiroText,'text/markdown;charset=utf-8'); };
 }
 function renderAiRoteiroCard(o){
   return `<div class="card"><h2>Roteiro de conteúdo — gerado por IA <span class="tag">escrito pelo Claude + algoritmo</span></h2>
@@ -3194,6 +3202,7 @@ function renderAiRoteiroCard(o){
       <button class="btn ghost sm" id="aiRoteiroRegen" style="display:none">Regenerar</button>
       <button class="btn ghost sm" id="aiRoteiroStop" style="display:none">Parar</button>
       <button class="btn ghost sm internal-only" id="aiRoteiroCopy" data-copy="aiRoteiroOut" style="display:none">copiar</button>
+      <button class="btn ghost sm" id="aiRoteiroDl" style="display:none">Baixar (.md)</button>
       <span id="aiRoteiroStatus" class="muted" style="font-size:12px"></span>
     </div>
     <div id="aiRoteiroOut" style="margin-top:12px"></div>
