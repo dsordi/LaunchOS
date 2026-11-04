@@ -6,7 +6,7 @@
 <title>LaunchOS — Inteligência para seu Lançamento Digital</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#001A33; --card:#00264D; --ink:#F0F2F5; --muted:#8ba3bd; --line:rgba(0,255,255,.14);
@@ -410,6 +410,46 @@
   ::selection{background:rgba(222,106,16,.16);color:#1F2937}
   .card.collapsible>h2::after{color:var(--faint)}
 </style>
+<style id="identity">
+  /* ===== Identidade visual própria — "mesa de pesquisa" (editorial, não template de IA). Só estética. ===== */
+  :root{
+    /* tipografia: serifa editorial p/ títulos + grotesca precisa p/ UI + mono p/ números */
+    --fhead:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+    --fui:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --fmono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+    /* neutros quentes (papel/grafite) no lugar do cinza frio */
+    --bg:#EAE7E0; --panel:#FBFAF7; --surface:#FBFAF7; --surface2:#F0ECE4;
+    --ink:#211F1B; --muted:#5C564C; --faint:#938C7E;
+    --line:#DCD6CA; --line2:#C6BEAE;
+    --accent:#B4531C; --accent-soft:rgba(180,83,28,.11); --focus:#1E5FB0;
+    --input-bg:#F4F1EA; --soft:#F0ECE4; --card:var(--surface);
+    --radius:8px;
+  }
+  body{font-family:var(--fui);letter-spacing:-.003em}
+  /* títulos em serifa — presença editorial, leitura institucional */
+  h1{font-family:var(--fhead);font-weight:600;font-size:24px;letter-spacing:-.01em;line-height:1.14;color:var(--ink)}
+  .sub{font-family:var(--fui);font-size:13.5px;color:var(--muted);max-width:76ch}
+  .card h2{font-family:var(--fhead);font-weight:600;font-size:16px;letter-spacing:-.005em;line-height:1.25;color:var(--ink)}
+  h3.grp{font-family:var(--fmono);font-weight:500;font-size:11px;letter-spacing:.07em;color:var(--faint);text-transform:uppercase}
+  aside .brand .nm{font-family:var(--fhead);font-weight:600;letter-spacing:-.01em}
+  aside .brand small{font-family:var(--fmono);letter-spacing:.04em}
+  /* etiqueta: vira "sobrescrito" tipográfico discreto, não pílula colorida (fim da sopa de badges) */
+  .card h2 .tag,.tag{font-family:var(--fmono);font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);background:transparent;border:0;border-radius:0;padding:0;margin-left:8px;vertical-align:middle}
+  /* superfícies: papel quente que salta do canvas, cantos mais precisos, sombra sutil e quente */
+  .card{border-radius:10px;box-shadow:0 1px 2px rgba(40,34,24,.05),0 1px 1px rgba(40,34,24,.04)}
+  .kpi{border-radius:10px;box-shadow:0 1px 2px rgba(40,34,24,.05)}
+  input,select,textarea{border-radius:7px;border:1px solid var(--line2)}
+  button,.btn,.btn.sm{border-radius:7px}
+  .statbar,.scen,.mkbar,.verdict,.alertbox,.pill-note,.disc,.kpi .ic,.topbar .status{border-radius:9px}
+  .chip{border-radius:6px;font-family:var(--fmono);letter-spacing:.02em}
+  .btn{background:var(--accent);color:#FBFAF7;font-weight:600} .btn:hover{background:#9C4615}
+  nav a.active{background:var(--accent-soft);color:var(--accent)}
+  /* números com figura tabular em toda parte (data-room) */
+  .statbar .s b,.scen .big,.kpi .v,.casc,.cpl-n,.mdl-score{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+  .kpi .v{font-size:26px;letter-spacing:-.01em}
+  ::selection{background:rgba(180,83,28,.16);color:var(--ink)}
+  *::-webkit-scrollbar-thumb{background:#C6BEAE}
+</style>
 </head>
 <body>
 <div class="glow o"></div>
@@ -443,7 +483,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v2.9 · 2026-11-04
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.0 · 2026-11-04
     </div>
   </aside>
   <section class="content">
