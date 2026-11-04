@@ -436,7 +436,7 @@
       <a data-view="fase2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>2 · Veredito</span></a>
       <a data-view="fase3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>3 · Execução</span></a>
       <div class="sec">Conhecimento</div>
-      <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Princípios da base</span></a>
+      <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Fontes &amp; princípios</span></a>
     </nav>
     <div class="foot">
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
@@ -685,7 +685,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Princípios da base'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Fontes & princípios'};
 // ===== Navegação em 3 fases (consolidação da menu fatigue) — só frontend, não toca engines/features =====
 const PHASES={
   fase1:{label:'1 · Desenho',tools:[['gtm','Diagnóstico (GTM)'],['produtizacao','Produtização']],drawer:[['gerador','Estrutura']]},
@@ -792,18 +792,41 @@ const BIBLIO=[
    {m:'C',c:'Cálculo determinístico; a IA só explica',x:'Nenhum número vem de texto de IA.',i:'Mesma entrada → mesmo resultado, recalculável e defensável.'},
  ]},
 ];
+// rastreabilidade por oportunidade (só leitura dos motores; não altera cálculo) — vive no Conhecimento
+function fontesAplicadas(o){
+  const grupos=[];
+  try{ const r=gerarEstrutura(oppToProduto(o)); if(r&&r.fontes&&r.fontes.length) grupos.push({mod:'Diagnóstico / GTM (Raio-X + Estrutura)',itens:r.fontes}); }catch(e){}
+  try{ const p=produtizacao(o); if(p&&p.fontes&&p.fontes.length) grupos.push({mod:'Produtização (oferta + copy)',itens:p.fontes}); }catch(e){}
+  return grupos;
+}
+function renderFontesOpp(o){
+  if(!o) return `<p class="hint">Selecione uma oportunidade acima para ver as fontes e frameworks que o LaunchOS aplicou nela.</p>`;
+  const grupos=fontesAplicadas(o);
+  if(!grupos.length) return `<p class="hint">Preencha o produto e o mercado desta oportunidade (no Decisor) para o LaunchOS listar as fontes aplicadas.</p>`;
+  const rv = o.rendaVariavel ? `<div class="disc" style="margin-bottom:10px">⚖️ Renda variável: toda copy passa por portão jurídico/compliance antes de ir ao ar (GAP-003). Nada aqui é promessa de resultado.</div>` : '';
+  const corpo = grupos.map(g=>`<div style="margin-bottom:12px"><div style="font-weight:600;font-size:13px;margin-bottom:4px">${esc(g.mod)}</div><ul style="font-size:12px" class="gaps">${g.itens.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+  return rv+corpo+`<div class="disc" style="margin-top:4px">Rastreabilidade: os frameworks do corpus que o LaunchOS cruzou para montar o diagnóstico e a oferta desta oportunidade. O veredito de prontidão é estrutural; a <b>conversão</b> só o piloto confirma (GAP-002).</div>`;
+}
 function viewBiblio(){
   setActive('biblio');
   const secs=BIBLIO.map(s=>`<div class="card biblio"><h2>${esc(s.t)} <span class="tag">${esc(s.f)}</span></h2><ul>${
     s.it.map(it=>`<li><span class="mark m${it.m}">${it.m}</span> <b>${esc(it.c)}</b> — ${esc(it.x)}${it.i?`<div class="ins">💡 Insight [C]: ${esc(it.i)}</div>`:''}</li>`).join('')
   }</ul></div>`).join('');
-  main.innerHTML=`<h1>Princípios da base</h1><p class="sub">O conhecimento dos 6 livros lidos + o corpus, com a fonte e a confiança sempre à vista. Os <span style="color:var(--cyan)">💡 insights</span> são a aplicação prática no LaunchOS (minha inferência, marcada [C]).</p>
+  const rastro = (opps&&opps.length)
+    ? `<div class="card"><h2>Fontes aplicadas por oportunidade <span class="tag">rastreabilidade</span></h2>
+       <div style="max-width:440px"><label>Oportunidade</label><select id="fontesOppSel"><option value="">— selecione —</option>${opps.map(o=>`<option value="${esc(o.id)}">${esc(o.produtoNome||o.nome||'(sem nome)')}</option>`).join('')}</select></div>
+       <div id="fontesOppOut" style="margin-top:14px">${renderFontesOpp(null)}</div></div>`
+    : `<div class="card"><h2>Fontes aplicadas por oportunidade <span class="tag">rastreabilidade</span></h2><p class="hint">Cadastre uma oportunidade no Decisor para ver aqui, caso a caso, quais fontes o LaunchOS aplicou.</p></div>`;
+  main.innerHTML=`<h1>Fontes &amp; princípios</h1><p class="sub">O conhecimento dos livros lidos + o corpus, com a fonte e a confiança sempre à vista, e a rastreabilidade do que foi aplicado em cada oportunidade. Os <span style="color:var(--cyan)">💡 insights</span> são a aplicação prática no LaunchOS (minha inferência, marcada [C]).</p>
   <div class="card"><h2>Como ler a confiança</h2><div class="legend" style="gap:16px">
      <span><span class="mark mA">A</span> fato de fonte lida</span><span><span class="mark mB">B</span> convergência independente</span>
      <span><span class="mark mC">C</span> inferência</span><span><span class="mark mD">D</span> hipótese não validada</span>
      <span><span class="mark mL">L</span> literatura (memória do modelo; vira A com o texto)</span></div></div>
+  ${rastro}
   ${secs}
   <div class="card"><div class="pill-note">Fontes completas (fichas, catálogo, decisões) em <b>biblioteca/</b> no repositório. Livros lidos de primeira mão: Walker, StoryBrand, Marketing 5.0, Kotler & Keller, Pissarra — ver SRC-030 a SRC-034.</div></div>`;
+  const fsel=document.getElementById('fontesOppSel');
+  if(fsel) fsel.addEventListener('change',()=>{const o=opps.find(x=>x.id===fsel.value)||null; const out=document.getElementById('fontesOppOut'); if(out) out.innerHTML=renderFontesOpp(o);});
 }
 
 function field(o,label,key,opts={}){
@@ -1404,7 +1427,6 @@ function renderEstruturaInner(res){
      ${f.passos.map(s=>`<tr><td>${esc(s.acao)}</td><td>${esc(s.gatilho)}</td><td>${esc(s.quando)}</td></tr>`).join('')}</table></div>`).join('');
   const alt=res.alt.length?`<p><b>Alternativas:</b> ${res.alt.map(esc).join(' · ')}</p>`:'';
   const port=res.portoes.map(x=>`<li>${esc(x)}</li>`).join('');
-  const fontes=res.fontes.map(x=>`<li>${x}</li>`).join('');
   return `
    <h2>1. Raio-X do produto</h2><ul>${raiox}</ul>
    <h2>2. Mercado endereçável <span style="font-weight:400;text-transform:none;color:#64748b;font-size:11px">— bottom-up, não TAM</span></h2>${mercadoHtml}
@@ -1432,7 +1454,6 @@ function renderEstruturaInner(res){
    <h2>7. Arquitetura de preços</h2><p>${esc(res.preco.rec)}</p><p class="muted" style="font-size:11px">Fonte: ${esc(res.preco.fonte)}</p>
    <h2>8. Estrutura operacional (etapa por etapa)</h2>${fases}
    <h2>9. Portões</h2><ul>${port}</ul>
-   <div class="internal-only"><h2>10. Fontes aplicadas (rastreabilidade)</h2><ul style="font-size:12px">${fontes}</ul></div>
    <div class="disc"><b>Transparência:</b> análise <b>sugerida por regras</b>, cruzando a base (Walker, StoryBrand, Kotler, Pissarra, matriz de tipos, arquitetura de preços). Os [colchetes] são para você completar com a realidade. <b>Nenhum número de mercado foi inventado</b> — dimensionamento bottom-up, depende da base real (GAP-002). Não é promessa de resultado; viabilidade financeira no Decisor (E5).</div>`;
 }
 function renderEstrutura(res){
@@ -3361,12 +3382,7 @@ function renderProdutizacaoInner(o){
 
   ${renderAiRoteiroCard(o)}
 
-  ${renderRoteiroOrganicoCard(o)}
-
-  <div class="card internal-only"><h2>Fontes aplicadas <span class="tag">rastreabilidade</span></h2>
-    <ul style="font-size:12px" class="gaps">${P.fontes.map(f=>`<li>${f}</li>`).join('')}</ul>
-    <div class="disc" style="margin-top:8px">Análise construída sobre os frameworks PRÁTICOS do corpus (Brunson, Hooked, Sugarman, Kahneman, StoryBrand, Kotler), aplicados ao contexto que você preencheu. Quanto mais completo o contexto do produto, mais específica a análise. O veredito de prontidão é estrutural; a <b>conversão</b> só o piloto confirma (GAP-002). Nada aqui é promessa de resultado.</div>
-  </div>`;
+  ${renderRoteiroOrganicoCard(o)}`;
 }
 let prodOpp=null;
 function viewProdutizacao(){
