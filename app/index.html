@@ -353,14 +353,14 @@
   /* ===== Tema CLARO e calmo (camada final, vence as anteriores) — neutros quase sem cor, acento só no essencial ===== */
   :root{
     color-scheme:light;
-    --bg:#E7EAEE; --panel:#F3F5F8; --surface:#F3F5F8; --surface2:#E4E7EC;
-    --ink:#1F2937; --muted:#5B6675; --faint:#98A2B3;
-    --line:#D5DAE1; --line2:#C4CBD5;
+    --bg:#D9DEE5; --panel:#FBFCFD; --surface:#FBFCFD; --surface2:#EDF0F4;
+    --ink:#18212E; --muted:#56616F; --faint:#8A95A3;
+    --line:#CAD2DC; --line2:#B2BCC8;
     --accent:#DE6A10; --accent-soft:rgba(222,106,16,.10); --focus:#2563EB;
     --good:#15803D; --warn:#B45309; --bad:#B42318; --cyan:#0E7490; --yellow:#B45309;
     --good-bg:#ECFDF3; --warn-bg:#FEF4E6; --bad-bg:#FEECEC;
-    --nav:#F3F5F8; --nav-ink:#5B6675; --card:var(--surface);
-    --input-bg:#FAFBFC; --soft:#EBEEF2;
+    --nav:#FBFCFD; --nav-ink:#56616F; --card:var(--surface);
+    --input-bg:#F1F4F8; --soft:#EEF1F5;
     --a:#2563EB; --b:#15803D; --c:#7C3AED; --d:#C2690C;
   }
   body{background:var(--bg);color:var(--ink);background-image:none}
@@ -368,7 +368,7 @@
   aside{background:var(--panel);border-right:1px solid var(--line)}
   aside .brand .nm{color:var(--ink)} aside .brand .nm .os{color:var(--accent)}
   aside .brand small{color:var(--faint)} aside .brand .rk{background:#0F1C2B;border:1px solid var(--line2)}
-  nav a{color:var(--muted)} nav a:hover{background:#F2F4F7;color:var(--ink)}
+  nav a{color:var(--muted)} nav a:hover{background:var(--surface2);color:var(--ink)}
   nav a.active{background:var(--accent-soft);color:var(--accent)} nav a.active svg{color:var(--accent)}
   aside .foot{color:var(--faint);border-top:1px solid var(--line)}
   .topbar{background:var(--panel);border-bottom:1px solid var(--line)}
@@ -376,10 +376,10 @@
   .topbar .status{background:var(--surface);border:1px solid var(--line);color:var(--muted)}
   .content{background:var(--bg)}
   #subnav{background:var(--panel);border-bottom:1px solid var(--line)}
-  .card{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 3px rgba(16,24,40,.09),0 1px 2px rgba(16,24,40,.05)}
   .card:hover{border-color:var(--line2)}
   .card h2,h1,h4{color:var(--ink)}
-  input,select,textarea{background:var(--input-bg);border:1px solid var(--line);color:var(--ink)}
+  input,select,textarea{background:var(--input-bg);border:1px solid var(--line2);color:var(--ink)}
   input::placeholder{color:var(--faint)}
   input:focus,select:focus,textarea:focus{border-color:var(--focus);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
   .btn{background:var(--accent);color:#fff} .btn:hover{background:#c85f0d;filter:none}
@@ -387,7 +387,7 @@
   .btn.danger{background:var(--surface);color:var(--bad);border:1px solid #E7B9B9}
   .statbar,.scen,.mkbar{background:var(--surface2);border:1px solid var(--line)}
   .statbar .s b,.scen .big,.kpi .v{color:var(--ink)}
-  .kpi{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .kpi{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 3px rgba(16,24,40,.09),0 1px 2px rgba(16,24,40,.05)}
   .kpi .ic{background:var(--surface2);color:var(--muted)}
   .mdl-bar{background:#DBDFE6} .mdl-fill{background:var(--accent)}
   .cpl-card,.opt-row{background:var(--surface);border:1px solid var(--line)}
