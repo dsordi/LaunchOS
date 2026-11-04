@@ -339,6 +339,75 @@
   #main .mark{display:none}
   body.audit-on #main .mark{display:inline-block}
   #auditToggle.on{color:var(--accent);border-color:var(--accent)}
+  /* ===== Modo limpo: cards recolhíveis (progressive disclosure) — só frontend ===== */
+  .card.collapsible>h2{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px;margin-bottom:0}
+  .card.collapsible>h2::after{content:'⌄';margin-left:auto;color:var(--faint);font-size:17px;line-height:1;transition:transform .15s;flex:0 0 auto}
+  .card.collapsed>h2::after{transform:rotate(-90deg)}
+  .card.collapsible>h2:hover::after{color:var(--accent)}
+  .card.collapsed>.card-body{display:none}
+  .card.collapsible .card-body{margin-top:12px}
+  .card.collapsed{padding-top:16px;padding-bottom:16px}
+  #cleanToggle.on{color:var(--accent);border-color:var(--accent)}
+</style>
+<style id="lighttheme">
+  /* ===== Tema CLARO e calmo (camada final, vence as anteriores) — neutros quase sem cor, acento só no essencial ===== */
+  :root{
+    color-scheme:light;
+    --bg:#F6F7F9; --panel:#FFFFFF; --surface:#FFFFFF; --surface2:#F2F4F7;
+    --ink:#1F2937; --muted:#5B6675; --faint:#98A2B3;
+    --line:#E7EAEE; --line2:#D7DCE3;
+    --accent:#DE6A10; --accent-soft:rgba(222,106,16,.10); --focus:#2563EB;
+    --good:#15803D; --warn:#B45309; --bad:#B42318; --cyan:#0E7490; --yellow:#B45309;
+    --good-bg:#ECFDF3; --warn-bg:#FEF4E6; --bad-bg:#FEECEC;
+    --nav:#FFFFFF; --nav-ink:#5B6675; --card:var(--surface);
+    --a:#2563EB; --b:#15803D; --c:#7C3AED; --d:#C2690C;
+  }
+  body{background:var(--bg);color:var(--ink);background-image:none}
+  .glow{display:none!important}
+  aside{background:var(--panel);border-right:1px solid var(--line)}
+  aside .brand .nm{color:var(--ink)} aside .brand .nm .os{color:var(--accent)}
+  aside .brand small{color:var(--faint)} aside .brand .rk{background:#0F1C2B;border:1px solid var(--line2)}
+  nav a{color:var(--muted)} nav a:hover{background:#F2F4F7;color:var(--ink)}
+  nav a.active{background:var(--accent-soft);color:var(--accent)} nav a.active svg{color:var(--accent)}
+  aside .foot{color:var(--faint);border-top:1px solid var(--line)}
+  .topbar{background:var(--panel);border-bottom:1px solid var(--line)}
+  .topbar .crumb{color:var(--muted)} .topbar .crumb b{color:var(--ink)}
+  .topbar .status{background:#fff;border:1px solid var(--line);color:var(--muted)}
+  .content{background:var(--bg)}
+  #subnav{background:var(--panel);border-bottom:1px solid var(--line)}
+  .card{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card:hover{border-color:var(--line2)}
+  .card h2,h1,h4{color:var(--ink)}
+  input,select,textarea{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  input::placeholder{color:var(--faint)}
+  input:focus,select:focus,textarea:focus{border-color:var(--focus);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .btn{background:var(--accent);color:#fff} .btn:hover{background:#c85f0d;filter:none}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line2)} .btn.ghost:hover{background:var(--surface2)}
+  .btn.danger{background:#fff;color:var(--bad);border:1px solid #F3C6C6}
+  .statbar,.scen,.mkbar{background:var(--surface2);border:1px solid var(--line)}
+  .statbar .s b,.scen .big,.kpi .v{color:var(--ink)}
+  .kpi{background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .kpi .ic{background:var(--surface2);color:var(--muted)}
+  .mdl-bar{background:#E7EAEE} .mdl-fill{background:var(--accent)}
+  .cpl-card,.opt-row{background:#fff;border:1px solid var(--line)}
+  .verdict{border:1px solid var(--line);color:var(--ink)}
+  .verdict.good{background:var(--good-bg);border-color:#BBF7D0;color:#166534}
+  .verdict.warn{background:var(--warn-bg);border-color:#FADEB0;color:#92400E}
+  .verdict.bad{background:var(--bad-bg);border-color:#FACACA;color:#991B1B}
+  .verdict b{color:inherit}
+  .chip.good{background:var(--good-bg);color:#166534;border-color:#CDEFD8}
+  .chip.warn{background:var(--warn-bg);color:#92400E;border-color:#F6E2BF}
+  .chip.bad{background:var(--bad-bg);color:#991B1B;border-color:#F6D1D1}
+  .chip.neutral{background:var(--surface2);color:var(--muted);border-color:var(--line)}
+  .alertbox{background:var(--warn-bg);border:1px solid #FADEB0;color:#92400E}
+  .pill-note,.disc{background:#F8FAFC;border:1px solid var(--line);color:var(--muted)}
+  table td,table th{border-color:var(--line)} table th{color:var(--faint)}
+  tr.clickable:hover td{background:#F8FAFC}
+  .legend,.muted{color:var(--muted)}
+  .topbar .dot{background:var(--good)}
+  *::-webkit-scrollbar-thumb{background:#D7DCE3;border:3px solid transparent;background-clip:content-box}
+  ::selection{background:rgba(222,106,16,.16);color:#1F2937}
+  .card.collapsible>h2::after{color:var(--faint)}
 </style>
 </head>
 <body>
@@ -373,13 +442,14 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:#E2E8F0">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:#fb923c">[D]</b>, não previsão.<br>v2.8 · 2026-11-03
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v2.9 · 2026-11-04
     </div>
   </aside>
   <section class="content">
     <header class="topbar">
       <div class="crumb">LaunchOS <span style="color:#5d7389">/</span> <b id="crumb">Dashboard</b></div>
       <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn ghost sm" id="cleanToggle" title="Recolher os cards — mostra só os títulos; clique num título para abrir">Modo simples</button>
         <button class="btn ghost sm" id="auditToggle" title="Mostrar/ocultar as marcas de confiança (A/B/C/D)">Auditar premissas</button>
         <span class="status"><span class="dot"></span> Motor determinístico · <b style="color:#34d399">auditado</b></span>
         <button class="btn" id="topNew" style="padding:8px 14px;font-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova oportunidade</button>
@@ -619,7 +689,7 @@ const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',
 // ===== Navegação em 3 fases (consolidação da menu fatigue) — só frontend, não toca engines/features =====
 const PHASES={
   fase1:{label:'1 · Desenho',tools:[['gtm','Diagnóstico (GTM)'],['produtizacao','Produtização']],drawer:[['gerador','Estrutura']]},
-  fase2:{label:'2 · Veredito',tools:[['recomendacao','Recomendação'],['estrategia','Estrategista']],drawer:[['compilador','Compilador']]},
+  fase2:{label:'2 · Veredito',tools:[['recomendacao','Recomendação'],['estrategia','Estrategista']],drawer:[]},
   fase3:{label:'3 · Execução',tools:[['ativos','Gerador de ativos'],['calendario','Cronograma']],drawer:[]}
 };
 const PHASE_ORDER=['fase1','fase2','fase3'];
@@ -3643,8 +3713,8 @@ function viewDashboard(){
     if(el){const labels=rt.rows.map(r=>'M'+r.m), cum=rt.rows.map(r=>Math.round(r.cum)), inv=rt.rows.map(()=>Math.round(rt.invest));
     dashChart=new Chart(el,{type:'line',data:{labels,datasets:[
       {label:'Caixa acumulado',data:cum,borderColor:'#FF8C00',backgroundColor:'rgba(255,140,0,.07)',fill:true,tension:.3,borderWidth:2,pointRadius:0},
-      {label:'Aporte do operador',data:inv,borderColor:'rgba(150,170,195,.55)',borderDash:[4,4],fill:false,borderWidth:1.5,pointRadius:0}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8A99AD',font:{size:11},boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8A99AD',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}});}
+      {label:'Aporte do operador',data:inv,borderColor:'#94A3B8',borderDash:[4,4],fill:false,borderWidth:1.5,pointRadius:0}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5B6675',font:{size:11},boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{color:'rgba(16,24,40,.06)'},ticks:{color:'#5B6675',font:{size:10}}},y:{grid:{color:'rgba(16,24,40,.06)'},ticks:{color:'#5B6675',font:{size:10},callback:v=>'R$'+(v/1000).toFixed(0)+'k'}}}}});}
   }
 }
 
@@ -3668,6 +3738,39 @@ main.addEventListener('click',e=>{
   if(nv){goView(nv.dataset.view);}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
 const auditBtn=document.getElementById('auditToggle'); if(auditBtn) auditBtn.addEventListener('click',function(){document.body.classList.toggle('audit-on');this.classList.toggle('on',document.body.classList.contains('audit-on'));});
+
+/* ---------------- Modo limpo: cards recolhíveis (progressive disclosure, só frontend) ---------------- */
+let _cleanMode=(()=>{try{return localStorage.getItem('launchos_clean')!=='0'}catch(e){return true}})();
+let _enhancing=false,_enhT=null;
+function enhanceCards(){
+  if(_enhancing)return; _enhancing=true;
+  try{
+    const m=document.getElementById('main'); if(!m)return;
+    m.querySelectorAll('.card:not([data-enh])').forEach(card=>{
+      const h2=card.querySelector(':scope > h2');
+      if(!h2){ card.setAttribute('data-enh','skip'); return; }
+      if(card.querySelector('input,select,textarea')){ card.setAttribute('data-enh','form'); return; } // cards com formulário ficam abertos
+      card.classList.add('collapsible'); card.setAttribute('data-enh','1');
+      const body=document.createElement('div'); body.className='card-body';
+      let n=h2.nextSibling; while(n){ const nx=n.nextSibling; body.appendChild(n); n=nx; }
+      card.appendChild(body);
+      h2.addEventListener('click',()=>card.classList.toggle('collapsed'));
+    });
+    applyCleanState();
+  }finally{ _enhancing=false; }
+}
+function applyCleanState(){
+  const m=document.getElementById('main'); if(!m)return;
+  const cards=m.querySelectorAll('.card.collapsible');
+  cards.forEach((card,i)=>{ if(_cleanMode) card.classList.toggle('collapsed', i!==0); else card.classList.remove('collapsed'); });
+}
+(function(){ const m=document.getElementById('main'); if(!m)return;
+  try{ const obs=new MutationObserver(()=>{ if(_enhancing)return; clearTimeout(_enhT); _enhT=setTimeout(enhanceCards,40); }); obs.observe(m,{childList:true,subtree:true}); }catch(e){}
+  setTimeout(enhanceCards,60);
+})();
+const cleanBtn=document.getElementById('cleanToggle');
+function syncCleanBtn(){ if(cleanBtn){ cleanBtn.classList.toggle('on',_cleanMode); cleanBtn.textContent=_cleanMode?'Modo simples ✓':'Modo completo'; } }
+if(cleanBtn){ syncCleanBtn(); cleanBtn.onclick=()=>{ _cleanMode=!_cleanMode; try{localStorage.setItem('launchos_clean',_cleanMode?'1':'0')}catch(e){} syncCleanBtn(); applyCleanState(); }; }
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
 if(opps.length===0){
