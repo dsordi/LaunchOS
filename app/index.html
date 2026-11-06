@@ -518,7 +518,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.3 · 2026-11-06
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.4 · 2026-11-06
     </div>
   </aside>
   <section class="content">
@@ -2712,14 +2712,19 @@ function gerarPPTViab(o){
   const a=analyze(o),s=a.b,d=a.dB,rt=recoveryTimeline(o,s);
   const proj=(o.produtoNome||o.nome||'Projeto');
   const margem=s.receita>0?s.lucro/s.receita:0, investTot=(s.fixos||0)+(s.leadsDBCost||0);
-  const vMap={good:['VIÁVEL (condicional)',GOOD],warn:['AJUSTAR ANTES DE INVESTIR',WARN],bad:['NÃO RECOMENDADO AINDA',BAD]};
-  const vv=vMap[a.vclass]||['ANÁLISE',MUT];
+  const vSimples={good:'Viável',warn:'Requer ajustes antes de investir',bad:'Ainda não recomendado'}[a.vclass]||'Análise';
+  const vCor={good:GOOD,warn:WARN,bad:BAD}[a.vclass]||MUT;
   const vcolor=(n)=>n<0?BAD:GOOD;
+  const modLabel=pptClean((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label);
+  const traf=(+o.verbaTrafego||0),extra=(+o.investExtra||0),aporte=traf+extra,recupera=!!o.recuperaInvest;
+  const partes=o.partes||[];
+  const opNome=pptClean((partes[d.opIdx]&&partes[d.opIdx].nome)||'Operador');
+  const papel=(i)=>i===d.opIdx?'Investe e assume o risco':'Parceiro';
   const head=(t,sub)=>{const sl=X.addSlide();sl.background={color:BG};
     sl.addText(t,{x:0.55,y:0.34,w:11.5,h:0.55,fontSize:21,bold:true,color:NAVY,fontFace:'Arial'});
     if(sub) sl.addText(sub,{x:0.57,y:0.86,w:11.5,h:0.3,fontSize:11,color:MUT,fontFace:'Arial'});
     sl.addShape(X.ShapeType.line,{x:0.55,y:sub?1.18:1.0,w:12.25,h:0,line:{color:ACC,width:2.5}});
-    sl.addText('Nelogica · LaunchOS · '+pptClean(proj)+' · projeção com premissas atuais — não é promessa',{x:0.55,y:7.08,w:12.25,h:0.3,fontSize:8,color:MUT});
+    sl.addText('Nelogica · '+pptClean(proj)+' · projeção com as premissas deste documento — não é promessa',{x:0.55,y:7.08,w:12.25,h:0.3,fontSize:8,color:MUT});
     return sl;};
   const kbox=(sl,x,y,w,lab,val,color)=>{sl.addShape(X.ShapeType.roundRect,{x,y,w,h:1.45,fill:{color:SOFT},line:{color:LINE,width:1},rectRadius:0.06});
     sl.addText(lab,{x:x+0.16,y:y+0.14,w:w-0.3,h:0.55,fontSize:10,color:MUT,valign:'top'});
@@ -2728,82 +2733,67 @@ function gerarPPTViab(o){
   (function(){const sl=X.addSlide();sl.background={color:NAVY};
     sl.addShape(X.ShapeType.line,{x:0.6,y:2.15,w:3.2,h:0,line:{color:ACC,width:3}});
     sl.addText('Viabilidade Financeira',{x:0.6,y:2.35,w:12,h:0.9,fontSize:38,bold:true,color:'FFFFFF',fontFace:'Arial'});
-    sl.addText('Avaliação da oportunidade — documento interno de decisão',{x:0.6,y:3.35,w:12,h:0.5,fontSize:16,color:ACC});
+    sl.addText('Avaliação da oportunidade — premissas e projeção',{x:0.6,y:3.35,w:12,h:0.5,fontSize:16,color:ACC});
     sl.addText(pptClean(proj)+(o.nome&&o.nome!==proj?('   ·   '+pptClean(o.nome)):''),{x:0.6,y:4.15,w:12,h:0.5,fontSize:18,bold:true,color:'FFFFFF'});
-    sl.addText('Nelogica · uso interno · '+new Date().toLocaleDateString('pt-BR'),{x:0.6,y:6.7,w:12,h:0.4,fontSize:11,color:'8FA3BC'});})();
-  // 2 — Veredito + números da campanha
-  (function(){const sl=head('Veredito & resultado da campanha','Cenário-base · receita contratada projetada');
-    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.4,w:12.25,h:1.15,fill:{color:vv[1]},rectRadius:0.07});
-    sl.addText(vv[0],{x:0.8,y:1.52,w:7.4,h:0.9,fontSize:23,bold:true,color:'FFFFFF',valign:'middle'});
-    sl.addText([{text:'Lucro líquido (base)\n',options:{fontSize:10,color:'F2F6FB'}},{text:pptBRL(s.lucro),options:{fontSize:22,bold:true,color:'FFFFFF'}}],{x:8.2,y:1.5,w:4.4,h:0.95,align:'right',valign:'middle'});
-    const k=[['Faturamento potencial contratado',pptBRL(s.bruto),NAVY],['Investimento total (mídia+prod+ferr+leads)',pptBRL(investTot),NAVY],['Margem líquida',s.receita>0?pct(margem):'—',NAVY],['Resultado do operador (após split)',pptBRL(d.operadorNet),vcolor(d.operadorNet)]];
-    k.forEach((it,i)=>kbox(sl,0.55+i*3.075,2.8,2.9,it[0],it[1],it[2]));
-    const riscos=['A conversão de lead em venda ainda é estimativa — é a maior incerteza; só um teste real confirma.'];
-    if(o.rendaVariavel) riscos.push('Renda variável: a copy não vai ao ar sem parecer jurídico (compliance).');
-    if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)) riscos.push('Prazo para recuperar o investimento maior que a fidelidade — risco de caixa.');
-    sl.addText('Principais riscos',{x:0.55,y:4.55,w:12.25,h:0.3,fontSize:12,bold:true,color:NAVY});
-    sl.addText(riscos.slice(0,3).map(x=>'•  '+pptClean(x)).join('\n'),{x:0.55,y:4.9,w:12.25,h:1.3,fontSize:12,color:INK,lineSpacingMultiple:1.2});
-    sl.addText('Faturamento ≠ lucro ≠ caixa. Projeção a partir das premissas [D], recalculável.',{x:0.55,y:6.35,w:12.25,h:0.3,fontSize:10,italic:true,color:MUT});})();
-  // 3 — 3 cenários
-  (function(){const sl=head('Os três cenários','Variação aplicada sobre a conversão: −'+(o.hairConserv)+'% (conservador) e +'+(o.hairOtim)+'% (otimista)');
+    sl.addText('Nelogica · '+new Date().toLocaleDateString('pt-BR'),{x:0.6,y:6.7,w:12,h:0.4,fontSize:11,color:'8FA3BC'});})();
+  // 2 — Premissas do lançamento (primeiro slide de conteúdo — para quem nunca viu o LaunchOS)
+  (function(){const sl=head('Premissas do lançamento','O que estamos assumindo — estimativas de trabalho; a projeção recalcula a partir delas');
+    const alc=audienciaAlcancavel(o);
+    const pr=[
+      ['Produto',(pptClean(o.produtoNome)||'—')+(modLabel?('  ·  '+modLabel):'')],
+      ['Público-alvo',pptClean(o.nicho)||'—'],
+      ['Audiência que a comunicação alcança',num(alc)+' pessoas'],
+      ['Ticket médio',pptBRL(ticketMensalBlend(o))+'/mês  ·  fidelidade '+(o.prazoFidelidade||12)+' meses'],
+      ['Conversão esperada (interessado → cliente)',(o.convLista)+'%'],
+      ['Cancelamento nos primeiros 7 dias',(o.cancel7Pct)+'%'],
+      ['Investimento em mídia',pptBRL(traf)+'  ·  custo por lead '+pptBRL(o.cpl)],
+      ['Impostos e taxas',(o.impostoPct)+'% de imposto  ·  '+(o.taxaPlataformaPct)+'% de plataforma']
+    ].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:String(r[1]),options:{color:INK}}]);
+    sl.addTable(pr,{x:0.55,y:1.45,w:12.25,colW:[5.0,7.25],fontSize:13,border:{type:'solid',color:LINE,pt:0.5},rowH:0.58,valign:'middle'});})();
+  // 3 — O acordo (revenue share: aportes recuperados + divisão)
+  (function(){const sl=head('O acordo — investimento e divisão do resultado','Quem coloca o dinheiro, quanto aporta e assume o risco, e como o lucro é repartido');
+    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.4,w:12.25,h:0.95,fill:{color:SOFT},line:{color:LINE,width:1},rectRadius:0.06});
+    sl.addText([{text:'A '+opNome+' faz o investimento e assume o risco. ',options:{bold:true,color:NAVY}},{text:'Se o lançamento der prejuízo, o(s) parceiro(s) ficam em zero e a '+opNome+' absorve a perda.',options:{color:INK}}],{x:0.75,y:1.5,w:11.85,h:0.75,fontSize:13,valign:'middle'});
+    sl.addText('O que a '+opNome+' aporta',{x:0.55,y:2.72,w:6.0,h:0.35,fontSize:13,bold:true,color:NAVY});
+    if(recupera){const ar=[
+      [{text:'Mídia / tráfego',options:{color:INK}},{text:pptBRL(traf),options:{align:'right',color:INK}}],
+      [{text:'Outros aportes',options:{color:INK}},{text:pptBRL(extra),options:{align:'right',color:INK}}],
+      [{text:'Total aportado',options:{bold:true,color:NAVY}},{text:pptBRL(aporte),options:{align:'right',bold:true,color:NAVY}}]];
+      sl.addTable(ar,{x:0.55,y:3.12,w:6.0,colW:[3.9,2.1],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.55,valign:'middle'});
+    } else { sl.addText('A '+opNome+' não registra aporte a recuperar.',{x:0.55,y:3.12,w:6.0,h:1.2,fontSize:12,color:INK}); }
+    sl.addText('Divisão do lucro líquido',{x:6.85,y:2.72,w:5.95,h:0.35,fontSize:13,bold:true,color:NAVY});
+    const pr=[[{text:'Parte',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Papel',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'%',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}]].concat(partes.map((p,i)=>[{text:pptClean(p.nome)||'—',options:{bold:true,color:NAVY}},{text:papel(i),options:{color:MUT}},{text:(p.pct)+'%',options:{align:'right',color:INK}}]));
+    sl.addTable(pr,{x:6.85,y:3.12,w:5.95,colW:[2.5,2.3,1.15],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});
+    sl.addText('O lucro líquido já desconta a mídia e os custos; a '+opNome+' assume o risco. Valores por parte no próximo slide.',{x:0.55,y:6.4,w:12.25,h:0.3,fontSize:10,italic:true,color:MUT});})();
+  // 4 — A projeção: resultado esperado (cenário-base) + quanto cada parte recebe
+  (function(){const sl=head('A projeção — resultado esperado','Cenário-base · receita de contrato ao longo do período (não é caixa imediato)');
+    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.35,w:12.25,h:1.0,fill:{color:vCor},rectRadius:0.07});
+    sl.addText([{text:vSimples+'.  ',options:{bold:true,fontSize:17}},{text:pptClean(a.vmsg),options:{fontSize:12}}],{x:0.8,y:1.42,w:11.75,h:0.86,color:'FFFFFF',valign:'middle'});
+    const k=[['Faturamento potencial',pptBRL(s.bruto),NAVY],['Lucro líquido',pptBRL(s.lucro),vcolor(s.lucro)],['Recupera o aporte em',rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera')]];
+    k.forEach((it,i)=>kbox(sl,0.55+i*4.12,2.6,3.9,it[0],it[1],it[2]));
+    sl.addText('Quanto cada parte recebe (cenário-base)',{x:0.55,y:4.35,w:12.25,h:0.35,fontSize:13,bold:true,color:NAVY});
+    const pr=[[{text:'Parte',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Participação',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'center'}},{text:'Recebe (R$)',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}]].concat(partes.map((p,i)=>[{text:(pptClean(p.nome)||'—')+(i===d.opIdx?' (investe e assume o risco)':''),options:{bold:true,color:NAVY}},{text:(p.pct)+'%',options:{align:'center',color:INK}},{text:pptBRL(d.nets[i]),options:{align:'right',bold:true,color:vcolor(d.nets[i])}}]));
+    sl.addTable(pr,{x:0.55,y:4.72,w:12.25,colW:[7.0,2.4,2.85],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});})();
+  // 5 — A projeção: três cenários (faturamento, lucro, quanto cada parte recebe)
+  (function(){const sl=head('A projeção — três cenários','O que acontece se a conversão vier abaixo (−'+(o.hairConserv)+'%) ou acima (+'+(o.hairOtim)+'%) do esperado');
     const cols=[['Conservador',a.cons,a.dC],['Base',a.b,a.dB],['Otimista',a.otim,a.dO]];
     const H=[{text:'Linha',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}}].concat(cols.map(c=>({text:c[0],options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}})));
-    const row=(lab,fn)=>[{text:lab,options:{bold:true,color:NAVY}}].concat(cols.map(c=>({text:fn(c[1],c[2]),options:{align:'right',color:INK}})));
-    const rows=[H,row('Faturamento potencial',(sc)=>pptBRL(sc.bruto)),row('Lucro líquido',(sc)=>pptBRL(sc.lucro)),row('Resultado do operador',(sc,dd)=>pptBRL(dd.operadorNet)),row('Recupera o aporte em (meses)',(sc)=>{const rr=recoveryTimeline(o,sc);return rr.invest<=0?'—':(rr.recuperado?num(rr.recMonth,1):'n/d');})];
-    sl.addTable(rows,{x:0.55,y:1.45,w:12.25,colW:[4.25,2.67,2.67,2.66],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});
-    try{sl.addChart(X.ChartType.bar,[{name:'Resultado do operador',labels:cols.map(c=>c[0]),values:cols.map(c=>Math.round(c[2].operadorNet))}],{x:2.6,y:4.15,w:8.1,h:2.6,barDir:'col',showLegend:false,showValue:true,chartColors:[ACC],dataLabelColor:NAVY,dataLabelFontSize:11,catAxisLabelColor:MUT,valAxisHidden:true});}catch(ec){}})();
-  // 4 — Retorno & break-even (unit economics)
-  (function(){const sl=head('Retorno & break-even','Economia por cliente e o ponto de equilíbrio da conversão');
-    const k=[['Custo por cliente (CAC)',pptBRL(s.cac),NAVY],['Prazo p/ recuperar (payback)',isFinite(s.paybackMeses)?num(s.paybackMeses,1)+' meses':'—',isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12)?BAD:NAVY],['LTV:CAC (margem de contrib.)',isFinite(s.ltvMargemCac)?num(s.ltvMargemCac,1)+'x':'—',NAVY],['Margem mensal / cliente',pptBRL(s.netMensal),NAVY]];
-    k.forEach((it,i)=>kbox(sl,0.55+i*3.075,1.45,2.9,it[0],it[1],it[2]));
-    const beTxt=(a.be!=null?pct(a.be/100):'—');
-    sl.addShape(X.ShapeType.roundRect,{x:0.55,y:3.25,w:12.25,h:1.05,fill:{color:SOFT},line:{color:LINE,width:1},rectRadius:0.06});
+    const row=(lab,fn,bold)=>[{text:lab,options:{bold:!!bold,color:NAVY}}].concat(cols.map(c=>({text:fn(c[1],c[2]),options:{align:'right',color:INK,bold:!!bold}})));
+    const rows=[H,row('Faturamento potencial',(sc)=>pptBRL(sc.bruto)),row('Lucro líquido',(sc)=>pptBRL(sc.lucro),true)];
+    partes.forEach((p,i)=>rows.push(row((pptClean(p.nome)||'Parte')+' recebe',(sc,dd)=>pptBRL(dd.nets[i]))));
+    rows.push(row('Recupera o aporte em (meses)',(sc)=>{const rr=recoveryTimeline(o,sc);return rr.invest<=0?'—':(rr.recuperado?num(rr.recMonth,1):'n/d');}));
+    sl.addTable(rows,{x:0.55,y:1.45,w:12.25,colW:[4.25,2.67,2.67,2.66],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.46,valign:'middle'});
+    const chartY=1.5+rows.length*0.46+0.3, chartH=Math.min(2.5,6.7-chartY);
+    if(chartH>1.1){try{sl.addChart(X.ChartType.bar,[{name:'Lucro líquido',labels:cols.map(c=>c[0]),values:cols.map(c=>Math.round(c[1].lucro))}],{x:2.6,y:chartY,w:8.1,h:chartH,barDir:'col',showLegend:false,showValue:true,chartColors:[ACC],dataLabelColor:NAVY,dataLabelFontSize:11,catAxisLabelColor:MUT,valAxisHidden:true});}catch(ec){}}})();
+  // 6 — Como ler estes números (transparência, linguagem simples)
+  (function(){const sl=head('Como ler estes números');
     sl.addText([
-      {text:'Break-even da conversão: ',options:{bold:true,color:NAVY}},{text:beTxt+'   ',options:{bold:true,color:ACC}},
-      {text:'·   Sua premissa de conversão: ',options:{color:MUT}},{text:pct((o.convLista||0)/100)+'   ',options:{bold:true,color:INK}},
-      {text:'·   Folga até o zero: ',options:{color:MUT}},{text:(a.sens?pct(a.sens.margem):'—'),options:{bold:true,color:a.sens&&a.sens.margem<0.3?BAD:GOOD}}
-    ],{x:0.75,y:3.4,w:11.85,h:0.75,fontSize:13,valign:'middle'});
-    sl.addText([
-      {text:'Como ler:  ',options:{bold:true,color:NAVY}},
-      {text:'CAC = investimento em mídia + custo da base de leads ÷ clientes efetivos (é calculado, não estimado).  Payback = CAC ÷ margem mensal por cliente.  Break-even = a conversão mínima para o resultado fechar no zero.',options:{color:INK}}
-    ],{x:0.55,y:4.6,w:12.25,h:1.4,fontSize:11.5,color:INK,lineSpacingMultiple:1.2});
-    if(isFinite(s.paybackMeses)&&s.paybackMeses>(o.prazoFidelidade||12))
-      sl.addText('Atenção: o payback ('+num(s.paybackMeses,1)+' m) é maior que a fidelidade ('+(o.prazoFidelidade||12)+' m) — recupera o CAC depois que o cliente já pode sair.',{x:0.55,y:6.1,w:12.25,h:0.5,fontSize:11,bold:true,color:BAD});})();
-  // 5 — Da audiência ao lucro (cascata)
-  (function(){const sl=head('Da audiência ao lucro','Como o dinheiro se forma, passo a passo (cenário-base)');
-    const neg=(v)=>'−  '+pptBRL(v);
-    const rows=[
-      [{text:'Etapa',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Valor',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}],
-      [{text:'Leads (audiência + mídia + base Nelogica)',options:{color:INK}},{text:num(s.leads),options:{align:'right',color:INK}}],
-      [{text:'Vendas (leads × conversão '+(o.convLista)+'%)',options:{color:INK}},{text:num(s.vendas,1),options:{align:'right',color:INK}}],
-      [{text:'Clientes efetivos (após cancelam. em 7 dias)',options:{color:INK}},{text:num(s.efetivos,1),options:{align:'right',color:INK}}],
-      [{text:'Faturamento potencial (efetivos × '+pptBRL(s.recPorCliente)+'/cliente)',options:{bold:true,color:NAVY}},{text:pptBRL(s.bruto),options:{align:'right',bold:true,color:NAVY}}],
-      [{text:'Custos totais (taxa + base de leads + fixos + imposto)',options:{color:BAD}},{text:neg(s.custosTotais),options:{align:'right',color:BAD}}],
-      [{text:'Lucro líquido',options:{bold:true,color:GOOD}},{text:pptBRL(s.lucro),options:{align:'right',bold:true,color:vcolor(s.lucro)}}],
-      [{text:'Resultado do operador (após recuperar aporte e split)',options:{bold:true,color:NAVY}},{text:pptBRL(d.operadorNet),options:{align:'right',bold:true,color:vcolor(d.operadorNet)}}]
-    ];
-    sl.addTable(rows,{x:0.55,y:1.45,w:12.25,colW:[9.0,3.25],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});})();
-  // 6 — Premissas & transparência
-  (function(){const sl=head('Premissas & transparência','Tudo acima é recalculável a partir destas premissas [D]');
-    const split=(o.partes||[]).map(p=>pptClean(p.nome)+' '+p.pct+'%').join(' · ')||'—';
-    const pr=[
-      ['Ticket médio ponderado',pptBRL(ticketMensalBlend(o))+'/mês'],
-      ['Conversão (lead → venda)',(o.convLista)+'%'],
-      ['Cancelam em 7 dias',(o.cancel7Pct)+'%'],
-      ['Opt-in (audiência → lead)',(o.optinPct)+'%'],
-      ['Mídia paga · CPL',pptBRL(o.verbaTrafego)+'  ·  CPL '+pptBRL(o.cpl)],
-      ['Base Nelogica (Meta, fria)',num(+o.qtdLeadsDB||0)+' pessoas · entrada '+(o.optinBaseDB)+'%'],
-      ['Taxa de plataforma · Imposto',(o.taxaPlataformaPct)+'%  ·  '+(o.impostoPct)+'% (base '+pptClean(o.impostoBase)+')'],
-      ['Revenue share',split+(o.recuperaInvest?'  ·  recupera o aporte antes do split':'')]
-    ].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:String(r[1]),options:{color:INK}}]);
-    sl.addTable(pr,{x:0.55,y:1.45,w:12.25,colW:[4.3,7.95],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.44,valign:'middle'});
-    sl.addText([
-      {text:'Projeção determinística — repete com as mesmas premissas; não é previsão nem promessa.\n',options:{bold:true}},
-      {text:'•  Conversão, cancelamento e captação são premissas a confirmar num lançamento real.\n',options:{}},
-      {text:'•  Faturamento ≠ caixa ≠ lucro ≠ margem: são valores de receita de contrato projetada.\n',options:{}},
-      {text:'•  Renda variável: toda copy e promessa passam pelo jurídico antes de publicar (compliance permanente).\n',options:{}},
-      {text:'•  O resultado só se confirma com um caso piloto real reconciliado (previsto × realizado).',options:{}}
-    ],{x:0.55,y:5.25,w:12.25,h:1.7,fontSize:10.5,color:INK,lineSpacingMultiple:1.18});})();
+      {text:'Projeção determinística — com as mesmas premissas, o resultado se repete. Não é previsão nem promessa.\n\n',options:{bold:true}},
+      {text:'•  Faturamento ≠ caixa ≠ lucro: os valores são receita de contrato projetada, recebida ao longo do período.\n\n',options:{}},
+      {text:'•  A conversão (interessado → cliente) é a maior incerteza — só um lançamento real confirma.\n\n',options:{}},
+      {text:'•  Nenhum número de mercado foi inventado: parte da audiência real e das premissas deste documento.\n\n',options:{}},
+      {text:'•  Renda variável: toda comunicação passa pelo jurídico antes de publicar; nunca se promete ganho.',options:{}}
+    ],{x:0.55,y:1.3,w:12.25,h:5.0,fontSize:13,color:INK,lineSpacingMultiple:1.2});})();
   return X.write({outputType:'blob'});
 }
 async function baixarPPTViab(o){
