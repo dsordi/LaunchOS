@@ -513,12 +513,14 @@
       <a data-view="fase3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>3 · Execução</span></a>
       <div class="sec">Conhecimento</div>
       <a data-view="biblio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5v-13A2.5 2.5 0 0 1 6.5 3z"/><line x1="8" y1="3" x2="8" y2="21"/></svg><span>Fontes &amp; princípios</span></a>
+      <div class="sec">Corretora</div>
+      <a data-view="corretagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="2" y1="13" x2="22" y2="13"/></svg><span>Corretagem</span></a>
     </nav>
     <div class="foot">
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.5 · 2026-11-10
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.6 · 2026-11-10
     </div>
   </aside>
   <section class="content">
@@ -761,7 +763,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Fontes & princípios'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Fontes & princípios',corretagem:'Corretagem (escritório)'};
 // ===== Navegação em 3 fases (consolidação da menu fatigue) — só frontend, não toca engines/features =====
 const PHASES={
   fase1:{label:'1 · Desenho',tools:[['gtm','Diagnóstico (GTM)'],['produtizacao','Produtização']],drawer:[['gerador','Estrutura']]},
@@ -771,7 +773,7 @@ const PHASES={
 const PHASE_ORDER=['fase1','fase2','fase3'];
 function phaseOf(v){return PHASE_ORDER.find(f=>PHASES[f].tools.concat(PHASES[f].drawer).some(t=>t[0]===v))||null;}
 function goView(v){
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='corretagem')viewCorretagem();
   else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();
   else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();
   else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();
@@ -903,6 +905,131 @@ function viewBiblio(){
   <div class="card"><div class="pill-note">Fontes completas (fichas, catálogo, decisões) em <b>biblioteca/</b> no repositório. Livros lidos de primeira mão: Walker, StoryBrand, Marketing 5.0, Kotler & Keller, Pissarra — ver SRC-030 a SRC-034.</div></div>`;
   const fsel=document.getElementById('fontesOppSel');
   if(fsel) fsel.addEventListener('change',()=>{const o=opps.find(x=>x.id===fsel.value)||null; const out=document.getElementById('fontesOppOut'); if(out) out.innerHTML=renderFontesOpp(o);});
+}
+
+/* ===================================================================
+   FEATURE CORRETAGEM — ganho do escritório × remuneração do influenciador.
+   APARTADA do Decisor: só LÊ analyze(o) (clientes efetivos); não altera motor,
+   features, tema. Estado próprio em o.corr (defaults lazy; blankOpp intacto).
+   =================================================================== */
+let corrSel=null;
+function getCorrState(o){
+  if(!o.corr||typeof o.corr!=='object') o.corr={};
+  const c=o.corr, def=(k,v)=>{ if(c[k]===undefined||c[k]===null) c[k]=v; };
+  def('pctAbertura',30);      // % dos clientes efetivos do Decisor que abrem conta [D]
+  def('boletasContaMes','');  // boletas por conta/mês — em branco por escolha do Davi [D]
+  def('corretagemBoleta',1);  // R$ de corretagem bruta por boleta (dado do Davi)
+  def('meses',12);            // período considerado
+  def('modeloRemun','c');     // a | b | c
+  def('fixo',0);              // R$ fixo do influenciador no período
+  def('varAbertura',0);       // R$ por conta aberta
+  def('varGiroPct',0);        // % da corretagem (variável sobre o giro)
+  return c;
+}
+// remuneração do influenciador por modelo (giro em TODOS; fixo em a/c; abertura em b/c)
+function corrRemun(c,contas,corretagemBruta){
+  const m=c.modeloRemun;
+  const fixo=(m==='a'||m==='c')?(+c.fixo||0):0;
+  const abertura=(m==='b'||m==='c')?((+c.varAbertura||0)*contas):0;
+  const giro=((+c.varGiroPct||0)/100)*corretagemBruta;
+  return {fixo,abertura,giro,total:fixo+abertura+giro};
+}
+function corrCenario(o,sc){
+  const c=getCorrState(o);
+  const efetivos=(sc&&sc.efetivos)||0;
+  const contas=efetivos*((+c.pctAbertura||0)/100);
+  const boletas=contas*(+c.boletasContaMes||0)*Math.max(0,+c.meses||0);
+  const corretagemBruta=boletas*(+c.corretagemBoleta||0);
+  const inf=corrRemun(c,contas,corretagemBruta);
+  return {efetivos,contas,boletas,corretagemBruta,inf,escritorioLiq:corretagemBruta-inf.total};
+}
+function corrCalc(o){
+  const a=analyze(o);  // só leitura
+  return {cons:corrCenario(o,a.cons),base:corrCenario(o,a.b),otim:corrCenario(o,a.otim),efetivosBase:a.b.efetivos};
+}
+function renderCorrForm(o){
+  const c=getCorrState(o), m=c.modeloRemun;
+  const inp=(label,key,suf,ph)=>`<div><label>${label}${suf?` <span class="muted" style="font-size:11px">${suf}</span>`:''}</label><input type="number" step="any" data-ck="${key}" value="${c[key]===''||c[key]==null?'':esc(c[key])}" ${ph?`placeholder="${esc(ph)}"`:''}/></div>`;
+  const modelos=[['a','Fixo + variável sobre o giro'],['b','Variável por abertura + variável sobre o giro'],['c','Fixo + abertura + variável sobre o giro']];
+  let remun='';
+  if(m==='a'||m==='c') remun+=inp('Fixo do influenciador','fixo','R$ no período');
+  if(m==='b'||m==='c') remun+=inp('Variável por conta aberta','varAbertura','R$ por conta');
+  remun+=inp('Variável sobre o giro','varGiroPct','% da corretagem');
+  return `<h3 class="grp">Volume de contas e corretagem</h3>
+    <div class="grid">
+      ${inp('% de abertura de conta','pctAbertura','% dos clientes efetivos')}
+      ${inp('Boletas por conta','boletasContaMes','por mês','ex.: 20')}
+      ${inp('Corretagem bruta por boleta','corretagemBoleta','R$ (ex.: 1,00)')}
+      ${inp('Período','meses','meses')}
+    </div>
+    <h3 class="grp">Remuneração do influenciador</h3>
+    <div class="grid">
+      <div><label>Modelo de remuneração</label><select data-ck="modeloRemun">${modelos.map(([v,l])=>`<option value="${v}" ${m===v?'selected':''}>${l}</option>`).join('')}</select></div>
+      ${remun}
+    </div>
+    <div class="pill-note" style="margin-top:8px">Regra de mercado [C]: quanto <b>maior o fixo</b>, menores tendem a ser as variáveis de abertura e de giro na negociação. Os campos são livres — ajuste ao acordo real.</div>`;
+}
+function renderCorrResults(o){
+  const c=getCorrState(o), R=corrCalc(o), b=R.base;
+  if(!(+c.boletasContaMes>0)) return `<p class="hint">Informe as <b>boletas por conta / mês</b> para calcular a corretagem e a remuneração. A base de <b>clientes efetivos</b> (cenário-base, vinda do Decisor) é <b>${num(R.efetivosBase,1)}</b>.</p>`;
+  const kpi=(lab,val,tok)=>`<div class="kpi"><div class="lab">${lab}</div><div class="v"${tok?` style="color:var(--${tok})"`:''}>${val}</div></div>`;
+  const cols=[['Conservador',R.cons],['Base',R.base],['Otimista',R.otim]];
+  const rowt=(lab,fn,bold)=>`<tr><td${bold?' style="font-weight:600"':''}>${lab}</td>${cols.map(([n,x])=>`<td style="text-align:right${bold?';font-weight:600':''}">${fn(x)}</td>`).join('')}</tr>`;
+  return `
+   <div class="kpigrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+     ${kpi('Contas abertas (base)',num(b.contas,1))}
+     ${kpi('Corretagem bruta (período)',brl(b.corretagemBruta))}
+     ${kpi('Remuneração do influenciador',brl(b.inf.total),'accent')}
+     ${kpi('Líquido do escritório',brl(b.escritorioLiq),b.escritorioLiq<0?'bad':'good')}
+   </div>
+   <h3 class="grp" style="margin-top:16px">Três cenários <span style="font-weight:400;text-transform:none;color:var(--faint)">— seguem a conversão do Decisor</span></h3>
+   <table>
+     <tr><th>Linha</th><th style="text-align:right">Conservador</th><th style="text-align:right">Base</th><th style="text-align:right">Otimista</th></tr>
+     ${rowt('Clientes efetivos (Decisor)',x=>num(x.efetivos,1))}
+     ${rowt('Contas abertas',x=>num(x.contas,1))}
+     ${rowt('Boletas no período',x=>num(x.boletas,0))}
+     ${rowt('Corretagem bruta',x=>brl(x.corretagemBruta),true)}
+     ${rowt('− Remuneração do influenciador',x=>brl(x.inf.total))}
+     ${rowt('= Líquido do escritório',x=>brl(x.escritorioLiq),true)}
+   </table>
+   <h3 class="grp" style="margin-top:16px">Como se forma a remuneração do influenciador <span style="font-weight:400;text-transform:none;color:var(--faint)">(cenário-base)</span></h3>
+   <div class="casc">
+     ${b.inf.fixo>0?`<div class="line"><span>Fixo (pelo período)</span><span>${brl(b.inf.fixo)}</span></div>`:''}
+     ${b.inf.abertura>0?`<div class="line"><span>Por abertura de conta (${num(b.contas,1)} contas × ${brl(+c.varAbertura||0)})</span><span>${brl(b.inf.abertura)}</span></div>`:''}
+     <div class="line"><span>Sobre o giro (${num(+c.varGiroPct||0,2)}% da corretagem)</span><span>${brl(b.inf.giro)}</span></div>
+     <div class="line total"><span>Total do influenciador</span><span>${brl(b.inf.total)}</span></div>
+   </div>
+   <div class="disc" style="margin-top:10px">Deriva das <b>vendas do Decisor</b> (clientes efetivos) × <b>% de abertura de conta</b>. Corretagem = contas × boletas/mês × R$/boleta × meses. Tudo é <b>premissa [D]</b>, recalculável — <b>não é promessa</b>: a corretagem depende do <b>giro real</b> dos clientes (renda variável). O líquido do escritório é <b>antes</b> dos custos próprios do escritório e de impostos.</div>`;
+}
+function viewCorretagem(){
+  setActive('corretagem');
+  if(!(opps&&opps.length)){
+    main.innerHTML=`<h1>Corretagem — escritório</h1><p class="sub">Quanto um escritório/corretora pode ganhar de corretagem com as contas que o influenciador traz — e quanto o influenciador recebe.</p><div class="card"><p class="hint">Cadastre uma oportunidade no <b>Decisor</b> primeiro: esta aba deriva das vendas (clientes efetivos) dela.</p></div>`; return;
+  }
+  if(!corrSel||!opps.find(x=>x.id===corrSel)) corrSel=opps[0].id;
+  const render=()=>{
+    const o=opps.find(x=>x.id===corrSel)||opps[0];
+    main.innerHTML=`<h1>Corretagem — escritório</h1><p class="sub">Deriva das vendas do <b>Decisor</b> um potencial de <b>corretagem</b> para o escritório e a <b>remuneração do influenciador</b>. É apartada do Decisor — aqui não se altera a viabilidade do lançamento.</p>
+      <div class="card"><h2>Parâmetros <span class="tag">tudo editável · [D]</span></h2>
+        <div style="max-width:460px;margin-bottom:12px"><label>Oportunidade (origem das vendas)</label><select id="corrOppSel">${opps.map(x=>`<option value="${esc(x.id)}" ${x.id===corrSel?'selected':''}>${esc(x.produtoNome||x.nome||'(sem nome)')}</option>`).join('')}</select></div>
+        ${renderCorrForm(o)}
+      </div>
+      <div class="card"><h2>Projeção de corretagem <span class="tag">escritório × influenciador</span></h2><div id="corrOut">${renderCorrResults(o)}</div></div>
+      <div class="card"><div class="pill-note">⚖️ <b>Renda variável:</b> a corretagem depende do giro real e varia; <b>nada aqui é promessa de ganho</b>. Os números são premissas <b>[D]</b> que você edita. O cálculo <b>não</b> interfere na viabilidade do lançamento (Decisor) — é uma leitura paralela para o lado do escritório.</div></div>`;
+    const sel=document.getElementById('corrOppSel');
+    if(sel) sel.addEventListener('change',()=>{corrSel=sel.value; render();});
+    main.querySelectorAll('[data-ck]').forEach(el=>{
+      const ev=el.tagName==='SELECT'?'change':'input';
+      el.addEventListener(ev,()=>{
+        const oo=opps.find(x=>x.id===corrSel)||opps[0], cc=getCorrState(oo), k=el.dataset.ck;
+        cc[k]=(el.type==='number')?(el.value===''?'':parseFloat(el.value)):el.value;
+        save(opps);
+        if(k==='modeloRemun'){ render(); }
+        else { const out=document.getElementById('corrOut'); if(out) out.innerHTML=renderCorrResults(oo); }
+      });
+    });
+  };
+  render();
 }
 
 function field(o,label,key,opts={}){
