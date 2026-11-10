@@ -518,7 +518,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.4 · 2026-11-06
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.5 · 2026-11-10
     </div>
   </aside>
   <section class="content">
@@ -2716,7 +2716,7 @@ function gerarPPTViab(o){
   const vCor={good:GOOD,warn:WARN,bad:BAD}[a.vclass]||MUT;
   const vcolor=(n)=>n<0?BAD:GOOD;
   const modLabel=pptClean((MODALIDADE[o.modalidadeProduto]||MODALIDADE.operacao).label);
-  const traf=(+o.verbaTrafego||0),extra=(+o.investExtra||0),aporte=traf+extra,recupera=!!o.recuperaInvest;
+  const traf=(+o.verbaTrafego||0),prod=(+o.producao||0),ferr=(+o.ferramentas||0),outros=(+o.outrosFixos||0),leadsCost=(+s.leadsDBCost||0);
   const partes=o.partes||[];
   const opNome=pptClean((partes[d.opIdx]&&partes[d.opIdx].nome)||'Operador');
   const papel=(i)=>i===d.opIdx?'Investe e assume o risco':'Parceiro';
@@ -2743,33 +2743,35 @@ function gerarPPTViab(o){
       ['Produto',(pptClean(o.produtoNome)||'—')+(modLabel?('  ·  '+modLabel):'')],
       ['Público-alvo',pptClean(o.nicho)||'—'],
       ['Audiência que a comunicação alcança',num(alc)+' pessoas'],
-      ['Ticket médio',pptBRL(ticketMensalBlend(o))+'/mês  ·  fidelidade '+(o.prazoFidelidade||12)+' meses'],
       ['Conversão esperada (interessado → cliente)',(o.convLista)+'%'],
-      ['Cancelamento nos primeiros 7 dias',(o.cancel7Pct)+'%'],
+      ['Cancelamento nos primeiros 7 dias',(o.cancel7Pct)+'%  ·  fidelidade '+(o.prazoFidelidade||12)+' meses'],
       ['Investimento em mídia',pptBRL(traf)+'  ·  custo por lead '+pptBRL(o.cpl)],
       ['Impostos e taxas',(o.impostoPct)+'% de imposto  ·  '+(o.taxaPlataformaPct)+'% de plataforma']
     ].map(r=>[{text:r[0],options:{bold:true,color:NAVY}},{text:String(r[1]),options:{color:INK}}]);
-    sl.addTable(pr,{x:0.55,y:1.45,w:12.25,colW:[5.0,7.25],fontSize:13,border:{type:'solid',color:LINE,pt:0.5},rowH:0.58,valign:'middle'});})();
+    sl.addTable(pr,{x:0.55,y:1.4,w:12.25,colW:[5.0,7.25],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.44,valign:'middle'});
+    const pl=getPlanos(o), totMix=pl.reduce((a,p)=>a+(+p.mix||0),0)||1;
+    sl.addText('Planos comercializados e proporção de vendas',{x:0.55,y:4.62,w:12.25,h:0.3,fontSize:13,bold:true,color:NAVY});
+    const ph=[{text:'Plano',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Duração',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}},{text:'Preço',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}},{text:'Proporção das vendas',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}];
+    const prows=[ph].concat(pl.map(p=>[{text:pptClean(p.nome)||'Plano',options:{bold:true,color:NAVY}},{text:(m=>m+(m===1?' mês':' meses'))(Math.max(1,Math.round(+p.meses||0))),options:{align:'right',color:INK}},{text:pptBRL(p.ticketMensal)+'/mês',options:{align:'right',color:INK}},{text:num(100*(+p.mix||0)/totMix,0)+'%',options:{align:'right',bold:true,color:ACC}}]));
+    sl.addTable(prows,{x:0.55,y:4.96,w:12.25,colW:[5.0,2.4,2.6,2.25],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.42,valign:'middle'});})();
   // 3 — O acordo (revenue share: aportes recuperados + divisão)
   (function(){const sl=head('O acordo — investimento e divisão do resultado','Quem coloca o dinheiro, quanto aporta e assume o risco, e como o lucro é repartido');
     sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.4,w:12.25,h:0.95,fill:{color:SOFT},line:{color:LINE,width:1},rectRadius:0.06});
     sl.addText([{text:'A '+opNome+' faz o investimento e assume o risco. ',options:{bold:true,color:NAVY}},{text:'Se o lançamento der prejuízo, o(s) parceiro(s) ficam em zero e a '+opNome+' absorve a perda.',options:{color:INK}}],{x:0.75,y:1.5,w:11.85,h:0.75,fontSize:13,valign:'middle'});
-    sl.addText('O que a '+opNome+' aporta',{x:0.55,y:2.72,w:6.0,h:0.35,fontSize:13,bold:true,color:NAVY});
-    if(recupera){const ar=[
-      [{text:'Mídia / tráfego',options:{color:INK}},{text:pptBRL(traf),options:{align:'right',color:INK}}],
-      [{text:'Outros aportes',options:{color:INK}},{text:pptBRL(extra),options:{align:'right',color:INK}}],
-      [{text:'Total aportado',options:{bold:true,color:NAVY}},{text:pptBRL(aporte),options:{align:'right',bold:true,color:NAVY}}]];
-      sl.addTable(ar,{x:0.55,y:3.12,w:6.0,colW:[3.9,2.1],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.55,valign:'middle'});
-    } else { sl.addText('A '+opNome+' não registra aporte a recuperar.',{x:0.55,y:3.12,w:6.0,h:1.2,fontSize:12,color:INK}); }
+    sl.addText('O que a '+opNome+' investe',{x:0.55,y:2.72,w:6.0,h:0.35,fontSize:13,bold:true,color:NAVY});
+    const invRows=[['Mídia / tráfego',traf],['Produção do produto',prod],['Ferramentas',ferr],['Outros custos fixos',outros],['Mídia na base Nelogica',leadsCost]].filter(r=>r[1]>0);
+    const ar=invRows.map(r=>[{text:r[0],options:{color:INK}},{text:pptBRL(r[1]),options:{align:'right',color:INK}}]);
+    ar.push([{text:'Total investido',options:{bold:true,color:NAVY}},{text:pptBRL(investTot),options:{align:'right',bold:true,color:NAVY}}]);
+    sl.addTable(ar,{x:0.55,y:3.12,w:6.0,colW:[3.9,2.1],fontSize:12.5,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});
     sl.addText('Divisão do lucro líquido',{x:6.85,y:2.72,w:5.95,h:0.35,fontSize:13,bold:true,color:NAVY});
     const pr=[[{text:'Parte',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Papel',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'%',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}]].concat(partes.map((p,i)=>[{text:pptClean(p.nome)||'—',options:{bold:true,color:NAVY}},{text:papel(i),options:{color:MUT}},{text:(p.pct)+'%',options:{align:'right',color:INK}}]));
     sl.addTable(pr,{x:6.85,y:3.12,w:5.95,colW:[2.5,2.3,1.15],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});
-    sl.addText('O lucro líquido já desconta a mídia e os custos; a '+opNome+' assume o risco. Valores por parte no próximo slide.',{x:0.55,y:6.4,w:12.25,h:0.3,fontSize:10,italic:true,color:MUT});})();
+    sl.addText('O lucro líquido já desconta a mídia, a produção e os demais custos; a '+opNome+' assume o risco. Valores por parte no próximo slide.',{x:0.55,y:6.4,w:12.25,h:0.3,fontSize:10,italic:true,color:MUT});})();
   // 4 — A projeção: resultado esperado (cenário-base) + quanto cada parte recebe
   (function(){const sl=head('A projeção — resultado esperado','Cenário-base · receita de contrato ao longo do período (não é caixa imediato)');
     sl.addShape(X.ShapeType.roundRect,{x:0.55,y:1.35,w:12.25,h:1.0,fill:{color:vCor},rectRadius:0.07});
     sl.addText([{text:vSimples+'.  ',options:{bold:true,fontSize:17}},{text:pptClean(a.vmsg),options:{fontSize:12}}],{x:0.8,y:1.42,w:11.75,h:0.86,color:'FFFFFF',valign:'middle'});
-    const k=[['Faturamento potencial',pptBRL(s.bruto),NAVY],['Lucro líquido',pptBRL(s.lucro),vcolor(s.lucro)],['Recupera o aporte em',rt.invest<=0?'—':(rt.recuperado?num(rt.recMonth,1)+' meses':'não recupera')]];
+    const k=[['Faturamento potencial',pptBRL(s.bruto),NAVY],['Investimento total',pptBRL(investTot),NAVY],['Lucro líquido',pptBRL(s.lucro),vcolor(s.lucro)]];
     k.forEach((it,i)=>kbox(sl,0.55+i*4.12,2.6,3.9,it[0],it[1],it[2]));
     sl.addText('Quanto cada parte recebe (cenário-base)',{x:0.55,y:4.35,w:12.25,h:0.35,fontSize:13,bold:true,color:NAVY});
     const pr=[[{text:'Parte',options:{bold:true,fill:{color:NAVY},color:'FFFFFF'}},{text:'Participação',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'center'}},{text:'Recebe (R$)',options:{bold:true,fill:{color:NAVY},color:'FFFFFF',align:'right'}}]].concat(partes.map((p,i)=>[{text:(pptClean(p.nome)||'—')+(i===d.opIdx?' (investe e assume o risco)':''),options:{bold:true,color:NAVY}},{text:(p.pct)+'%',options:{align:'center',color:INK}},{text:pptBRL(d.nets[i]),options:{align:'right',bold:true,color:vcolor(d.nets[i])}}]));
@@ -2781,8 +2783,7 @@ function gerarPPTViab(o){
     const row=(lab,fn,bold)=>[{text:lab,options:{bold:!!bold,color:NAVY}}].concat(cols.map(c=>({text:fn(c[1],c[2]),options:{align:'right',color:INK,bold:!!bold}})));
     const rows=[H,row('Faturamento potencial',(sc)=>pptBRL(sc.bruto)),row('Lucro líquido',(sc)=>pptBRL(sc.lucro),true)];
     partes.forEach((p,i)=>rows.push(row((pptClean(p.nome)||'Parte')+' recebe',(sc,dd)=>pptBRL(dd.nets[i]))));
-    rows.push(row('Recupera o aporte em (meses)',(sc)=>{const rr=recoveryTimeline(o,sc);return rr.invest<=0?'—':(rr.recuperado?num(rr.recMonth,1):'n/d');}));
-    sl.addTable(rows,{x:0.55,y:1.45,w:12.25,colW:[4.25,2.67,2.67,2.66],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.46,valign:'middle'});
+    sl.addTable(rows,{x:0.55,y:1.45,w:12.25,colW:[4.25,2.67,2.67,2.66],fontSize:12,border:{type:'solid',color:LINE,pt:0.5},rowH:0.5,valign:'middle'});
     const chartY=1.5+rows.length*0.46+0.3, chartH=Math.min(2.5,6.7-chartY);
     if(chartH>1.1){try{sl.addChart(X.ChartType.bar,[{name:'Lucro líquido',labels:cols.map(c=>c[0]),values:cols.map(c=>Math.round(c[1].lucro))}],{x:2.6,y:chartY,w:8.1,h:chartH,barDir:'col',showLegend:false,showValue:true,chartColors:[ACC],dataLabelColor:NAVY,dataLabelFontSize:11,catAxisLabelColor:MUT,valAxisHidden:true});}catch(ec){}}})();
   // 6 — Como ler estes números (transparência, linguagem simples)
