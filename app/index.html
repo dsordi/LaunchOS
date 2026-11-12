@@ -522,7 +522,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.8 · 2026-11-12
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.9 · 2026-11-12
     </div>
   </aside>
   <section class="content">
@@ -4341,6 +4341,8 @@ function bootApp(){ if(opps.length===0) _seedExemplo(); viewDashboard(); }
    ============================================================ */
 function lxLoadScript(src, ok, fail){ try{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=(fail||ok); document.head.appendChild(s); }catch(e){ (fail||ok)(); } }
 function lxAudit(event, detail){ try{ const sb=window.__lxSB, u=window.__lxUser; if(sb&&u) sb.from('audit_events').insert({user_id:u.id,event:event,detail:detail||null}).then(()=>{},()=>{}); }catch(e){} }
+// blindagem: normaliza uma oportunidade vinda do servidor contra o padrão (blankOpp), garantindo os arrays críticos — um registro corrompido nunca derruba a tela.
+function lxNormOpp(o){ try{ const base=blankOpp(); const m=Object.assign({},base,(o&&typeof o==='object')?o:{}); if(!Array.isArray(m.partes)) m.partes=base.partes; if(!Array.isArray(m.redes)) m.redes=base.redes; if(m.planos!=null&&!Array.isArray(m.planos)) m.planos=null; if(m.plano!=null&&!Array.isArray(m.plano)) m.plano=null; return m; }catch(e){ return (o&&typeof o==='object')?o:blankOpp(); } }
 function lxExternalAccess(done){
   function afterCfg(){
     const CFG=window.LAUNCHOS_CFG;
@@ -4364,7 +4366,7 @@ async function lxOnAuthed(sb, session, done){
        if(data){ if(data.active===false){ try{await sb.auth.signOut();}catch(e){} lxRenderLogin(sb,'Seu acesso foi desativado.'); return; } role=data.role||'user'; } }catch(e){}
   window.__lxUser=user; window.__lxRole=role; window.__lxSB=sb;
   // hidrata as oportunidades do usuário a partir do servidor
-  try{ const {data}=await sb.from('user_state').select('opps').eq('user_id',user.id).single(); if(data&&Array.isArray(data.opps)) opps=data.opps; }catch(e){}
+  try{ const {data}=await sb.from('user_state').select('opps').eq('user_id',user.id).single(); if(data&&Array.isArray(data.opps)) opps=data.opps.filter(x=>x&&typeof x==='object').map(lxNormOpp); }catch(e){}
   // liga a sincronização: a partir daqui, todo save() também grava no servidor (debounce)
   let _t=null; window.__lxSync=function(arr){ clearTimeout(_t); _t=setTimeout(()=>{ try{ sb.from('user_state').upsert({user_id:user.id,opps:arr,updated_at:new Date().toISOString()}).then(()=>{},()=>{}); }catch(e){} }, 600); };
   lxAudit('login');
