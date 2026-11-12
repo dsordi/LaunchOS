@@ -522,7 +522,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.11 · 2026-11-12
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.12 · 2026-11-12
     </div>
   </aside>
   <section class="content">
@@ -4387,7 +4387,10 @@ function lxRenderLogin(sb, msg){
     <input id="lxPass" type="password" autocomplete="current-password" placeholder="sua senha" style="width:100%;margin:5px 0 14px;padding:10px 12px;border-radius:8px;border:1px solid var(--line2,#2E4A70);background:var(--input-bg,#0C2038);color:var(--ink,#EAF1FB);font-size:14px"/>
     <button id="lxGo" style="width:100%;padding:11px;border:0;border-radius:8px;background:var(--accent,#F2913E);color:#17130D;font-weight:600;font-size:14px;cursor:pointer">Entrar</button>
     <div id="lxMsg" style="font-size:12.5px;color:var(--muted,#9FB2CC);margin-top:12px;text-align:center;line-height:1.4"></div>
-    <div style="margin-top:14px;text-align:center"><button id="lxOtp" style="background:none;border:0;color:var(--muted,#9FB2CC);font-size:12px;cursor:pointer;text-decoration:underline">Entrar por link no e-mail</button></div>
+    <div style="margin-top:14px;text-align:center;display:flex;flex-direction:column;gap:9px">
+      <button id="lxSignup" style="background:none;border:0;color:var(--accent,#F2913E);font-size:12.5px;font-weight:600;cursor:pointer">Primeiro acesso? Criar minha conta</button>
+      <button id="lxOtp" style="background:none;border:0;color:var(--muted,#9FB2CC);font-size:12px;cursor:pointer;text-decoration:underline">Entrar por link no e-mail</button>
+    </div>
     <div style="font-size:11px;color:var(--faint,#64789A);margin-top:16px;text-align:center">Acesso individual e auditado. Renda variável: a plataforma não promete ganho.</div>
   </div>`;
   document.body.appendChild(el);
@@ -4398,7 +4401,11 @@ function lxRenderLogin(sb, msg){
   const linkEmail=async()=>{ const e=(email.value||'').trim(); if(!/.+@.+\..+/.test(e)){ out.textContent='Digite seu e-mail primeiro.'; return; } out.textContent='Enviando link…';
     try{ const {error}=await sb.auth.signInWithOtp({email:e, options:{emailRedirectTo:location.href}}); out.textContent = error ? ('Não consegui enviar: '+error.message) : 'Se o e-mail chegar, abra o link neste dispositivo (pode demorar — prefira a senha).'; }
     catch(err){ out.textContent='Erro ao enviar o link.'; } };
-  go.onclick=entrar; otp.onclick=linkEmail;
+  const signup=el.querySelector('#lxSignup');
+  const criar=async()=>{ const e=(email.value||'').trim(), pw=pass.value||''; if(!/.+@.+\..+/.test(e)){ out.textContent='Digite um e-mail válido.'; return; } if(pw.length<6){ out.textContent='Crie uma senha de pelo menos 6 caracteres.'; return; } out.textContent='Criando conta…';
+    try{ const {data,error}=await sb.auth.signUp({email:e,password:pw}); if(error){ out.textContent=/registered|already/i.test(error.message)?'Esse e-mail já tem conta — use Entrar.':('Erro: '+error.message); } else if(!(data&&data.session)){ out.textContent='Conta criada. Acesso aguardando confirmação por e-mail — peça ao administrador para liberar.'; } }
+    catch(err){ out.textContent='Erro ao criar a conta.'; } };
+  go.onclick=entrar; otp.onclick=linkEmail; signup.onclick=criar;
   pass.addEventListener('keydown',ev=>{ if(ev.key==='Enter') entrar(); });
   email.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ if(pass.value) entrar(); else pass.focus(); } });
 }
