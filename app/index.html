@@ -522,7 +522,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.10 · 2026-11-12
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.11 · 2026-11-12
     </div>
   </aside>
   <section class="content">
@@ -4379,20 +4379,28 @@ function lxRenderLogin(sb, msg){
   el.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg,#0A1A30);padding:24px';
   el.innerHTML=`<div style="width:100%;max-width:380px;background:var(--surface,#102542);border:1px solid var(--line,#223A5C);border-radius:14px;padding:28px 26px;box-shadow:0 12px 44px rgba(0,0,0,.45)">
     <div style="font-family:var(--fhead,sans-serif);font-weight:600;font-size:22px;color:var(--ink,#EAF1FB);letter-spacing:-.02em">LaunchOS</div>
-    <div style="color:var(--muted,#9FB2CC);font-size:13px;margin:4px 0 20px">Acesso à plataforma — entre com seu e-mail.</div>
+    <div style="color:var(--muted,#9FB2CC);font-size:13px;margin:4px 0 20px">Acesso à plataforma.</div>
     ${msg?`<div style="background:var(--bad-bg,rgba(232,110,105,.16));color:var(--bad,#F08A82);border-radius:8px;padding:8px 10px;font-size:12.5px;margin-bottom:12px">${esc(msg)}</div>`:''}
     <label style="font-size:11.5px;color:var(--muted,#9FB2CC)">E-mail</label>
-    <input id="lxEmail" type="email" autocomplete="email" placeholder="voce@empresa.com" style="width:100%;margin:5px 0 14px;padding:10px 12px;border-radius:8px;border:1px solid var(--line2,#2E4A70);background:var(--input-bg,#0C2038);color:var(--ink,#EAF1FB);font-size:14px"/>
-    <button id="lxGo" style="width:100%;padding:11px;border:0;border-radius:8px;background:var(--accent,#F2913E);color:#17130D;font-weight:600;font-size:14px;cursor:pointer">Receber link de acesso</button>
+    <input id="lxEmail" type="email" autocomplete="email" placeholder="voce@empresa.com" style="width:100%;margin:5px 0 12px;padding:10px 12px;border-radius:8px;border:1px solid var(--line2,#2E4A70);background:var(--input-bg,#0C2038);color:var(--ink,#EAF1FB);font-size:14px"/>
+    <label style="font-size:11.5px;color:var(--muted,#9FB2CC)">Senha</label>
+    <input id="lxPass" type="password" autocomplete="current-password" placeholder="sua senha" style="width:100%;margin:5px 0 14px;padding:10px 12px;border-radius:8px;border:1px solid var(--line2,#2E4A70);background:var(--input-bg,#0C2038);color:var(--ink,#EAF1FB);font-size:14px"/>
+    <button id="lxGo" style="width:100%;padding:11px;border:0;border-radius:8px;background:var(--accent,#F2913E);color:#17130D;font-weight:600;font-size:14px;cursor:pointer">Entrar</button>
     <div id="lxMsg" style="font-size:12.5px;color:var(--muted,#9FB2CC);margin-top:12px;text-align:center;line-height:1.4"></div>
+    <div style="margin-top:14px;text-align:center"><button id="lxOtp" style="background:none;border:0;color:var(--muted,#9FB2CC);font-size:12px;cursor:pointer;text-decoration:underline">Entrar por link no e-mail</button></div>
     <div style="font-size:11px;color:var(--faint,#64789A);margin-top:16px;text-align:center">Acesso individual e auditado. Renda variável: a plataforma não promete ganho.</div>
   </div>`;
   document.body.appendChild(el);
-  const go=el.querySelector('#lxGo'), email=el.querySelector('#lxEmail'), out=el.querySelector('#lxMsg');
-  const submit=async()=>{ const e=(email.value||'').trim(); if(!/.+@.+\..+/.test(e)){ out.textContent='Digite um e-mail válido.'; return; } go.disabled=true; out.textContent='Enviando…';
-    try{ const {error}=await sb.auth.signInWithOtp({email:e, options:{emailRedirectTo:location.href}}); out.textContent = error ? ('Não consegui enviar: '+error.message) : 'Pronto! Enviamos um link de acesso para o seu e-mail. Abra-o neste mesmo dispositivo.'; }
-    catch(err){ out.textContent='Erro ao enviar o link.'; } go.disabled=false; };
-  go.onclick=submit; email.addEventListener('keydown',ev=>{ if(ev.key==='Enter') submit(); });
+  const go=el.querySelector('#lxGo'), email=el.querySelector('#lxEmail'), pass=el.querySelector('#lxPass'), out=el.querySelector('#lxMsg'), otp=el.querySelector('#lxOtp');
+  const entrar=async()=>{ const e=(email.value||'').trim(), pw=pass.value||''; if(!/.+@.+\..+/.test(e)){ out.textContent='Digite um e-mail válido.'; return; } if(!pw){ out.textContent='Digite a senha.'; return; } go.disabled=true; out.textContent='Entrando…';
+    try{ const {error}=await sb.auth.signInWithPassword({email:e,password:pw}); if(error) out.textContent=/invalid login/i.test(error.message)?'E-mail ou senha incorretos.':('Erro: '+error.message); }
+    catch(err){ out.textContent='Erro ao entrar.'; } go.disabled=false; };
+  const linkEmail=async()=>{ const e=(email.value||'').trim(); if(!/.+@.+\..+/.test(e)){ out.textContent='Digite seu e-mail primeiro.'; return; } out.textContent='Enviando link…';
+    try{ const {error}=await sb.auth.signInWithOtp({email:e, options:{emailRedirectTo:location.href}}); out.textContent = error ? ('Não consegui enviar: '+error.message) : 'Se o e-mail chegar, abra o link neste dispositivo (pode demorar — prefira a senha).'; }
+    catch(err){ out.textContent='Erro ao enviar o link.'; } };
+  go.onclick=entrar; otp.onclick=linkEmail;
+  pass.addEventListener('keydown',ev=>{ if(ev.key==='Enter') entrar(); });
+  email.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ if(pass.value) entrar(); else pass.focus(); } });
 }
 function lxAddAuthUI(sb, user, role){
   let bar=document.getElementById('lxBar'); if(bar) bar.remove();
