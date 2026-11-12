@@ -520,7 +520,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.6 · 2026-11-10
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.7 · 2026-11-12
     </div>
   </aside>
   <section class="content">
@@ -542,7 +542,9 @@
 /* ---------------- storage ---------------- */
 const KEY='launchos_opps_v2';
 const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}};
-const save=(a)=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
+const _saveLocal=(a)=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
+// save mantém o cache local E, quando há sessão de acesso externo, sincroniza no servidor (gancho __lxSync).
+const save=(a)=>{ _saveLocal(a); try{ if(typeof window.__lxSync==='function') window.__lxSync(a); }catch(e){} };
 let opps=load();
 let current=null;
 
@@ -4098,7 +4100,7 @@ function syncCleanBtn(){ if(cleanBtn){ cleanBtn.classList.toggle('on',_cleanMode
 if(cleanBtn){ syncCleanBtn(); cleanBtn.onclick=()=>{ _cleanMode=!_cleanMode; try{localStorage.setItem('launchos_clean',_cleanMode?'1':'0')}catch(e){} syncCleanBtn(); applyCleanState(); }; }
 
 /* ---------------- seed de exemplo (TESTE, apagável) ---------------- */
-if(opps.length===0){
+function _seedExemplo(){
   const ex=blankOpp();
   ex.nome='EXEMPLO (TESTE) — apague quando quiser';
   ex.nicho='trader / mercado financeiro · demonstração';
@@ -4114,7 +4116,98 @@ if(opps.length===0){
   ex.status='exemplo';
   opps=[ex];save(opps);
 }
-viewDashboard();
+function bootApp(){ if(opps.length===0) _seedExemplo(); viewDashboard(); }
+
+/* ============================================================
+   ACESSO EXTERNO (login + sync no servidor + painel master).
+   ISOLADO e OPCIONAL: ativa só FORA do runtime de Artifact (ex.: Cloudflare Pages)
+   e apenas quando existe config.js com Supabase. Dentro do Artifact do claude.ai,
+   roda o modo local (localStorage) exatamente como antes. Não toca o motor.
+   ============================================================ */
+function lxLoadScript(src, ok, fail){ try{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=(fail||ok); document.head.appendChild(s); }catch(e){ (fail||ok)(); } }
+function lxAudit(event, detail){ try{ const sb=window.__lxSB, u=window.__lxUser; if(sb&&u) sb.from('audit_events').insert({user_id:u.id,event:event,detail:detail||null}).then(()=>{},()=>{}); }catch(e){} }
+function lxExternalAccess(done){
+  function afterCfg(){
+    const CFG=window.LAUNCHOS_CFG;
+    if(!(CFG&&CFG.url&&CFG.anonKey)){ done(); return; }   // sem backend configurado → modo local
+    lxLoadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',
+      ()=>{ try{ if(window.supabase&&window.supabase.createClient) lxAuthInit(CFG,done); else done(); }catch(e){ done(); } },
+      ()=>{ done(); });
+  }
+  lxLoadScript('config.js', afterCfg, afterCfg);          // sucesso ou 404 → segue (404 só aparece fora do Artifact)
+}
+async function lxAuthInit(CFG, done){
+  const sb = window.__lxSB = window.supabase.createClient(CFG.url, CFG.anonKey);
+  sb.auth.onAuthStateChange((_e, sess)=>{ if(sess && document.getElementById('lxLogin')){ const el=document.getElementById('lxLogin'); if(el) el.remove(); lxOnAuthed(sb, sess, done); } });
+  let session=null; try{ session=(await sb.auth.getSession()).data.session; }catch(e){}
+  if(!session){ lxRenderLogin(sb); return; }
+  await lxOnAuthed(sb, session, done);
+}
+async function lxOnAuthed(sb, session, done){
+  const user=session.user; let role='user';
+  try{ const {data}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
+       if(data){ if(data.active===false){ try{await sb.auth.signOut();}catch(e){} lxRenderLogin(sb,'Seu acesso foi desativado.'); return; } role=data.role||'user'; } }catch(e){}
+  window.__lxUser=user; window.__lxRole=role; window.__lxSB=sb;
+  // hidrata as oportunidades do usuário a partir do servidor
+  try{ const {data}=await sb.from('user_state').select('opps').eq('user_id',user.id).single(); if(data&&Array.isArray(data.opps)) opps=data.opps; }catch(e){}
+  // liga a sincronização: a partir daqui, todo save() também grava no servidor (debounce)
+  let _t=null; window.__lxSync=function(arr){ clearTimeout(_t); _t=setTimeout(()=>{ try{ sb.from('user_state').upsert({user_id:user.id,opps:arr,updated_at:new Date().toISOString()}).then(()=>{},()=>{}); }catch(e){} }, 600); };
+  lxAudit('login');
+  lxAddAuthUI(sb, user, role);
+  done();
+}
+function lxRenderLogin(sb, msg){
+  let el=document.getElementById('lxLogin'); if(el) el.remove();
+  el=document.createElement('div'); el.id='lxLogin';
+  el.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg,#0A1A30);padding:24px';
+  el.innerHTML=`<div style="width:100%;max-width:380px;background:var(--surface,#102542);border:1px solid var(--line,#223A5C);border-radius:14px;padding:28px 26px;box-shadow:0 12px 44px rgba(0,0,0,.45)">
+    <div style="font-family:var(--fhead,sans-serif);font-weight:600;font-size:22px;color:var(--ink,#EAF1FB);letter-spacing:-.02em">LaunchOS</div>
+    <div style="color:var(--muted,#9FB2CC);font-size:13px;margin:4px 0 20px">Acesso à plataforma — entre com seu e-mail.</div>
+    ${msg?`<div style="background:var(--bad-bg,rgba(232,110,105,.16));color:var(--bad,#F08A82);border-radius:8px;padding:8px 10px;font-size:12.5px;margin-bottom:12px">${esc(msg)}</div>`:''}
+    <label style="font-size:11.5px;color:var(--muted,#9FB2CC)">E-mail</label>
+    <input id="lxEmail" type="email" autocomplete="email" placeholder="voce@empresa.com" style="width:100%;margin:5px 0 14px;padding:10px 12px;border-radius:8px;border:1px solid var(--line2,#2E4A70);background:var(--input-bg,#0C2038);color:var(--ink,#EAF1FB);font-size:14px"/>
+    <button id="lxGo" style="width:100%;padding:11px;border:0;border-radius:8px;background:var(--accent,#F2913E);color:#17130D;font-weight:600;font-size:14px;cursor:pointer">Receber link de acesso</button>
+    <div id="lxMsg" style="font-size:12.5px;color:var(--muted,#9FB2CC);margin-top:12px;text-align:center;line-height:1.4"></div>
+    <div style="font-size:11px;color:var(--faint,#64789A);margin-top:16px;text-align:center">Acesso individual e auditado. Renda variável: a plataforma não promete ganho.</div>
+  </div>`;
+  document.body.appendChild(el);
+  const go=el.querySelector('#lxGo'), email=el.querySelector('#lxEmail'), out=el.querySelector('#lxMsg');
+  const submit=async()=>{ const e=(email.value||'').trim(); if(!/.+@.+\..+/.test(e)){ out.textContent='Digite um e-mail válido.'; return; } go.disabled=true; out.textContent='Enviando…';
+    try{ const {error}=await sb.auth.signInWithOtp({email:e, options:{emailRedirectTo:location.href}}); out.textContent = error ? ('Não consegui enviar: '+error.message) : 'Pronto! Enviamos um link de acesso para o seu e-mail. Abra-o neste mesmo dispositivo.'; }
+    catch(err){ out.textContent='Erro ao enviar o link.'; } go.disabled=false; };
+  go.onclick=submit; email.addEventListener('keydown',ev=>{ if(ev.key==='Enter') submit(); });
+}
+function lxAddAuthUI(sb, user, role){
+  let bar=document.getElementById('lxBar'); if(bar) bar.remove();
+  bar=document.createElement('div'); bar.id='lxBar';
+  bar.style.cssText='position:fixed;bottom:14px;right:14px;z-index:9000;display:flex;gap:8px;align-items:center;background:var(--surface,#102542);border:1px solid var(--line,#223A5C);border-radius:999px;padding:6px 8px 6px 12px;font-size:12px;color:var(--muted,#9FB2CC);box-shadow:0 6px 22px rgba(0,0,0,.35)';
+  const who = role==='super_admin'?'Master':'Trial';
+  bar.innerHTML=`<span style="font-weight:600;color:var(--ink,#EAF1FB)">${who}</span><span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(user.email||'')}</span>${role==='super_admin'?'<button id="lxMaster" style="border:1px solid var(--line2,#2E4A70);background:transparent;color:var(--ink,#EAF1FB);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:12px">Painel master</button>':''}<button id="lxOut" style="border:1px solid var(--line2,#2E4A70);background:transparent;color:var(--muted,#9FB2CC);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:12px">Sair</button>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#lxOut').onclick=async()=>{ try{ lxAudit('logout'); await sb.auth.signOut(); }catch(e){} location.reload(); };
+  const mb=bar.querySelector('#lxMaster'); if(mb) mb.onclick=()=>lxRenderMaster(sb);
+}
+async function lxRenderMaster(sb){
+  const main=document.getElementById('main'); if(!main) return; lxAudit('view_master');
+  main.innerHTML='<h1>Painel master</h1><p class="sub">Usuários, dados e atividade (somente leitura).</p><div class="card"><p class="hint">Carregando…</p></div>';
+  try{
+    const prof=await sb.from('profiles').select('id,email,role,active,created_at').order('created_at',{ascending:false});
+    const states=await sb.from('user_state').select('user_id,opps,updated_at');
+    const audit=await sb.from('audit_events').select('user_id,event,detail,created_at').order('created_at',{ascending:false}).limit(120);
+    const cnt={}; (states.data||[]).forEach(s=>{ cnt[s.user_id]=Array.isArray(s.opps)?s.opps.length:0; });
+    const emailOf={}; (prof.data||[]).forEach(p=>emailOf[p.id]=p.email||p.id);
+    const rows=(prof.data||[]).map(p=>`<tr><td><b>${esc(p.email||'')}</b></td><td>${esc(p.role)}</td><td>${p.active?'ativo':'<span style="color:var(--bad)">inativo</span>'}</td><td style="text-align:right">${cnt[p.id]||0}</td><td>${p.created_at?new Date(p.created_at).toLocaleDateString('pt-BR'):''}</td></tr>`).join('');
+    const ev=(audit.data||[]).map(a=>`<tr><td style="white-space:nowrap">${a.created_at?new Date(a.created_at).toLocaleString('pt-BR'):''}</td><td>${esc(emailOf[a.user_id]||'—')}</td><td><b>${esc(a.event)}</b></td></tr>`).join('');
+    main.innerHTML=`<h1>Painel master</h1><p class="sub">Usuários, dados e atividade (somente leitura).</p>
+      <div class="card"><h2>Usuários</h2><table><tr><th>E-mail</th><th>Papel</th><th>Status</th><th style="text-align:right">Oportunidades</th><th>Desde</th></tr>${rows||'<tr><td colspan="5" class="muted">sem usuários</td></tr>'}</table></div>
+      <div class="card"><h2>Atividade recente</h2><table><tr><th>Quando</th><th>Usuário</th><th>Evento</th></tr>${ev||'<tr><td colspan="3" class="muted">sem eventos</td></tr>'}</table></div>
+      <div class="card"><div class="pill-note">Leitura administrativa via RLS (papel super_admin). Nenhuma ação de escrita sobre o dado de terceiros.</div></div>`;
+  }catch(e){ main.innerHTML='<h1>Painel master</h1><div class="card"><p class="hint">Não consegui carregar — verifique as políticas (RLS) no Supabase. '+esc(e&&e.message||'')+'</p></div>'; }
+}
+
+/* dispatch: dentro do Artifact → modo local; hospedado → login/sync (com fallback local) */
+if(window.claude && window.claude.use){ bootApp(); }
+else { lxExternalAccess(bootApp); }
 </script>
 </body>
 </html>
