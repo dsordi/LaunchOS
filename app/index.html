@@ -522,7 +522,7 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.9 · 2026-11-12
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.10 · 2026-11-12
     </div>
   </aside>
   <section class="content">
@@ -4362,11 +4362,11 @@ async function lxAuthInit(CFG, done){
 }
 async function lxOnAuthed(sb, session, done){
   const user=session.user; let role='user';
-  try{ const {data}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
+  try{ const {data}=await sb.from('profiles').select('role,active').eq('id',user.id).maybeSingle();
        if(data){ if(data.active===false){ try{await sb.auth.signOut();}catch(e){} lxRenderLogin(sb,'Seu acesso foi desativado.'); return; } role=data.role||'user'; } }catch(e){}
   window.__lxUser=user; window.__lxRole=role; window.__lxSB=sb;
   // hidrata as oportunidades do usuário a partir do servidor
-  try{ const {data}=await sb.from('user_state').select('opps').eq('user_id',user.id).single(); if(data&&Array.isArray(data.opps)) opps=data.opps.filter(x=>x&&typeof x==='object').map(lxNormOpp); }catch(e){}
+  try{ const {data}=await sb.from('user_state').select('opps').eq('user_id',user.id).maybeSingle(); if(data&&Array.isArray(data.opps)) opps=data.opps.filter(x=>x&&typeof x==='object').map(lxNormOpp); }catch(e){}
   // liga a sincronização: a partir daqui, todo save() também grava no servidor (debounce)
   let _t=null; window.__lxSync=function(arr){ clearTimeout(_t); _t=setTimeout(()=>{ try{ sb.from('user_state').upsert({user_id:user.id,opps:arr,updated_at:new Date().toISOString()}).then(()=>{},()=>{}); }catch(e){} }, 600); };
   lxAudit('login');
