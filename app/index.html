@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -506,6 +507,7 @@
       <div class="sec">Visão</div>
       <a data-view="dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span></a>
       <a data-view="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Oportunidades</span></a>
+      <a data-view="jornada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v7l-4-2v-5z"/></svg><span>Jornada</span></a>
       <a data-view="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Nova oportunidade</span></a>
       <div class="sec">Decisor</div>
       <a data-view="fase1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>1 · Desenho</span></a>
@@ -520,12 +522,13 @@
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px">
         <span><span class="mark mA">A</span>fato</span><span><span class="mark mB">B</span>converg.</span><span><span class="mark mC">C</span>inferência</span><span><span class="mark mD">D</span>premissa</span>
       </div>
-      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.7 · 2026-11-12
+      Motor <b style="color:var(--ink)">determinístico</b> · auditado.<br>Todo número é premissa <b style="color:var(--accent)">[D]</b>, não previsão.<br>v3.8 · 2026-11-12
     </div>
   </aside>
   <section class="content">
     <header class="topbar">
       <div class="crumb">LaunchOS <span style="color:#5d7389">/</span> <b id="crumb">Dashboard</b></div>
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto"><span style="font-size:11px;color:var(--muted);white-space:nowrap">Oportunidade ativa</span><select id="globalOppSel" style="min-width:150px;max-width:300px;padding:6px 9px"></select></div>
       <div style="display:flex;align-items:center;gap:12px">
         <button class="btn ghost sm" id="cleanToggle" title="Recolher os cards — mostra só os títulos; clique num título para abrir">Modo simples</button>
         <button class="btn ghost sm" id="auditToggle" title="Mostrar/ocultar as marcas de confiança (A/B/C/D)">Auditar premissas</button>
@@ -765,7 +768,7 @@ function analyze(o){
 
 /* ---------------- views ---------------- */
 const main=document.getElementById('main');
-const CRUMB={dashboard:'Dashboard',list:'Oportunidades',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Fontes & princípios',corretagem:'Corretagem (escritório)'};
+const CRUMB={dashboard:'Dashboard',list:'Oportunidades',jornada:'Jornada da oportunidade',new:'Nova oportunidade',gtm:'GTM Builder',estrategia:'Estrategista',gerador:'Estrutura de lançamento',produtizacao:'Produtização',ativos:'Gerador de ativos',calendario:'Cronograma',compilador:'Compilador',recomendacao:'Recomendação',biblio:'Fontes & princípios',corretagem:'Corretagem (escritório)'};
 // ===== Navegação em 3 fases (consolidação da menu fatigue) — só frontend, não toca engines/features =====
 const PHASES={
   fase1:{label:'1 · Desenho',tools:[['gtm','Diagnóstico (GTM)'],['produtizacao','Produtização']],drawer:[['gerador','Estrutura']]},
@@ -775,7 +778,7 @@ const PHASES={
 const PHASE_ORDER=['fase1','fase2','fase3'];
 function phaseOf(v){return PHASE_ORDER.find(f=>PHASES[f].tools.concat(PHASES[f].drawer).some(t=>t[0]===v))||null;}
 function goView(v){
-  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='corretagem')viewCorretagem();
+  if(v==='dashboard')viewDashboard();else if(v==='list')viewList();else if(v==='biblio')viewBiblio();else if(v==='corretagem')viewCorretagem();else if(v==='jornada')viewJornada();
   else if(v==='gtm')viewGTM();else if(v==='estrategia')viewEstrategia();else if(v==='gerador')viewGerador();
   else if(v==='compilador')viewCompilador();else if(v==='recomendacao')viewRecomendacao();else if(v==='produtizacao')viewProdutizacao();
   else if(v==='ativos')viewAtivos();else if(v==='calendario')viewCalendario();
@@ -800,6 +803,8 @@ function setActive(v){
   document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.view===activeKey));
   const c=document.getElementById('crumb'); if(c) c.textContent = ph ? (PHASES[ph].label+' · '+(CRUMB[v]||'')) : (CRUMB[v]||(v===''?'Oportunidade':c.textContent));
   renderSubnav(v);
+  window._activeView=v;
+  if(typeof syncGlobalOpp==='function') syncGlobalOpp();
 }
 
 function viewList(){
@@ -817,6 +822,86 @@ function viewList(){
   <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
     <h2 style="margin:0">Carteira</h2><button class="btn" data-view="new">➕ Nova oportunidade</button></div>
   <table><thead><tr><th>Oportunidade</th><th>Produto</th><th>Ticket médio</th><th>Veredito</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function viewJornada(){
+  setActive('jornada');
+  if(!(((current&&current.id)?1:0)||(opps&&opps.length))){
+    main.innerHTML=`<h1>Jornada da oportunidade</h1><p class="sub">A oportunidade de ponta a ponta — E0 a E8 — com os portões que podem barrar, o funil e o split, a partir dos dados reais.</p><div class="card"><p class="hint">Cadastre uma oportunidade no Decisor para ver a jornada aqui.</p></div>`;
+    return;
+  }
+  const jpool=()=>(current&&current.id)?[current,...opps.filter(o=>o.id!==current.id)]:opps.slice();
+  viewJornada.sel=(current&&current.id)?current.id:((viewJornada.sel&&jpool().find(x=>x.id===viewJornada.sel))?viewJornada.sel:jpool()[0].id);
+  if(viewJornada.stg==null) viewJornada.stg=5;
+  const ST=[
+    {c:'E0',n:'Captura',o:'Registrar e qualificar a oportunidade (influenciador × produto × parceiro).',g:'Fit mínimo: audiência real, produto aderente, compliance sinalizado.'},
+    {c:'E1',n:'Diagnóstico',o:'Medir a audiência real e alcançável e a aderência ao produto.',g:'Audiência alcançável e engajada acima do limiar.'},
+    {c:'E2',n:'Mercado',o:'Dimensionar a demanda bottom-up (alcance × conversão × ticket).',g:'Tamanho realista acima do mínimo de viabilidade.'},
+    {c:'E3',n:'Oferta',o:'Definir a oferta e os formatos de comercialização.',g:'Produto, ticket e promessa claros.'},
+    {c:'E4',n:'Modelo',o:'Escolher o tipo de lançamento (semente, interno, externo, perpétuo, relâmpago).',g:'Modelo aderente a audiência, produto e calendário.'},
+    {c:'E5',n:'Viabilidade',o:'P&L por cenário e split entre as partes. Faturamento ≠ caixa ≠ lucro.',g:'GO/NO-GO pelo cenário conservador — este portão barra lançamentos ruins.'},
+    {c:'E6',n:'Plano',o:'Transformar o modelo em plano executável, com donos e datas.',g:'Plano completo: cada frente com responsável e prazo.'},
+    {c:'E7',n:'Execução',o:'Rodar o funil e intervir cedo pelos inputs.',g:'Métricas de input na faixa; compliance liberado antes de veicular.'},
+    {c:'E8',n:'Resultado',o:'Reconciliar previsto × realizado, liquidar o split e registrar aprendizado.',g:'Reconciliação fechada e aprendizados registrados.'}
+  ];
+  const render=()=>{
+    const o=jpool().find(x=>x.id===viewJornada.sel)||jpool()[0];
+    let a=null; try{a=analyze(o);}catch(e){a=null;}
+    const b=a?a.b:null, alc=audienciaAlcancavel(o), segs=seguidoresTotais(o), ps=planoStats(o);
+    const compPend=o.rendaVariavel&&(o.plano||[]).some(t=>t.portao&&/jurídico/i.test(t.desc)&&!t.feito);
+    const S=new Array(9).fill('pend');
+    S[0]=(o.nome||o.produtoNome)?'ok':'pend';
+    S[1]=(segs>0&&(+o.alcancePct>0))?'ok':'pend';
+    S[2]=(b&&b.leads>0)?'ok':'pend';
+    S[3]=(o.produtoNome&&(+o.ticketMensal>0||(o.planos&&o.planos.length)))?'ok':'pend';
+    S[4]=o.modelo?'ok':'pend';
+    S[5]=a?(a.vclass==='good'?'ok':(a.vclass==='bad'?'stop':'warn')):'pend';
+    const blocked=S[5]==='stop';
+    S[6]=blocked?'pend':((o.plano&&o.plano.length)?'ok':'pend');
+    S[7]=blocked?'pend':(compPend?'warn':((ps.total&&ps.done>0)?(ps.pct>=1?'ok':'cur'):'pend'));
+    S[8]=blocked?'pend':((ps.total&&ps.pct>=1)?'cur':'pend');
+    const col={ok:'var(--good)',cur:'var(--accent)',warn:'var(--warn)',stop:'var(--bad)',pend:'var(--line2)'};
+    const gly={ok:'✓',stop:'✕',warn:'!',cur:'',pend:''};
+    const nodes=ST.map((s,i)=>{
+      const st=S[i], selx=i===viewJornada.stg, fill=(st==='ok'||st==='warn'||st==='stop');
+      const cstyle=fill?`background:${col[st]};border-color:${col[st]};color:#fff`:`background:var(--surface);border-color:${col[st]};color:${st==='cur'?'var(--accent)':'var(--muted)'}${st==='cur'?';box-shadow:0 0 0 4px var(--accent-soft)':''}`;
+      return `<button data-stg="${i}" style="flex:1 1 0;min-width:68px;background:none;border:0;cursor:pointer;padding:0 2px;text-align:center"><div style="width:30px;height:30px;border:2px solid;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font:600 12px var(--fmono);${cstyle}">${gly[st]||s.c}</div><div style="font-size:10.5px;margin-top:6px;color:${st==='pend'?'var(--faint)':'var(--ink)'};${selx?'text-decoration:underline;text-underline-offset:3px':''}">${s.c} · ${s.n}</div></button>`;
+    }).join(`<div style="flex:0 0 8px;height:2px;background:var(--line);margin-top:15px"></div>`);
+    const cs=ST[viewJornada.stg], sstg=S[viewJornada.stg];
+    let note;
+    if(viewJornada.stg===5&&a){ note=`<b>${esc(a.verdict)}</b> — ${esc(a.vmsg)}`; }
+    else if(sstg==='ok'){ note='Aprovado — a oportunidade passou deste portão.'; }
+    else if(sstg==='warn'&&viewJornada.stg===7){ note='Portão de compliance aberto: renda variável sem validação jurídica concluída — a copy não pode ser veiculada.'; }
+    else if(sstg==='warn'){ note='Em teste — depende de uma premissa ainda não confirmada.'; }
+    else if(sstg==='cur'){ note=`Em andamento (${num(ps.done)}/${num(ps.total)} tarefas).`; }
+    else { note='Ainda não alcançado nesta oportunidade.'; }
+    const ncls=sstg==='stop'?'bad':(sstg==='warn'?'warn':(sstg==='ok'?'good':'neutral'));
+    let funHtml;
+    if(!a||!b||!(b.leads>0)){
+      funHtml=blocked?`<div class="disc">Oportunidade barrada no portão E5 (viabilidade) — não avança ao funil. O método prefere não gastar execução num lançamento que não se paga.</div>`:`<div class="hint">Preencha audiência, produto e aquisição no Decisor para o funil aparecer.</div>`;
+    }else{
+      const rows=[['Audiência alcançável','base × alcance',num(alc),1],['Leads','opt-in + tráfego + base',num(b.leads),1],['Vendas','conversão da lista',num(b.vendas,0),0],['Clientes efetivos','passam dos 7 dias',num(b.efetivos,0),0],['Receita contratada','ao longo do termo',brl(b.receita),0]];
+      const w=[100,80,62,46,34];
+      funHtml=`<div style="display:flex;flex-direction:column;gap:6px;max-width:640px;margin:0 auto">`+rows.map((r,i)=>`<div style="width:${w[i]}%;min-width:200px;margin:0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 15px"><div style="min-width:0"><div style="font-weight:600;font-size:13px">${r[0]}</div><div style="font-size:11px;color:var(--faint)">${r[1]}</div></div><div style="text-align:right;flex:0 0 auto"><div style="font:600 14px var(--fmono)">${r[2]}</div>${r[3]?`<span class="chip" style="font-size:9.5px;color:var(--accent);background:var(--accent-soft);border-color:var(--accent)">input</span>`:`<span class="chip neutral" style="font-size:9.5px">output</span>`}</div></div>`).join('')+`</div><p class="hint" style="text-align:center;margin-top:10px">Números do motor (cenário-base), premissas <b>[D]</b>. Gerir os <b>inputs</b>; a receita é <b>output</b>.</p>`;
+    }
+    let splitHtml;
+    if(a&&!blocked){
+      const parts=o.partes||[], sum=parts.reduce((x,p)=>x+(+p.pct||0),0)||100, pcol=['var(--a)','var(--b)','var(--c)','var(--d)'];
+      splitHtml=`<div style="display:flex;height:36px;border:1px solid var(--line);border-radius:9px;overflow:hidden">`+parts.map((p,i)=>`<div style="width:${((+p.pct||0)/sum)*100}%;background:${pcol[i%4]};display:flex;align-items:center;justify-content:center;color:#fff;font:600 11px var(--fmono);min-width:0;white-space:nowrap;overflow:hidden">${esc(p.nome)} ${num(+p.pct||0)}%</div>`).join('')+`</div><div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px">`+parts.map((p,i)=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)"><span style="width:9px;height:9px;border-radius:50%;background:${pcol[i%4]}"></span>${esc(p.nome)} · ${brl((a.dB.nets&&a.dB.nets[i])||0)}</span>`).join('')+`</div>`+(a.dB.estouro?`<div class="alertbox" style="margin-top:10px">Operador no vermelho: o aporte não é recuperado neste cenário. O parceiro é protegido; a Nelogica absorve a perda.</div>`:'');
+    }else{
+      splitHtml=`<p class="hint">Sem split — a oportunidade não passou da viabilidade.</p>`;
+    }
+    const pnl=(t,inner)=>`<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px">${t?`<h2 style="margin:0 0 14px">${t}</h2>`:''}${inner}</div>`;
+    main.innerHTML=`<h1>Jornada da oportunidade</h1><p class="sub">A oportunidade de ponta a ponta — E0 a E8 — portões que podem barrar, funil e split, a partir dos dados reais do Decisor.</p>`
+      +pnl('',`<div style="max-width:460px"><label>Oportunidade</label><select id="jornOppSel">${jpool().map(x=>`<option value="${esc(x.id)}" ${x.id===viewJornada.sel?'selected':''}>${esc(x.produtoNome||x.nome||'(sem nome)')}</option>`).join('')}</select></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><span class="chip neutral">${esc(o.produtoNome||'—')}</span><span class="chip ${a?a.vclass:'neutral'}">${a?esc(a.verdict):'—'}</span>${o.rendaVariavel?`<span class="chip warn">renda variável</span>`:''}</div>`)
+      +pnl(`Jornada E0 → E8 <span class="tag">clique num estágio</span>`,`<div style="display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:4px">${nodes}</div><div style="margin-top:16px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:15px 17px"><div style="display:flex;gap:10px;align-items:baseline;margin-bottom:10px"><b style="font:600 13px var(--fmono);color:var(--accent)">${cs.c}</b><b>${cs.n}</b></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px"><div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:4px">Objetivo</div><div style="font-size:13px">${cs.o}</div></div><div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:4px">Portão</div><div style="font-size:13px">${cs.g}</div></div></div><div class="verdict ${ncls}" style="margin:12px 0 0">${note}</div></div>`)
+      +pnl(`Funil de conversão <span class="tag">input = alavanca · output = resultado</span>`,funHtml)
+      +pnl(`Partes e split de receita <span class="tag">configurável por oportunidade</span>`,splitHtml)
+      +(o.rendaVariavel?pnl('Compliance',`<div class="alertbox" style="margin:0"><b>Renda variável.</b> Fase controlada: aprendizado antes de escala. Toda peça com promessa de retorno passa por compliance antes de ir ao ar (GAP-003).</div>`):'');
+    const selEl=document.getElementById('jornOppSel'); if(selEl) selEl.addEventListener('change',()=>{viewJornada.sel=selEl.value;viewJornada.stg=5;render();});
+    main.querySelectorAll('[data-stg]').forEach(n=>n.addEventListener('click',()=>{viewJornada.stg=+n.getAttribute('data-stg');render();}));
+  };
+  render();
 }
 
 const BIBLIO=[
@@ -2311,13 +2396,117 @@ function motorConhecimento(o){
 }
 // card reutilizável da recomendação aplicada (usado no Estrategista, Decisor, GTM, Compilador e na feature própria)
 function renderConhecimentoCard(o){
+  _conhecimentoOpp=o;
   const km=motorConhecimento(o);
   const rows=km.R.map(x=>`<tr><td style="white-space:nowrap"><b>${esc(x.a)}</b><br>${confWord(x.mk)}</td><td>${esc(x.r)}</td><td class="muted" style="font-size:11px">${esc(x.f)}</td></tr>`).join('');
   return `<div class="card"><h2>Conhecimento aplicado a este caso <span class="tag">a dor → o conhecimento certo, por feature</span></h2>
     <p class="hint">O motor lê o contexto da oportunidade e usa o conhecimento da base (16 livros) em cada feature, com a fonte de cada recomendação.</p>
     <div class="verdict good"><b>Dor / contexto dominante:</b> ${esc(km.dor)} — ${esc(km.contexto)}<br><span style="font-size:12.5px"><b>Maior alavanca:</b> ${esc(km.alavanca)}. <b>Maior risco:</b> ${esc(km.risco)}.</span></div>
     <div style="overflow:auto;margin-top:10px"><table><thead><tr><th>Feature</th><th>Recomendação</th><th>Fonte</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`+renderAiRecCard(o);
+}
+function renderAiRecCard(o){
+  return `<div class="card"><h2>Recomendação aplicada — gerada por IA <span class="tag">Claude aplica os livros a este caso</span></h2>
+    <p class="hint">O Claude lê <b>os dados reais desta oportunidade e o veredito do motor</b> e escreve a recomendação aplicando as técnicas da base. <b>Não inventa número</b> nem contradiz o veredito do E5; o que faltar vira <b>[colchete]</b>. Renda variável: fala de processo e competência, nunca de retorno.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="aiRecBtn">✨ Gerar recomendação com IA</button>
+      <button class="btn ghost sm" id="aiRecRegen" style="display:none">Regenerar</button>
+      <button class="btn ghost sm" id="aiRecStop" style="display:none">Parar</button>
+      <button class="btn ghost sm internal-only" id="aiRecCopy" data-copy="aiRecOut" style="display:none">copiar</button>
+      <button class="btn ghost sm" id="aiRecDl" style="display:none">Baixar (.md)</button>
+      <span id="aiRecStatus" class="muted" style="font-size:12px"></span>
+    </div>
+    <div id="aiRecOut" style="margin-top:12px"></div>
   </div>`;
+}
+function buildPromptRecomendacao(o){
+  let a=null; try{a=analyze(o);}catch(e){}
+  const km=motorConhecimento(o);
+  const alc=(typeof audienciaAlcancavel==='function')?audienciaAlcancavel(o):0;
+  const nums=a?[
+    'Veredito do motor (E5): '+a.verdict,
+    'Audiência alcançável: '+num(alc),
+    'Leads (base): '+num(a.b.leads),
+    'Vendas (base): '+num(a.b.vendas,0),
+    'Clientes efetivos (base): '+num(a.b.efetivos,0),
+    'Receita contratada (base): '+brl(a.b.receita),
+    'Break-even do operador: '+(a.be!=null?(num(a.be,2)+'% de conversão'):'—')
+  ].join('\n'):'Motor sem dados suficientes para esta oportunidade.';
+  const ctx=[
+    'Produto: '+(o.produtoNome||'[NÃO INFORMADO]'),
+    'Nicho: '+(o.nicho||o.nichoB3||'—'),
+    'Renda variável: '+(o.rendaVariavel?'SIM':'não'),
+    'Dor dominante: '+(km.dor||'—'),
+    'Contexto: '+km.contexto,
+    'Maior alavanca (determinística): '+km.alavanca,
+    'Maior risco (determinístico): '+km.risco,
+    '',
+    'NÚMEROS DO MOTOR (determinísticos — use como estão, NÃO recalcule):',
+    nums
+  ].join('\n');
+  const principios=[
+    '- Comece pelo cliente e trabalhe de trás pra frente (desired customer experience).',
+    '- O cliente é o herói; a marca é o guia (StoryBrand). Clareza vence esperteza.',
+    '- Escassez só funciona se for real; a maioria das vendas vem nas últimas 24h (Walker).',
+    '- 1º lançamento raramente bate a meta — trate como teste, não promessa (Walker/Érico).',
+    '- Seguidores ≠ influência; o que importa é engajamento ativo (Pissarra).',
+    '- Dimensionamento é bottom-up (alcance × conversão × ticket), nunca TAM de cima pra baixo.',
+    '- Gerencie os inputs (alcance, leads, presença), não os outputs (receita).',
+    '- Good-better-best; ancore o preço pelo plano mais longo (precificação comportamental).'
+  ].join('\n');
+  return [
+'Você é o estrategista-chefe de lançamentos digitais do LaunchOS, no mercado financeiro brasileiro. Aplique as técnicas dos livros da base para dar uma recomendação acionável e priorizada para ESTE caso. Escreva em português do Brasil, direto e sem jargão.',
+'',
+'=== CASO (oportunidade ativa) ===',
+ctx,
+'',
+'=== PRINCÍPIOS QUE VOCÊ DEVE APLICAR (aplique; não precisa citar autores) ===',
+principios,
+'',
+'=== REGRAS INEGOCIÁVEIS ===',
+'1) NÃO invente nem recalcule número. Use só os números do motor acima; se faltar um dado, escreva [colchete] dizendo o que preencher — jamais fabrique.',
+'2) NÃO contradiga o veredito do motor (E5). Se for NO-GO, a recomendação é COMO destravar/ajustar oferta, modelo ou split — nunca "ignore e lance".',
+'3) Renda variável: fale de competência, processo, disciplina e gestão de risco. NUNCA prometa ganho, lucro, rentabilidade ou retorno.',
+'4) Cada recomendação carrega uma marca de confiança entre colchetes: [A] fato de fonte, [B] convergência, [C] inferência, [D] a confirmar, [L] boa prática de literatura.',
+'',
+'=== O QUE ENTREGAR (Markdown, curto e direto) ===',
+'# Leitura do caso',
+'(2-3 frases: a leitura estratégica, coerente com o veredito do motor.)',
+'# As 3 jogadas que mais movem o ponteiro',
+'(3 itens priorizados; cada um: a ação concreta + por quê + a marca de confiança.)',
+'# O maior risco e como mitigar',
+'(1-2 itens, com a marca.)',
+'# O que validar antes de comprometer verba',
+'(a premissa [D] mais sensível para testar primeiro.)'
+  ].join('\n');
+}
+async function aiGerarRecomendacao(o,regen){
+  const out=document.getElementById('aiRecOut'), status=document.getElementById('aiRecStatus');
+  const btn=document.getElementById('aiRecBtn'), stop=document.getElementById('aiRecStop'), regenB=document.getElementById('aiRecRegen'), copyB=document.getElementById('aiRecCopy'), dlB=document.getElementById('aiRecDl');
+  if(!out||!o) return;
+  const sample=await getCap('sample');
+  if(!sample){ if(status)status.textContent=''; out.innerHTML='<div class="alertbox">A recomendação com IA só funciona dentro do claude.ai (Claude em runtime), autorizada pelo usuário. Use a recomendação determinística acima.</div>'; return; }
+  const prompt=buildPromptRecomendacao(o);
+  _aiRecCtl=new AbortController(); _aiRecText='';
+  if(btn)btn.disabled=true; if(stop)stop.style.display=''; if(regenB)regenB.style.display='none'; if(copyB)copyB.style.display='none'; if(dlB)dlB.style.display='none';
+  if(status)status.textContent='Pensando… (pode levar de 5 a 60s)';
+  out.innerHTML='<p class="muted">Gerando recomendação…</p>';
+  try{
+    const res=await sample(prompt,{modelTier:'complex',signal:_aiRecCtl.signal,cache:regen?false:true,onText:({text})=>{ _aiRecText=text; if(status)status.textContent='Escrevendo…'; out.innerHTML=mdLite(text); }});
+    _aiRecText=res.text; out.innerHTML=mdLite(res.text);
+    if(status)status.textContent=res.truncated?'Resposta longa — cortada; gere de novo se faltar algo.':'Pronto ✓';
+  }catch(e){
+    const code=(e&&e.code)||'erro';
+    if(code==='cancelled'){ if(status)status.textContent='Parado.'; if(e&&e.text)out.innerHTML=mdLite(e.text); }
+    else if(code==='not_granted'||code==='sampling_disabled'||code==='not_declared'||code==='capability_disabled'){ if(status)status.textContent=''; out.innerHTML='<div class="alertbox">A IA não está autorizada nesta visualização. Use a recomendação determinística acima.</div>'; }
+    else if(code==='rate_limited'){ if(status)status.textContent='Limite de uso atingido — tente de novo daqui a pouco.'; }
+    else if(code==='refused'){ if(status)status.textContent='A IA não respondeu a este caso. Ajuste o contexto e tente de novo.'; out.innerHTML=''; }
+    else { if(status)status.textContent='Falhou ('+code+'). Tente novamente.'; if(e&&e.text)out.innerHTML=mdLite(e.text); }
+  }finally{
+    const hasTxt=!!(_aiRecText&&_aiRecText.trim());
+    if(btn)btn.disabled=false; if(stop)stop.style.display='none'; if(regenB)regenB.style.display='';
+    if(copyB)copyB.style.display=hasTxt?'':'none'; if(dlB)dlB.style.display=hasTxt?'':'none';
+  }
 }
 // próximas ações concretas do caso (overdelivery, mas direto)
 function proximasAcoes(o){
@@ -3478,6 +3667,7 @@ function roteiroOrganico(o){
 // Guardrails duros: tudo é RV (nunca promessa de ganho), nunca inventa número/prova/caso (o que falta vira [colchete]).
 // Determinístico (motor financeiro) permanece intacto — a IA só atua na camada de COPY/narrativa. Fallback para o modelo estruturado.
 let _aiCtl=null, _aiRoteiroText='';
+let _aiRecCtl=null,_aiRecText='',_conhecimentoOpp=null;
 async function salvarDownload(nome,data,mime){
   const dl=await getCap('downloads');
   if(dl){ try{ await dl.save({filename:nome,data}); return true; }catch(e){ if(e&&e.code==='declined') return false; } }
@@ -4064,6 +4254,31 @@ main.addEventListener('click',e=>{
   if(open){const o=opps.find(x=>x.id===open.dataset.open);if(o){current=JSON.parse(JSON.stringify(o));viewDetail(current);}return;}
   if(nv){goView(nv.dataset.view);}});
 const topNewBtn=document.getElementById('topNew'); if(topNewBtn) topNewBtn.addEventListener('click',()=>{current=blankOpp();viewDetail(current);});
+/* Recomendação aplicada por IA (runtime, capability sample) — binder delegado */
+main.addEventListener('click',e=>{
+  const b=e.target.closest('#aiRecBtn, #aiRecRegen, #aiRecStop, #aiRecDl'); if(!b) return;
+  const o=_conhecimentoOpp||current; if(!o){alert('Abra uma oportunidade primeiro.');return;}
+  if(b.id==='aiRecStop'){ if(_aiRecCtl)_aiRecCtl.abort(); return; }
+  if(b.id==='aiRecDl'){ if(!_aiRecText){alert('Gere a recomendação primeiro.');return;} const nm=((o.produtoNome||o.nome||'recomendacao').replace(/[^\w\s\-À-ÿ]/g,'').replace(/\s+/g,'_').slice(0,60)||'recomendacao')+'_recomendacao_IA.md'; salvarDownload(nm,'# Recomendação aplicada — '+((o.produtoNome||o.nome||'Projeto'))+'\n\n'+_aiRecText,'text/markdown;charset=utf-8'); return; }
+  aiGerarRecomendacao(o,b.id==='aiRecRegen');
+});
+function syncGlobalOpp(){
+  const g=document.getElementById('globalOppSel'); if(!g) return;
+  const list=opps.slice();
+  if(current&&current.id&&!list.find(x=>x.id===current.id)) list.unshift(current);
+  g.innerHTML=list.length?list.map(x=>`<option value="${esc(x.id)}">${esc(x.produtoNome||x.nome||'(sem nome)')}</option>`).join(''):'<option value="">— sem oportunidades —</option>';
+  if(current&&current.id) g.value=current.id;
+}
+(function(){ const g=document.getElementById('globalOppSel'); if(!g) return;
+  g.addEventListener('change',()=>{
+    const src=opps.find(x=>x.id===g.value); if(!src) return;
+    current=JSON.parse(JSON.stringify(src));
+    gtmOpp=estrOpp=compOpp=recOpp=prodOpp=ativosOpp=cronoOpp=null; corrSel=current.id; _roteiroOpp=null;
+    if(typeof viewJornada==='function') viewJornada.sel=current.id;
+    goView(window._activeView||'dashboard');
+  });
+  syncGlobalOpp();
+})();
 const auditBtn=document.getElementById('auditToggle'); if(auditBtn) auditBtn.addEventListener('click',function(){document.body.classList.toggle('audit-on');this.classList.toggle('on',document.body.classList.contains('audit-on'));});
 
 /* ---------------- Modo limpo: cards recolhíveis (progressive disclosure, só frontend) ---------------- */
@@ -4211,3 +4426,5 @@ else { lxExternalAccess(bootApp); }
 </script>
 </body>
 </html>
+
+</body></html>
